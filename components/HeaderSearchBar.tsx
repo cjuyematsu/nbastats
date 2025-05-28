@@ -48,16 +48,20 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
              // setError(`No players found matching "${query}".`); // Optional: set error if no results
         }
 
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Error fetching suggestions:', e);
-        setError(`Failed to fetch suggestions. Details: ${e.message || 'Unknown error'}`);
+        let message = 'Unknown error';
+        if (e instanceof Error) {
+          message = e.message || 'Unknown error';
+        }
+        setError(`Failed to fetch suggestions. Details: ${message}`);
         setSuggestions([]);
         setIsSuggestionsVisible(false);
       } finally {
         setIsLoadingSuggestions(false);
       }
     }, 350),
-    []
+    [supabase]
   );
 
   useEffect(() => {
@@ -120,7 +124,7 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
       )}
       {isSuggestionsVisible && !isLoadingSuggestions && suggestions.length === 0 && searchTerm.length >= 2 && !error && (
         <div className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md mt-1 shadow-lg p-2 text-gray-700 dark:text-gray-300 text-sm">
-          No players found for "{searchTerm}".
+          No players found for &quot;{searchTerm}&quot;.
         </div>
       )}
       {error && isSuggestionsVisible && searchTerm.length >=2 && ( // Display error only if suggestions are meant to be visible

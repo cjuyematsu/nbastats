@@ -2,8 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // Now a strongly-typed client
-import type { Database } from '@/types/supabase'; // For deriving row types
+import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
 import { debounce } from 'lodash';
 import { Line } from 'react-chartjs-2';
@@ -18,29 +17,23 @@ import {
   Legend,
   ChartOptions,
   ChartData,
+  ChartDataset, // Import for explicit typing
   Filler,
   TooltipItem,
+  ScriptableContext,
 } from 'chart.js';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler
 );
 
-const MAX_PLAYERS = 5; // This now dictates the fixed number of player slots
+const MAX_PLAYERS = 5;
 
-const teamColors: { [key: string]: string } = {
-  'Hawks': '#E03A3E', 'Celtics': '#007A33', 'Nets': '#000000', 'Hornets': '#1D1160',
-  'Bulls': '#CE1141', 'Cavaliers': '#860038', 'Mavericks': '#00538C', 'Nuggets': '#0E2240',
-  'Pistons': '#C8102E', 'Warriors': '#006BB6', 'Rockets': '#CE1141', 'Pacers': '#002D62',
-  'Clippers': '#C8102E', 'Lakers': '#552583', 'Grizzlies': '#5D76A9', 'Heat': '#98002E',
-  'Bucks': '#00471B', 'Timberwolves': '#0C2340', 'Pelicans': '#0C2340', 'Knicks': '#006BB6',
-  'Thunder': '#007AC1', 'Magic': '#0077C0', '76ers': '#ED174C', 'Suns': '#1D1160',
-  'Trail Blazers': '#E03A3E', 'Kings': '#5A2D81', 'Spurs': '#C4CED3', 'Raptors': '#CE1141',
-  'Jazz': '#002B5C', 'Wizards': '#002B5C', 'Default': '#888888',
-};
-const DEFAULT_PLAYER_LINE_COLOR = '#A0A0A0';
-
-type PlayerSeasonDataFromDB = Database['public']['Tables']['regularseasonstats']['Row'];
+// New: Define distinct colors for player lines
+const PLAYER_COLORS = [
+  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+  '#FF9F40', '#E7E9ED', '#8390FA',
+];
 
 interface PlayerSearchInputProps {
   index: number;
@@ -50,25 +43,33 @@ interface PlayerSearchInputProps {
 }
 
 interface SelectedPlayerData {
-    PlayerAge: number | null;
-    playerteamName: string;
-    [key: string]: number | string | null;
+  PlayerAge: number | null;
+  playerteamName: string;
+  [key: string]: number | string | null;
 }
 
-function isSelectedPlayerDataArray(data: any): data is SelectedPlayerData[] {
+// Type for custom chart data points, retaining team for tooltips
+interface CustomChartPoint {
+  x: number;
+  y: number | null;
+  team: string | null; // Keep team for tooltip information
+}
+
+function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] {
   if (!Array.isArray(data)) {
-      return false;
+    return false;
   }
   if (data.length === 0) {
-      return true;
+    return true;
   }
   const firstElement = data[0];
   return (
-      typeof firstElement === 'object' &&
-      firstElement !== null &&
-      typeof firstElement.error === 'undefined' &&
-      'PlayerAge' in firstElement &&
-      'playerteamName' in firstElement
+    typeof firstElement === 'object' &&
+    firstElement !== null &&
+    // Ensure 'error' property, if potentially present from a failed fetch, isn't mistaken for data
+    typeof (firstElement as { error?: unknown }).error === 'undefined' &&
+    'PlayerAge' in firstElement &&
+    'playerteamName' in firstElement
   );
 }
 
@@ -94,7 +95,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
         if (rpcError) throw rpcError;
         setSuggestions(data || []);
         setIsSuggestionsVisible(true);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(`Error fetching suggestions for Player ${index + 1}:`, e);
         setSuggestions([]);
         setIsSuggestionsVisible(false);
@@ -116,10 +117,10 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
 
   useEffect(() => {
     if (!selectedPlayer && searchTerm) {
-        debouncedFetchSuggestions(searchTerm);
+      debouncedFetchSuggestions(searchTerm);
     } else if (!searchTerm) {
-        setSuggestions([]);
-        setIsSuggestionsVisible(false);
+      setSuggestions([]);
+      setIsSuggestionsVisible(false);
     }
     return () => debouncedFetchSuggestions.cancel();
   }, [searchTerm, debouncedFetchSuggestions, selectedPlayer]);
@@ -170,7 +171,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
             title="Remove player"
             aria-label={`Remove ${selectedPlayer.firstName} ${selectedPlayer.lastName}`}
           >
-            &#x2715;
+            &#x2715; {/* Checkmark/X for remove */}
           </button>
         )}
       </div>
@@ -190,7 +191,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
       )}
        {isSuggestionsVisible && searchTerm.length >= 2 && suggestions.length === 0 && !isLoading && !selectedPlayer && (
         <div className="absolute z-10 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg p-2 text-sm text-slate-400">
-          No players found matching "{searchTerm}".
+          No players found matching &quot;{searchTerm}&quot;.
         </div>
       )}
     </div>
@@ -218,7 +219,8 @@ export default function PlayerComparisonChart() {
   const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(Array(MAX_PLAYERS).fill(null));
   const [selectedStat, setSelectedStat] = useState<string>(availableStats[0].value);
   const [seasonType, setSeasonType] = useState<'regular' | 'playoffs'>('regular');
-  const [chartData, setChartData] = useState<ChartData<'line'> | null>(null);
+  // Explicitly type chartData with CustomChartPoint
+  const [chartData, setChartData] = useState<ChartData<'line', CustomChartPoint[]> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -244,7 +246,8 @@ export default function PlayerComparisonChart() {
 
     setIsLoadingChart(true);
     setError(null);
-    const datasets = [];
+    // Explicitly type the datasets array
+    const datasets: ChartDataset<'line', CustomChartPoint[]>[] = [];
     const allAgesAcrossPlayers = new Set<number>();
     const currentTableName = seasonType === 'regular' ? 'regularseasonstats' : 'playoffstats';
 
@@ -253,11 +256,14 @@ export default function PlayerComparisonChart() {
         const player = activePlayers[i];
         if (!player || !player.personId) continue;
 
+        // Assign a distinct color to each player
+        const playerLineColor = PLAYER_COLORS[i % PLAYER_COLORS.length];
+
         const columnsToSelect = `PlayerAge, playerteamName, "${selectedStat}"`;
 
         const { data: fetchedData, error: dbError } = await supabase
           .from(currentTableName)
-          .select<string, SelectedPlayerData>(columnsToSelect)
+          .select<string, SelectedPlayerData>(columnsToSelect) // supabase-js v2 style
           .eq('personId', player.personId)
           .order('PlayerAge', { ascending: true });
 
@@ -278,7 +284,7 @@ export default function PlayerComparisonChart() {
           );
         }
         
-        const playerCareerDataPoints: { x: number; y: number | null; team: string | null }[] = [];
+        const playerCareerDataPoints: CustomChartPoint[] = [];
         
         if (seasonApiData && seasonApiData.length > 0) {
           const validSeasonsWithAge = seasonApiData.filter(
@@ -325,30 +331,27 @@ export default function PlayerComparisonChart() {
         }
 
         if (playerCareerDataPoints.length > 0) {
-          const playerSpecificColor = DEFAULT_PLAYER_LINE_COLOR;
           datasets.push({
             label: `${player.firstName || ''} ${player.lastName || ''}`.trim(),
-            data: playerCareerDataPoints as any,
-            borderColor: playerSpecificColor,
+            data: playerCareerDataPoints, // No 'as any' needed due to typed datasets and CustomChartPoint
+            borderColor: playerLineColor, // Player-specific line color
+            backgroundColor: playerLineColor + '33', // Optional: semi-transparent fill
             tension: 0.1,
-            fill: false,
-            pointRadius: 0,
-            pointHoverRadius: (ctx: any) => (ctx.raw?.y === null ? 0 : 7),
-            pointHitRadius: 2,
-            pointBackgroundColor: (ctx: any) => {
-                 if (ctx.raw?.y === null) return 'transparent';
-                 const teamName = ctx.raw?.team as string | null;
-                 return teamName ? (teamColors[teamName] || playerSpecificColor) : playerSpecificColor;
+            fill: false, // Set to true if you want area fill with backgroundColor
+            pointRadius: 0, // Points not visible by default
+            pointHoverRadius: (ctx: ScriptableContext<'line'>) => {
+              const rawData = ctx.raw as CustomChartPoint | undefined;
+              return rawData?.y === null ? 0 : 7; // Show on hover if data exists
             },
-            spanGaps: false,
-            segment: {
-              borderColor: (ctx: any) => {
-                const pointData = ctx.p0?.raw as { y: number | null; team: string | null } | undefined;
-                if (!pointData || pointData.y === null) return 'transparent';
-                const teamName = pointData.team;
-                return teamName ? (teamColors[teamName] || playerSpecificColor) : playerSpecificColor;
-              },
+            pointHitRadius: 3,
+            pointBackgroundColor: (ctx: ScriptableContext<'line'>) => { // Point color on hover
+              const rawData = ctx.raw as CustomChartPoint | undefined;
+              if (rawData?.y === null) return 'transparent';
+              return playerLineColor; // Player-specific point color
             },
+            spanGaps: false, // Lines will break over null data points
+            // segment.borderColor can be removed if all drawn segments take playerLineColor from dataset.borderColor
+            // If spanGaps were true, you might use segment.borderColor to style the spanned gap.
           });
         }
       }
@@ -358,13 +361,17 @@ export default function PlayerComparisonChart() {
         setChartData(null);
       } else if (datasets.length > 0) {
         const sortedAges = Array.from(allAgesAcrossPlayers).sort((a, b) => a - b);
-        setChartData({ labels: sortedAges.map(String), datasets: datasets as any });
+        setChartData({ labels: sortedAges.map(String), datasets });
       } else {
         setChartData(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error processing chart data:', e);
-      setError(e.message || 'Failed to generate chart data.');
+      if (e instanceof Error) {
+        setError(e.message || 'Failed to generate chart data.');
+      } else {
+        setError('Failed to generate chart data due to an unknown error.');
+      }
       setChartData(null);
     } finally {
       setIsLoadingChart(false);
@@ -381,12 +388,12 @@ export default function PlayerComparisonChart() {
     }
   }, [selectedPlayers, selectedStat, seasonType, fetchChartDataForAllPlayers]);
 
-  const chartTextColor = '#D1D5DB';
-  const chartGridColor = 'rgba(255, 255, 255, 0.1)';
-  const chartTooltipBgColor = 'rgba(31, 41, 55, 0.9)';
-  const chartTooltipTitleColor = '#F3F4F6';
-  const chartTooltipBodyColor = '#E5E7EB';
-  const chartTooltipBorderColor = '#4B5563';
+  const chartTextColor = '#D1D5DB'; // slate-300
+  const chartGridColor = 'rgba(71, 85, 105, 0.5)'; // slate-500 with opacity, adjust as needed
+  const chartTooltipBgColor = 'rgba(30, 41, 59, 0.9)'; // slate-800 with opacity
+  const chartTooltipTitleColor = '#F9FAFB'; // slate-50
+  const chartTooltipBodyColor = '#E5E7EB'; // slate-200
+  const chartTooltipBorderColor = '#4B5563'; // slate-600
 
   const dynamicChartOptions = React.useMemo(() => {
     const options: ChartOptions<'line'> = {
@@ -394,7 +401,7 @@ export default function PlayerComparisonChart() {
         maintainAspectRatio: false,
         interaction: {
             intersect: false,
-            mode: 'x',
+            mode: 'x', // 'index' or 'x' are common for comparing points at the same x-value
         },
         plugins: {
           legend: {
@@ -404,7 +411,7 @@ export default function PlayerComparisonChart() {
           title: {
             display: true,
             text: `${seasonType.charAt(0).toUpperCase() + seasonType.slice(1)} - ${availableStats.find(s => s.value === selectedStat)?.label || selectedStat} vs. Age`,
-            font: { size: 18, weight: 'bold' },
+            font: { size: 18, weight: 'bold' }, // No 'as any'
             color: chartTextColor,
             padding: { top: 10, bottom: 20 }
           },
@@ -420,20 +427,21 @@ export default function PlayerComparisonChart() {
                 label: function(context: TooltipItem<'line'>) {
                     let label = context.dataset.label || '';
                     if (label) { label += ': '; }
-                    const rawData = context.raw as { y: number | null; team: string | null };
-                    if (rawData.y !== null && rawData.y !== undefined) {
+                    const rawData = context.raw as CustomChartPoint | undefined; // Use CustomChartPoint
+                    if (rawData?.y !== null && typeof rawData?.y !== 'undefined') {
                         const yValue = Number(rawData.y);
                         if (selectedStat.includes('_PCT')) {
                             label += (yValue * 100).toFixed(1) + '%';
                         } else if (selectedStat.includes('_per_g')) {
                             label += yValue.toFixed(1);
                         } else {
-                            label += yValue.toFixed(0);
+                            label += yValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: (selectedStat.includes('_per_g') || selectedStat.includes('_PCT') ? 1 : 0) });
                         }
-                        if (rawData.team) { label += ` (${rawData.team})`; }
+                        // Include team name in tooltip if available
+                        if (rawData?.team) { label += ` (${rawData.team})`; }
                     } else {
                         label += 'N/A';
-                        if (rawData.team) { label += ` (On ${rawData.team}, No Data)`; }
+                        if (rawData?.team) { label += ` (On ${rawData.team}, No Data)`; }
                     }
                     return label;
                 }
@@ -443,12 +451,14 @@ export default function PlayerComparisonChart() {
         scales: {
           x: {
             type: 'linear',
-            title: { display: true, text: 'Player Age', color: chartTextColor, font: { size: 14, weight: '500' as any }},
+            title: { display: true, text: 'Player Age', color: chartTextColor, 
+                     font: { size: 14, weight: 'bold' }}, 
             ticks: { color: chartTextColor },
             grid: { color: chartGridColor }
           },
           y: {
-            title: { display: true, text: availableStats.find(s => s.value === selectedStat)?.label || selectedStat, color: chartTextColor, font: { size: 14, weight: '500' as any }},
+            title: { display: true, text: availableStats.find(s => s.value === selectedStat)?.label || selectedStat, color: chartTextColor, 
+                     font: { size: 14, weight: 'bold' }}, 
             ticks: {
                 color: chartTextColor,
                 callback: function(value: string | number) {
@@ -456,11 +466,12 @@ export default function PlayerComparisonChart() {
                     if (selectedStat.includes('_PCT')) {
                         return (numValue * 100).toFixed(0) + '%';
                     }
-                    return numValue.toFixed(selectedStat.includes('_per_g') || selectedStat.includes('_PCT') ? 1 : 0);
+                    // For per_g stats, allow 1 decimal, otherwise 0 for totals.
+                    return numValue.toFixed(selectedStat.includes('_per_g') ? 1 : 0);
                 }
             },
             grid: { color: chartGridColor },
-            beginAtZero: !selectedStat.includes('_PCT')
+            beginAtZero: !selectedStat.includes('_PCT') // Percentages might not start at zero
           },
         },
     };
@@ -468,21 +479,12 @@ export default function PlayerComparisonChart() {
   }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor]);
 
   return (
-    // This outer div is for the main page component's background, border, rounding.
-    // It should fill the slot provided by RootLayout's children wrapper.
-    // No padding here, as RootLayout and the inner div below will handle it.
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
-      {/* This inner div will now handle the padding for the content.
-        - On mobile (default Tailwind breakpoint), it uses `p-4` (1rem padding on all sides).
-        - On medium screens and up (`md:`), it uses `px-4` (1rem horizontal padding) 
-          and `py-6` (1.5rem vertical padding).
-        This `md:px-4` aligns the internal content with the Header's search bar, which also effectively has 1rem left padding on desktop.
-      */}
       <div className="p-4 md:px-4 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
             <div className="lg:col-span-2 p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600">
                 <h3 className="text-xl font-semibold mb-3 text-slate-100">
-                Select Up to 5 Players ({selectedPlayers.filter(p => p !== null).length} / {MAX_PLAYERS})
+                Select Up to {MAX_PLAYERS} Players ({selectedPlayers.filter(p => p !== null).length} / {MAX_PLAYERS})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                     {Array.from({ length: MAX_PLAYERS }).map((_, index) => (

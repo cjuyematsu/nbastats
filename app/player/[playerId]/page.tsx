@@ -9,14 +9,14 @@ import { useSearchParams, useParams } from 'next/navigation'; // Import useParam
 // --- Re-include your helper functions here or import them ---
 const formatStat = (value: number | string | null | undefined, decimalPlaces: number = 1): string => {
   if (value === null || typeof value === 'undefined' || String(value).trim() === '') return 'N/A';
-  let numValue: number = typeof value === 'string' ? parseFloat(value) : value;
+  const numValue: number = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(numValue)) return 'N/A';
   return numValue.toFixed(decimalPlaces);
 };
 
 const formatPercentage = (value: number | string | null | undefined): string => {
   if (value === null || typeof value === 'undefined' || String(value).trim() === '') return 'N/A';
-  let numValue: number = typeof value === 'string' ? parseFloat(value) : value;
+  const numValue: number = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(numValue)) return 'N/A';
   return (numValue * 100).toFixed(1) + '%';
 };
@@ -103,12 +103,7 @@ export default function PlayerStatsPage(/* Removed { params }: PlayerPageProps *
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Ensure playerId from useParams is available before fetching
     if (!playerId) {
-      // This case should ideally not happen if the route is matched correctly
-      // but good practice to check.
-      // console.warn("Player ID not found in route params.");
-      // setError("Player ID not found.");
       return;
     }
 
@@ -129,9 +124,13 @@ export default function PlayerStatsPage(/* Removed { params }: PlayerPageProps *
         });
         if (regularRpcError) throw new Error(`Regular Season Stats Error: ${regularRpcError.message}`);
         setSelectedPlayerRegularStats(regularData && regularData.length > 0 ? regularData[0] : null);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Error fetching regular season stats:', e);
-        setError(e.message || 'Failed to fetch regular stats.');
+        if (e instanceof Error) {
+          setError(e.message || 'Failed to fetch regular stats.');
+        } else {
+          setError('Failed to fetch regular stats due to an unknown error.');
+        }
       } finally {
         setIsLoadingRegularStats(false);
       }
@@ -150,16 +149,20 @@ export default function PlayerStatsPage(/* Removed { params }: PlayerPageProps *
         });
         if (playoffRpcError) throw new Error(`Playoff Stats Error: ${playoffRpcError.message}`);
         setSelectedPlayerPlayoffStats(playoffData && playoffData.length > 0 ? playoffData[0] : null);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Error fetching playoff stats:', e);
-        setError(prevError => prevError ? `${prevError}\n${e.message}` : (e.message || 'Failed to fetch playoff stats.'));
+        let message = 'Failed to fetch playoff stats due to an unknown error.';
+      if (e instanceof Error) {
+        message = e.message || 'Failed to fetch playoff stats.';
+      }
+      setError(prevError => prevError ? `<span class="math-inline">\{prevError\}\\n</span>{message}` : message);
       } finally {
         setIsLoadingPlayoffStats(false);
       }
     };
 
     fetchStats();
-  }, [playerId]); // useEffect now correctly depends on playerId from useParams
+  }, [playerId, error, selectedPlayerRegularStats]); 
 
   const playerDisplayName = selectedPlayerRegularStats?.firstName || selectedPlayerPlayoffStats?.firstName || (playerName !== "Player" ? playerName.split(" ")[0] : "");
   const playerDisplayLastName = selectedPlayerRegularStats?.lastName || selectedPlayerPlayoffStats?.lastName || (playerName !== "Player" ? playerName.split(" ").slice(1).join(" ") : "");
@@ -177,7 +180,7 @@ export default function PlayerStatsPage(/* Removed { params }: PlayerPageProps *
       {(isLoadingRegularStats || isLoadingPlayoffStats) && (
         <div className="text-center py-10">
           <div className="inline-block w-12 h-12 border-4 border-t-blue-600 border-r-blue-600 border-b-gray-200 border-l-gray-200 dark:border-b-gray-700 dark:border-l-gray-700 rounded-full animate-spin"></div>
-          <p className="mt-3 text-lg text-gray-600 dark:text-gray-300">Loading {playerName}'s career stats...</p>
+          <p className="mt-3 text-lg text-gray-600 dark:text-gray-300">Loading {playerName}&apos;s career stats...</p>
         </div>
       )}
 

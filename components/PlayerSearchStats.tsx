@@ -1,21 +1,20 @@
 'use client';
 
 import { supabase } from '@/lib/supabaseClient';
-import { PlayerSuggestion, CareerStatsData } from '@/types/stats'; 
+import { PlayerSuggestion, CareerStatsData } from '@/types/stats';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 
-// Helper functions (formatStat, formatPercentage) remain the same...
 const formatStat = (value: number | string | null | undefined, decimalPlaces: number = 1): string => {
   if (value === null || typeof value === 'undefined' || String(value).trim() === '') return 'N/A';
-  let numValue: number = typeof value === 'string' ? parseFloat(value) : value;
+  const numValue: number = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(numValue)) return 'N/A';
   return numValue.toFixed(decimalPlaces);
 };
 
 const formatPercentage = (value: number | string | null | undefined): string => {
   if (value === null || typeof value === 'undefined' || String(value).trim() === '') return 'N/A';
-  let numValue: number = typeof value === 'string' ? parseFloat(value) : value;
+  const numValue: number = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(numValue)) return 'N/A';
   return (numValue * 100).toFixed(1) + '%';
 };
@@ -25,13 +24,13 @@ export default function PlayerSearchStats() {
   const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  
+
   const [selectedPlayerRegularStats, setSelectedPlayerRegularStats] = useState<CareerStatsData | null>(null);
   const [selectedPlayerPlayoffStats, setSelectedPlayerPlayoffStats] = useState<CareerStatsData | null>(null);
-  
+
   const [isLoadingRegularStats, setIsLoadingRegularStats] = useState(false);
   const [isLoadingPlayoffStats, setIsLoadingPlayoffStats] = useState(false);
-  
+
   const [error, setError] = useState<string | null>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -48,19 +47,25 @@ export default function PlayerSearchStats() {
         const { data, error: rpcError } = await supabase.rpc('get_player_suggestions', {
           search_term: query,
         });
-        if (rpcError) throw rpcError;
+        if (rpcError) throw rpcError; // Supabase error object often has message
         setSuggestions(data || []);
         setIsSuggestionsVisible(true);
-      } catch (e: any) {
+      } catch (e: unknown) { 
         console.error('Error fetching suggestions:', e);
-        setError(`Failed to fetch suggestions. Details: ${e.message || 'Unknown error'}. Make sure "get_player_suggestions" function is working.`);
+        let message = 'Unknown error fetching suggestions.';
+        if (e instanceof Error) {
+          message = e.message;
+        } else if (typeof (e as { message?: string })?.message === 'string') {
+          message = (e as { message: string }).message;
+        }
+        setError(`Failed to fetch suggestions. Details: ${message}. Make sure "get_player_suggestions" function is working.`);
         setSuggestions([]);
         setIsSuggestionsVisible(false);
       } finally {
         setIsLoadingSuggestions(false);
       }
     }, 350),
-    []
+    [supabase] 
   );
 
   useEffect(() => {
@@ -68,7 +73,7 @@ export default function PlayerSearchStats() {
     return () => {
       debouncedFetchSuggestions.cancel();
     };
-  }, [searchTerm, debouncedFetchSuggestions]);
+  }, [searchTerm, debouncedFetchSuggestions]); 
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -80,12 +85,12 @@ export default function PlayerSearchStats() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [searchContainerRef]);
+  }, [searchContainerRef]); 
 
   const handleSelectPlayer = async (player: PlayerSuggestion) => {
     setSearchTerm(`${player.firstName || ''} ${player.lastName || ''}`.trim());
     setIsSuggestionsVisible(false);
-    
+
     setSelectedPlayerRegularStats(null);
     setSelectedPlayerPlayoffStats(null);
     setError(null);
@@ -107,9 +112,13 @@ export default function PlayerSearchStats() {
       } else {
         setSelectedPlayerRegularStats(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) { 
       console.error('Error fetching regular season career stats:', e);
-      setError(e.message || 'Failed to fetch regular season career stats.');
+      if (e instanceof Error) {
+        setError(e.message || 'Failed to fetch regular season career stats.');
+      } else {
+        setError('An unknown error occurred while fetching regular season career stats.');
+      }
     } finally {
       setIsLoadingRegularStats(false);
     }
@@ -128,9 +137,13 @@ export default function PlayerSearchStats() {
         } else {
             setSelectedPlayerPlayoffStats(null);
         }
-    } catch (e: any) {
+    } catch (e: unknown) { 
         console.error('Error fetching playoff career stats:', e);
-        setError(prevError => prevError ? `${prevError}\n${e.message}` : (e.message || 'Failed to fetch playoff career stats.'));
+        let message = 'An unknown error occurred while fetching playoff career stats.';
+        if (e instanceof Error) {
+            message = e.message || 'Failed to fetch playoff career stats.';
+        }
+        setError(prevError => prevError ? `${prevError}\n${message}` : message);
     } finally {
         setIsLoadingPlayoffStats(false);
     }
@@ -146,7 +159,7 @@ export default function PlayerSearchStats() {
         );
     }
 
-    const tableHeaderLabel = statType === "Totals" ? "Total" : "Average / %"; 
+    const tableHeaderLabel = statType === "Totals" ? "Total" : "Average / %";
 
     return (
         <section className="mb-12">
@@ -163,9 +176,6 @@ export default function PlayerSearchStats() {
                   {statType === "Totals" ? (
                     <>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Games Played (G)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.games_played ?? 'N/A'}</td></tr>
-                      {/* --- REMOVED Minutes Played (MP) Total ---
-                      <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Minutes Played (MP)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.mp_total?.toLocaleString() ?? 'N/A'}</td></tr>
-                      */}
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Points (PTS)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.pts_total?.toLocaleString() ?? 'N/A'}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Assists (AST)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.ast_total?.toLocaleString() ?? 'N/A'}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Total Rebounds (TRB)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.trb_total?.toLocaleString() ?? 'N/A'}</td></tr>
@@ -179,9 +189,6 @@ export default function PlayerSearchStats() {
                     </>
                   ) : ( // Averages & Percentages
                     <>
-                      {/* --- REMOVED Minutes Per Game (MPG) ---
-                      <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Minutes Per Game (MPG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.mp_per_g)}</td></tr>
-                      */}
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Points Per Game (PPG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.pts_per_g)}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Assists Per Game (APG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.ast_per_g)}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Rebounds Per Game (RPG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.trb_per_g)}</td></tr>
@@ -240,12 +247,14 @@ export default function PlayerSearchStats() {
         )}
         {isSuggestionsVisible && !isLoadingSuggestions && suggestions.length === 0 && searchTerm.length >= 2 && (
             <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg mt-1 shadow-lg p-3 text-gray-700 dark:text-gray-300">
-                No players found matching "{searchTerm}".
+                No players found matching &quot;{searchTerm}&quot;.
             </div>
         )}
       </div>
 
-      {error && <p className="text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200 border border-red-400 dark:border-red-700 p-3 rounded-md text-center my-4">{error}</p>}
+      {error && <p className="text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200 border border-red-400 dark:border-red-700 p-3 rounded-md text-center my-4"
+                   dangerouslySetInnerHTML={{ __html: error.replace(/\n/g, '<br />') }}></p>}
+
 
       {(isLoadingRegularStats || isLoadingPlayoffStats) && (
         <div className="text-center py-10">
@@ -270,7 +279,7 @@ export default function PlayerSearchStats() {
             }
 
           {renderStatsTable(selectedPlayerRegularStats, "Regular Season Career Totals", "Totals")}
-          {renderStatsTable(selectedPlayerRegularStats, "Regular Season Career Stats", "Averages")} 
+          {renderStatsTable(selectedPlayerRegularStats, "Regular Season Career Stats", "Averages")}
 
           {renderStatsTable(selectedPlayerPlayoffStats, "Playoff Career Totals", "Totals")}
           {renderStatsTable(selectedPlayerPlayoffStats, "Playoff Career Stats", "Averages")}
