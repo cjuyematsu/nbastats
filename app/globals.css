@@ -7,15 +7,47 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+:root {
+  --header-height: 64px; /* Example: 4rem or h-16 in Tailwind */
+  --nav-container-padding: 12px; /* Example: 0.75rem or p-3 in Tailwind for desktop */
+  
+  /* Initial values, will be updated by JavaScript */
+  --nav-actual-width: 256px; /* Default navbar width */
+  --nav-offset-left: calc(var(--nav-container-padding) + var(--nav-actual-width));
+}
+
+/* Mobile overrides where the offset is typically zero when nav is closed */
+@media (max-width: 767px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --nav-actual-width: 0px;
+    --nav-offset-left: 0px;
   }
 }
+
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
