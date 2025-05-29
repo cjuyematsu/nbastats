@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { CareerStatsData } from '@/types/stats';
 import { useSearchParams, useParams } from 'next/navigation';
 
-// --- Helper functions (formatStat, formatPercentage) ---
 const formatStat = (value: number | string | null | undefined, decimalPlaces: number = 1): string => {
   if (value === null || typeof value === 'undefined' || String(value).trim() === '') return 'N/A';
   const numValue: number = typeof value === 'string' ? parseFloat(value) : value;
@@ -56,7 +55,7 @@ const renderStatsTable = (stats: CareerStatsData | null, title: string, statType
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-300">Turnovers (TOV)</td><td className="px-4 py-2 text-right text-sm font-mono text-slate-100">{stats.tov_total?.toLocaleString() ?? 'N/A'}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-300">Personal Fouls (PF)</td><td className="px-4 py-2 text-right text-sm font-mono text-slate-100">{stats.pf_total?.toLocaleString() ?? 'N/A'}</td></tr>
                     </>
-                  ) : ( // Averages & Percentages
+                  ) : ( 
                     <>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-300">Points Per Game (PPG)</td><td className="px-4 py-2 text-right text-sm font-mono text-slate-100">{formatStat(stats.pts_per_g)}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-300">Assists Per Game (APG)</td><td className="px-4 py-2 text-right text-sm font-mono text-slate-100">{formatStat(stats.ast_per_g)}</td></tr>
@@ -78,7 +77,6 @@ const renderStatsTable = (stats: CareerStatsData | null, title: string, statType
         </section>
     );
 };
-// --- End of renderStatsTable ---
 
 export default function PlayerStatsPage() {
   const routeParams = useParams<{ playerId: string }>();
