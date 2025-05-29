@@ -1,9 +1,8 @@
-// app/top-100-players/page.tsx
 import { supabase } from '@/lib/supabaseClient';
+import Link from 'next/link';
 
 export const revalidate = 86400;
 
-// Interface for the stats part of TopPlayer
 interface PlayerSeasonStats {
   gamesPlayed: number | null;
   pointsPerGame: number | null;
@@ -16,7 +15,6 @@ interface PlayerSeasonStats {
   freeThrowPercentage: number | null;
 }
 
-// Interface for the final mapped player object
 interface TopPlayer {
   rank: number;
   personId: string | number;
@@ -27,11 +25,9 @@ interface TopPlayer {
   Prominence: number | null;
 }
 
-// NEW: Interface representing a single row returned by the RPC function
-// This should match the 'Returns' object in your types/supabase.ts for this RPC
 interface RpcPlayerStatsRow {
   rankNumber: number;
-  personId: number; // Based on your types/supabase.ts; TopPlayer.personId allows string | number for flexibility
+  personId: number; 
   firstName: string;
   lastName: string;
   playerteamName: string;
@@ -44,12 +40,10 @@ interface RpcPlayerStatsRow {
   fieldGoalPercentage: number;
   threePointPercentage: number;
   freeThrowPercentage: number;
-  weightedProminence: number; // This is the alias from your SQL for the prominence score
+  weightedProminence: number; 
 }
 
 async function getTop100PlayersData(): Promise<TopPlayer[]> {
-  // Call the Supabase RPC function
-  // After regenerating types, 'data' will be typed as RpcPlayerStatsRow[] | null
   const { data, error } = await supabase.rpc('get_top_100_prominence_2025_stats');
 
   if (error) {
@@ -62,10 +56,9 @@ async function getTop100PlayersData(): Promise<TopPlayer[]> {
     return [];
   }
 
-  // Use the RpcPlayerStatsRow type for 'p'
-  return data.map((p: RpcPlayerStatsRow) => ({ // CHANGED (p: any) to (p: RpcPlayerStatsRow)
+  return data.map((p: RpcPlayerStatsRow) => ({ 
     rank: p.rankNumber,
-    personId: p.personId, // p.personId is number, TopPlayer.personId allows string | number (compatible)
+    personId: p.personId, 
     firstName: p.firstName,
     lastName: p.lastName,
     playerteamName: p.playerteamName,
@@ -80,13 +73,10 @@ async function getTop100PlayersData(): Promise<TopPlayer[]> {
       threePointPercentage: p.threePointPercentage,
       freeThrowPercentage: p.freeThrowPercentage,
     },
-    // p.weightedProminence is number (from RpcPlayerStatsRow based on generated types)
-    // TopPlayer.Prominence is number | null. This assignment is fine.
     Prominence: p.weightedProminence,
   }));
 }
 
-// PlayerBox component (no changes needed here from your last version)
 const PlayerBox = ({ player }: { player: TopPlayer }) => {
   const stats = player.stats_2024_2025;
 
@@ -106,9 +96,13 @@ const PlayerBox = ({ player }: { player: TopPlayer }) => {
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center">
-          <span className="text-3xl font-bold text-sky-400 mr-3 w-10 text-right">{player.rank}.</span>
+        <span className="text-3xl font-bold text-sky-400 mr-5 w-12 text-right">{player.rank}.</span>          
           <div>
-            <h3 className="text-xl font-semibold leading-tight hover:text-sky-300">{`${player.firstName} ${player.lastName}`}</h3>
+          <Link href={`/player/${player.personId}`}>
+              <h3 className="text-xl font-semibold leading-tight hover:text-sky-300 cursor-pointer">
+                {`${player.firstName} ${player.lastName}`}
+              </h3>
+            </Link>
             <p className="text-sm text-slate-400">{player.playerteamName}</p>
           </div>
         </div>
@@ -124,14 +118,6 @@ const PlayerBox = ({ player }: { player: TopPlayer }) => {
           ))}
         </div>
       </div>
-      {/* Optional Prominence Display
-      {player.Prominence !== null && player.Prominence !== undefined && (
-        <div className="mt-2 pt-2 border-t border-slate-600 text-center">
-          <span className="text-xs text-slate-400">Prominence Score: </span>
-          <span className="text-sm font-semibold text-sky-300">{player.Prominence.toFixed(3)}</span>
-        </div>
-      )}
-      */}
     </div>
   );
 };
@@ -171,7 +157,7 @@ export default async function Top100PlayersPage() {
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
       <div className="p-4 md:py-6">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-sky-400">
-          Top 100 Prominent Players <span className="block sm:inline text-2xl sm:text-3xl text-slate-300">(2024-2025 Season)</span>
+          Top 100 <span className="block sm:inline text-2xl sm:text-3xl text-slate-300">(2024-2025)</span>
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           {players.map((player) => (
