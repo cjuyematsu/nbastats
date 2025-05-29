@@ -223,7 +223,7 @@ export default function Navbar() {
             </div>
             <div className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
               <NavLink href="/" icon={<HomeIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Home</NavLink>
-              <NavLink href="/player" icon={<UsersIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Player Stats</NavLink>
+              <NavLink href="/top-100-players" icon={<UsersIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Top 100</NavLink>              
               <NavLink href="/compare" icon={<ChartBarIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Compare Players</NavLink>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">

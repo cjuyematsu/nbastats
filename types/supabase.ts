@@ -413,6 +413,26 @@ export type Database = {
           endYear: number
         }[]
       }
+      get_top_100_prominence_2025_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          rankNumber: number
+          personId: number
+          firstName: string
+          lastName: string
+          playerteamName: string
+          gamesPlayed: number
+          pointsPerGame: number
+          reboundsPerGame: number
+          assistsPerGame: number
+          stealsPerGame: number
+          blocksPerGame: number
+          fieldGoalPercentage: number
+          threePointPercentage: number
+          freeThrowPercentage: number
+          weightedProminence: number
+        }[]
+      }
       safe_to_integer: {
         Args: { val: string; default_val?: number }
         Returns: number
