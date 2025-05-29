@@ -2,8 +2,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Navbar from '@/components/Navbar';
-import Header from '@/components/Header';
+import Navbar from '@/components/Navbar'; 
+import Header from '@/components/Header'; 
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -12,9 +12,10 @@ export const metadata: Metadata = {
   description: 'Search and compare NBA player statistics',
 };
 
-const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256; // From Navbar.tsx
-const PAGE_INSET_PADDING_PX = 12;      // For md:p-3 (0.75rem)
-const NAVBAR_HEADER_GAP_PX = 12;       // For the gap (0.75rem)
+// These constants are from your provided layout
+const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256;
+const PAGE_INSET_PADDING_PX = 12;
+const NAVBAR_HEADER_GAP_PX = 12;
 
 export default function RootLayout({
   children,
@@ -28,11 +29,9 @@ export default function RootLayout({
           :root {
             --header-height: 64px; 
             --page-inset-padding: ${PAGE_INSET_PADDING_PX}px;
-            --navbar-header-gap: ${NAVBAR_HEADER_GAP_PX}px; /* New variable for the gap */
-            
-            /* Initial desktop values, JS will update these */
+            --navbar-header-gap: ${NAVBAR_HEADER_GAP_PX}px;
             --nav-actual-width: ${DEFAULT_NAV_WIDTH_FOR_LAYOUT}px;
-            --nav-offset-left: calc(var(--page-inset-padding) + ${DEFAULT_NAV_WIDTH_FOR_LAYOUT}px + var(--navbar-header-gap)); /* Gap added here */
+            --nav-offset-left: calc(var(--page-inset-padding) + ${DEFAULT_NAV_WIDTH_FOR_LAYOUT}px + var(--navbar-header-gap));
           }
 
           @media (max-width: 767px) { 
@@ -40,17 +39,26 @@ export default function RootLayout({
               --nav-actual-width: 0px; 
               --nav-offset-left: 0px; 
               --page-inset-padding: 0px; 
-              --navbar-header-gap: 0px; /* No gap on mobile as layout is different */
+              --navbar-header-gap: 0px;
             }
           }
         `}} />
       </head>
       <body className={`${inter.className} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <div 
-          className="fixed inset-0 md:p-[var(--page-inset-padding)] pointer-events-none z-[49]"
+          className="fixed inset-0 md:p-[var(--page-inset-padding)] pointer-events-none z-[49]" // Navbar wrapper is z-49
         >
           <Navbar /> 
         </div>
+        <div
+          className="hidden md:block fixed bg-gray-100 dark:bg-gray-900 z-30" // z-index below Header (z-40) but above content
+          style={{
+            top: '0px',
+            left: 'var(--nav-offset-left)', // Aligns with Header's horizontal start
+            right: 'var(--page-inset-padding)', // Aligns with Header's horizontal end
+            height: 'var(--page-inset-padding)', // Covers exactly the gap height
+          }}
+        />
         
         <Header /> 
         

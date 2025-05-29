@@ -3,21 +3,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-// Removed useRef from here if navRef is no longer used for anything else
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-// --- Icon Components (as provided by you) ---
-// ... (MenuIcon, CloseIcon, etc. remain the same)
+// --- Icon Components (No changes here) ---
 const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
-    );
+);
 const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
-    );
+);
 const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
@@ -68,7 +66,8 @@ export default function Navbar() {
   const [lastExpandedDesktopWidth, setLastExpandedDesktopWidth] = useState(DEFAULT_NAV_WIDTH);
   const [isMdScreen, setIsMdScreen] = useState(false);
 
-  // const navRef = useRef<HTMLElement>(null); // REMOVED as it's no longer used
+  const navRef = useRef<HTMLElement>(null); 
+  const toggleButtonRef = useRef<HTMLButtonElement>(null); 
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -77,7 +76,7 @@ export default function Navbar() {
       if (isMdScreen !== currentlyIsMdScreen) {
         setIsMdScreen(currentlyIsMdScreen);
         if (currentlyIsMdScreen) {
-          if (isOpenOnMobile) setIsOpenOnMobile(false);
+          if (isOpenOnMobile) setIsOpenOnMobile(false); 
            setNavWidth(prevWidth => {
             if (prevWidth === MIN_NAV_WIDTH) return MIN_NAV_WIDTH;
             return lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH;
@@ -85,22 +84,50 @@ export default function Navbar() {
         }
       }
     };
-    handleScreenResize();
+    handleScreenResize(); 
     mediaQuery.addEventListener('change', handleScreenResize);
     return () => mediaQuery.removeEventListener('change', handleScreenResize);
   }, [isMdScreen, isOpenOnMobile, lastExpandedDesktopWidth]);
 
   useEffect(() => {
-    const pageInsetPadding = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 0;
-    const navbarHeaderGap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navbar-header-gap').replace('px', '')) || 0;
-    if (isMdScreen) {
-      document.documentElement.style.setProperty('--nav-actual-width', `${navWidth}px`);
-      document.documentElement.style.setProperty('--nav-offset-left', `${pageInsetPadding + navWidth + navbarHeaderGap}px`);
-    } else {
-      document.documentElement.style.setProperty('--nav-actual-width', isOpenOnMobile ? `${DEFAULT_NAV_WIDTH}px` : '0px');
-      document.documentElement.style.setProperty('--nav-offset-left', '0px');
+    if (typeof window !== 'undefined') {
+        const pageInsetPadding = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 0;
+        const navbarHeaderGap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navbar-header-gap').replace('px', '')) || 0;
+        if (isMdScreen) {
+        document.documentElement.style.setProperty('--nav-actual-width', `${navWidth}px`);
+        document.documentElement.style.setProperty('--nav-offset-left', `${pageInsetPadding + navWidth + navbarHeaderGap}px`);
+        } else {
+        document.documentElement.style.setProperty('--nav-actual-width', isOpenOnMobile ? `${DEFAULT_NAV_WIDTH}px` : '0px');
+        document.documentElement.style.setProperty('--nav-offset-left', '0px');
+        }
     }
   }, [navWidth, isMdScreen, isOpenOnMobile]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        !isMdScreen &&
+        isOpenOnMobile &&
+        navRef.current &&
+        toggleButtonRef.current
+      ) {
+        if (
+          !navRef.current.contains(event.target as Node) &&
+          !toggleButtonRef.current.contains(event.target as Node)
+        ) {
+          setIsOpenOnMobile(false);
+        }
+      }
+    };
+
+    if (!isMdScreen && isOpenOnMobile) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpenOnMobile, isMdScreen]); 
 
   const handleToggleNav = () => {
     if (isMdScreen) {
@@ -127,26 +154,36 @@ export default function Navbar() {
     navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-white dark:bg-gray-800 shadow-xl border-r dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
   }
 
-  // MODIFIED ToggleButtonIcon logic
-    const ToggleButtonIcon = isMdScreen
-        ? (navWidth > MIN_NAV_WIDTH ? CloseIcon : MenuIcon) // If expanded, show Close/Collapse; if collapsed, show Menu/Expand
-        : (isOpenOnMobile ? CloseIcon : MenuIcon);
+  const ToggleButtonIcon = isMdScreen
+      ? (navWidth > MIN_NAV_WIDTH ? CloseIcon : MenuIcon)
+      : (isOpenOnMobile ? CloseIcon : MenuIcon);
 
-    const hamburgerButtonStyle: React.CSSProperties = {
-        left: isMdScreen
-            ? (navWidth > MIN_NAV_WIDTH // Check if navbar is expanded on desktop
-                ? `calc(var(--page-inset-padding) + 18px)` // Offset for EXPANDED state (centers align at 50px)
-                : `calc(var(--page-inset-padding) + 20px)` // Offset for COLLAPSED state (centers hamburger in nav, aligns all centers at 52px)
-            )
-            : '1rem', // Mobile styling
-        top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))`,
-        };
+  // --- MODIFIED SECTION ---
+  const hamburgerButtonStyle: React.CSSProperties = {
+    left: (() => {
+      if (!isMdScreen) { // Mobile
+        // When mobile menu is open (showing X icon), adjust left for horizontal alignment.
+        // Otherwise (Menu icon), use original '1rem'.
+        return isOpenOnMobile ? '1.25rem' : '1rem';
+      }
+      // Desktop logic (remains as you had it)
+      return navWidth > MIN_NAV_WIDTH
+        ? `calc(var(--page-inset-padding) + 18px)`
+        : `calc(var(--page-inset-padding) + 20px)`;
+    })(),
+    // Vertical position remains as it was in your provided code:
+    // It will always align with the page header's vertical center.
+    // On mobile, --page-inset-padding is 0, so effectively var(--header-height) / 2.
+    top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))`,
+  };
+  // --- END OF MODIFIED SECTION ---
 
   return (
     <>
       <button
+        ref={toggleButtonRef}
         onClick={handleToggleNav}
-        style={hamburgerButtonStyle} // This now uses the new dynamic 'left' for collapsed state
+        style={hamburgerButtonStyle}
         className={`
           fixed z-[60] p-2 rounded-md transform -translate-y-1/2
           text-gray-600 dark:text-gray-400
@@ -174,14 +211,14 @@ export default function Navbar() {
       )}
 
       <nav
-        // ref={navRef} // REMOVED as navRef is no longer used
+        ref={navRef}
         style={navElementStyle}
         className={navElementClasses}
         aria-hidden={!isMdScreen && !isOpenOnMobile}
       >
         {(isMdScreen || isOpenOnMobile) && (
           <>
-            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700 ${!isMdScreen && isOpenOnMobile ? 'mt-12' : ''}`}>
+            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700 ${''}`}>
               {/* Logo area empty */}
             </div>
             <div className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
@@ -190,9 +227,7 @@ export default function Navbar() {
               <NavLink href="/compare" icon={<ChartBarIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Compare Players</NavLink>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                {showTextInNav && (
-                     <p className="text-xs text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Your App</p>
-                )}
+                {/* Footer content was removed in user's last provided code */}
             </div>
           </>
         )}
