@@ -1,3 +1,4 @@
+// Import statements and interfaces remain the same
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 
@@ -26,8 +27,8 @@ interface TopPlayer {
 }
 
 interface RpcPlayerStatsRow {
-  rankNumber: number;
-  personId: number; 
+  rankNumber: number; 
+  personId: number;
   firstName: string;
   lastName: string;
   playerteamName: string;
@@ -40,7 +41,7 @@ interface RpcPlayerStatsRow {
   fieldGoalPercentage: number;
   threePointPercentage: number;
   freeThrowPercentage: number;
-  weightedProminence: number; 
+  weightedProminence: number;
 }
 
 async function getTop100PlayersData(): Promise<TopPlayer[]> {
@@ -56,9 +57,9 @@ async function getTop100PlayersData(): Promise<TopPlayer[]> {
     return [];
   }
 
-  return data.map((p: RpcPlayerStatsRow) => ({ 
-    rank: p.rankNumber,
-    personId: p.personId, 
+  return data.map((p: RpcPlayerStatsRow, index: number) => ({
+    rank: index + 1, // Assign rank based on array position
+    personId: p.personId,
     firstName: p.firstName,
     lastName: p.lastName,
     playerteamName: p.playerteamName,
@@ -96,7 +97,7 @@ const PlayerBox = ({ player }: { player: TopPlayer }) => {
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center">
-        <span className="text-3xl font-bold text-sky-400 mr-5 w-12 text-right">{player.rank}.</span>          
+        <span className="text-3xl font-bold text-sky-400 mr-5 w-12 text-right">{player.rank}.</span>
           <div>
           <Link href={`/player/${player.personId}`}>
               <h3 className="text-xl font-semibold leading-tight hover:text-sky-300 cursor-pointer">
