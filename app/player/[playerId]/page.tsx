@@ -28,7 +28,7 @@ const renderStatsTable = (stats: CareerStatsData | null, title: string, statType
             </div>
         );
     }
-    const tableHeaderLabel = statType === "Totals" ? "Total" : "Average / %";
+    const tableHeaderLabel = statType === "Totals" ? "Total" : "Average";
     return (
         <section className="mb-6">
             <h3 className="text-2xl font-semibold mb-4 text-slate-100 border-b border-slate-600 pb-2">{title}</h3>
