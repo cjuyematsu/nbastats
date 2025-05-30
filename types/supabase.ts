@@ -56,6 +56,7 @@ export type Database = {
           TRB_per_g: number | null
           TRB_total: number | null
           TS_PCT: number | null
+          WINS: number | null
         }
         Insert: {
           AST_per_g?: number | null
@@ -103,6 +104,7 @@ export type Database = {
           TRB_per_g?: number | null
           TRB_total?: number | null
           TS_PCT?: number | null
+          WINS?: number | null
         }
         Update: {
           AST_per_g?: number | null
@@ -150,6 +152,7 @@ export type Database = {
           TRB_per_g?: number | null
           TRB_total?: number | null
           TS_PCT?: number | null
+          WINS?: number | null
         }
         Relationships: []
       }
@@ -200,6 +203,7 @@ export type Database = {
           TRB_per_g: number | null
           TRB_total: number | null
           TS_PCT: number | null
+          WINS: number | null
         }
         Insert: {
           AST_per_g?: number | null
@@ -247,6 +251,7 @@ export type Database = {
           TRB_per_g?: number | null
           TRB_total?: number | null
           TS_PCT?: number | null
+          WINS?: number | null
         }
         Update: {
           AST_per_g?: number | null
@@ -294,27 +299,43 @@ export type Database = {
           TRB_per_g?: number | null
           TRB_total?: number | null
           TS_PCT?: number | null
+          WINS?: number | null
         }
         Relationships: []
       }
       teammates: {
         Row: {
+          EndYearTogether: number | null
           PlayerID: number
           PlayerName: string | null
+          SharedGamesRecord: string | null
+          SharedGamesTotal: number | null
+          SharedTeams: string | null
+          StartYearTogether: number | null
           TeammateID: number
-          TeammateName: string | null
+          TeammateName: string
         }
         Insert: {
+          EndYearTogether?: number | null
           PlayerID: number
           PlayerName?: string | null
+          SharedGamesRecord?: string | null
+          SharedGamesTotal?: number | null
+          SharedTeams?: string | null
+          StartYearTogether?: number | null
           TeammateID: number
-          TeammateName?: string | null
+          TeammateName: string
         }
         Update: {
+          EndYearTogether?: number | null
           PlayerID?: number
           PlayerName?: string | null
+          SharedGamesRecord?: string | null
+          SharedGamesTotal?: number | null
+          SharedTeams?: string | null
+          StartYearTogether?: number | null
           TeammateID?: number
-          TeammateName?: string | null
+          TeammateName?: string
         }
         Relationships: []
       }
