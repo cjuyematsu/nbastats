@@ -31,6 +31,11 @@ const ChartBarIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
   </svg>
 );
+const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+  </svg>
+);
 
 const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
@@ -225,6 +230,7 @@ export default function Navbar() {
               <NavLink href="/" icon={<HomeIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Home</NavLink>
               <NavLink href="/top-100-players" icon={<UsersIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Top 100</NavLink>              
               <NavLink href="/compare" icon={<ChartBarIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Compare Players</NavLink>
+              <NavLink href="/degrees-of-separation" icon={<LinkIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Six Degrees</NavLink>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 {/* Footer content was removed in user's last provided code */}
