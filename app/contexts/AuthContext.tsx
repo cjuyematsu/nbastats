@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User, Subscription } from '@supabase/supabase-js'; // Added Subscription type
+import { Session, User } from '@supabase/supabase-js'; // Added Subscription type
 import { supabase } from '@/lib/supabaseClient'; // Adjust path if your supabaseClient is elsewhere
 
 interface AuthContextType {
