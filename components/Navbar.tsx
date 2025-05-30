@@ -230,7 +230,7 @@ export default function Navbar() {
               <NavLink href="/" icon={<HomeIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Home</NavLink>
               <NavLink href="/top-100-players" icon={<UsersIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Top 100</NavLink>              
               <NavLink href="/compare" icon={<ChartBarIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Compare Players</NavLink>
-              <NavLink href="/degrees-of-separation" icon={<LinkIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Six Degrees</NavLink>
+              <NavLink href="/degrees-of-separation" icon={<LinkIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Nine Degrees</NavLink>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 {/* Footer content was removed in user's last provided code */}
