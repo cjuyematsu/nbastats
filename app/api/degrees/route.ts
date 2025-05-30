@@ -90,7 +90,7 @@ async function performBFS(
 
     const queue: { nodeId: number; currentNumericPath: number[] }[] = [{ nodeId: startNodeIdNum, currentNumericPath: [startNodeIdNum] }];
     const visited = new Set<number>([startNodeIdNum]);
-    const maxDegrees = 6;
+    const maxDegrees = 10;
 
     while (queue.length > 0) {
         const { nodeId: currentNodeId, currentNumericPath } = queue.shift()!;

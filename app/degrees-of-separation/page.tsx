@@ -241,9 +241,15 @@ function DegreesOfSeparationClientContent() {
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
       <div className="container mx-auto p-4 text-slate-100 min-h-screen">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-sky-400">
-          Six Degrees
+        <h1 className="text-4xl font-bold text-sky-400 sm:text-5xl md:text-6xl text-center mb-3">
+          Nine Degrees
         </h1>
+        <h2 className="text-xl font-semibold text-slate-200 sm:text-2xl text-center mb-2">
+          The max separation between any two players is nine degrees.
+        </h2>
+        <p className="text-lg text-slate-400 sm:text-xl text-center mb-8">
+          Can you find one?
+        </p>
         <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 mb-6 items-start">
           <div>
             <label htmlFor="startPlayerSearch" className="block text-sm font-medium text-gray-300 mb-1">Select Start Player</label>
@@ -321,7 +327,7 @@ function LoadingState() {
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
       <div className="container mx-auto p-4 text-slate-100 min-h-screen flex flex-col items-center justify-center">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-sky-400">
-          Six Degrees
+          Nine Degrees
         </h1>
         {/* Basic loading text, you can replace with a spinner or more elaborate skeleton UI */}
         <p className="text-xl text-slate-300">Loading page and connections...</p>
