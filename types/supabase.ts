@@ -9,21 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      app_config: {
-        Row: {
-          key: string
-          value: string | null
-        }
-        Insert: {
-          key: string
-          value?: string | null
-        }
-        Update: {
-          key?: string
-          value?: string | null
-        }
-        Relationships: []
-      }
       currentweeklyrankings: {
         Row: {
           player_id: number
@@ -585,6 +570,15 @@ export type Database = {
           ts_pct: number
         }[]
       }
+      get_aggregated_weekly_votes_for_players: {
+        Args: { player_ids_array: number[]; week_start_time: string }
+        Returns: {
+          playerId: number
+          upvotes: number
+          downvotes: number
+          sameSpotVotes: number
+        }[]
+      }
       get_current_ranking_with_details: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -636,30 +630,6 @@ export type Database = {
           lastName: string
           min_season: number
           max_season: number
-        }[]
-      }
-      get_top_100_players_vote_refined: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          rankNumber: number
-          personId: number
-          firstName: string
-          lastName: string
-          playerteamName: string
-          gamesPlayed: number
-          pointsPerGame: number
-          reboundsPerGame: number
-          assistsPerGame: number
-          stealsPerGame: number
-          blocksPerGame: number
-          fieldGoalPercentage: number
-          threePointPercentage: number
-          freeThrowPercentage: number
-          weightedProminence: number
-          upvotes: number
-          downvotes: number
-          sameSpotVotes: number
-          finalMovementScore: number
         }[]
       }
       get_top_100_prominence_2025_stats: {
