@@ -1,22 +1,20 @@
 // app/top-100-players/page.tsx
 'use client'; 
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // Ensure this path is correct
+import { useState, useEffect, useCallback, ChangeEvent } from 'react'; // Added ChangeEvent
+import { supabase } from '@/lib/supabaseClient'; 
 import Link from 'next/link';
-import { useAuth } from '../contexts/AuthContext'; // Ensure this path is correct
-import CountdownTimer from '@/components/CountdownTimer'; // Ensure this path is correct
+import { useAuth } from '../contexts/AuthContext'; 
+import CountdownTimer from '@/components/CountdownTimer'; 
 
 // Helper function to calculate next Sunday midnight
 function getNextSundayMidnightISO(): string {
   const now = new Date();
   const nextSunday = new Date(now.getTime());
-  const currentDay = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
+  const currentDay = now.getDay(); 
   const daysToAdd = (7 - currentDay) % 7; 
-  
   nextSunday.setDate(now.getDate() + daysToAdd);
   nextSunday.setHours(0, 0, 0, 0); 
-
   if (nextSunday.getTime() < now.getTime()) {
     nextSunday.setDate(nextSunday.getDate() + 7);
     nextSunday.setHours(0, 0, 0, 0); 
@@ -25,21 +23,15 @@ function getNextSundayMidnightISO(): string {
 }
 
 // --- Interface Definitions ---
-// CRITICAL: Ensure personId type (number, string, or bigint) in these interfaces
-// matches your generated types/supabase.ts for INT8 columns.
-// The code below assumes 'number'. Adjust if your generated types differ.
-
-// This interface matches the FLAT structure returned by the 'get_current_ranking_with_details' RPC
 interface RpcRankedPlayerData { 
   rankNumber: number; 
   personId: number; 
   weeklyMovementScore: number | null;
   statsBasedProminence: number | null;
-  // Fields from regularseasonstats (now flat in the RPC result)
   firstName: string | null;
   lastName: string | null;
   playerteamName: string | null;
-  G: number | null; // Games played from regularseasonstats
+  G: number | null; 
   PTS_total: number | null;
   TRB_total: number | null;
   AST_total: number | null;
@@ -51,10 +43,9 @@ interface RpcRankedPlayerData {
   FG3M_total: number | null;
   FTA_total: number | null;
   FTM_total: number | null;
-  Prominence_rs: number | null; // Prominence directly from regularseasonstats table, aliased in RPC
+  Prominence_rs: number | null; 
 }
 
-// Represents a player object used for display and state within the component
 interface TopPlayer {
   rankNumber: number; 
   personId: number; 
@@ -71,19 +62,24 @@ interface TopPlayer {
   threePointPercentage: number | null;
   freeThrowPercentage: number | null;
   weightedProminence: number | null; 
-  
-  upvotes: number;           
+  upvotes: number;            
   downvotes: number;          
   sameSpotVotes: number;      
-  
   finalMovementScoreAtRanking: number; 
   currentUserVote?: number | null;
 }
 
-// Type for rows from 'playervotes' table when fetching current week's aggregates
 interface CurrentWeekPlayerVoteCountsRow {
     player_id: number; 
     vote_type: number; 
+}
+
+interface PlayerSuggestion {
+  personId: number;
+  firstName: string;
+  lastName: string;
+  min_season?: number; 
+  max_season?: number; 
 }
 
 // --- VotingButton Component ---
@@ -113,13 +109,11 @@ const VotingButton: React.FC<VotingButtonProps> = ({
 };
 
 // --- PlayerBox Component ---
-// --- PlayerBox Component ---
 interface PlayerBoxProps {
   player: TopPlayer;
   onVote: (playerId: number, newVoteType: number) => Promise<void>;
-  isVotingDisabled: boolean; // This prop will now ONLY control if buttons are *clickable*
+  isVotingDisabled: boolean; 
 }
-
 const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled }) => {
   const statItems = [
     { label: "GP", value: player.gamesPlayed ?? 'N/A' },
@@ -134,7 +128,6 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   ];
 
   const handleVoteClick = (voteTypeClicked: number) => {
-    // Only call onVote if voting is not disabled (buttons themselves will also be disabled)
     if (isVotingDisabled) return; 
     const newVoteType = player.currentUserVote === voteTypeClicked ? 0 : voteTypeClicked;
     onVote(player.personId, newVoteType);
@@ -156,12 +149,11 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
           </div>
         </div>
         
-        {/* This div is now always rendered to show counts */}
         <div className="flex flex-col space-y-1 items-center ml-2 flex-shrink-0"> 
             <VotingButton
               onClick={() => handleVoteClick(1)}
-              isActive={player.currentUserVote === 1} // Active state still depends on logged-in user's vote
-              disabled={isVotingDisabled} // Button clickability depends on login state
+              isActive={player.currentUserVote === 1}
+              disabled={isVotingDisabled}
               ariaLabel={`Upvote ${player.firstName} ${player.lastName}`}
               activeClass="bg-green-500 text-white hover:bg-green-600"
               inactiveClass="bg-slate-600 hover:bg-slate-500 text-green-300 hover:text-green-100"
@@ -192,7 +184,6 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
                <span className="text-xs ml-1">{player.downvotes}</span>
             </VotingButton>
           </div>
-        {/* The conditional rendering based on !isVotingDisabled was removed from wrapping this whole div */}
       </div>
       <div className="mt-auto pt-3 border-t border-slate-500/50">
         <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-sm font-mono">
@@ -217,10 +208,13 @@ export default function Top100PlayersPage() {
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
   const [lastRearrangementTimeISO, setLastRearrangementTimeISO] = useState<string | null>(null);
 
-  const fetchOfficialWeeklyRanking = useCallback(async (): Promise<RpcRankedPlayerData[]> => {
-    // Calls the new RPC function that performs the JOIN
-    const { data, error } = await supabase.rpc('get_current_ranking_with_details');
+  const [nominationSearchTerm, setNominationSearchTerm] = useState('');
+  const [nominationSuggestions, setNominationSuggestions] = useState<PlayerSuggestion[]>([]);
+  const [isNominating, setIsNominating] = useState(false);
+  const [nominationMessage, setNominationMessage] = useState<string | null>(null);
 
+  const fetchOfficialWeeklyRanking = useCallback(async (): Promise<RpcRankedPlayerData[]> => {
+    const { data, error } = await supabase.rpc('get_current_ranking_with_details');
     if (error) {
       console.error("Error fetching official weekly rankings via RPC:", error);
       throw new Error("Failed to fetch official rankings. Message: " + (error.message || 'Unknown RPC error'));
@@ -231,22 +225,16 @@ export default function Top100PlayersPage() {
   const fetchCurrentWeekVoteCountsForPlayers = useCallback(async (playerIds: number[], weekStartTimeISO: string): Promise<Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>> => {
     const voteCountsMap = new Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>();
     playerIds.forEach(id => voteCountsMap.set(id, { upvotes: 0, downvotes: 0, sameSpotVotes: 0 }));
-
-    if (playerIds.length === 0 || !weekStartTimeISO) {
-        return voteCountsMap;
-    }
-    
+    if (playerIds.length === 0 || !weekStartTimeISO) return voteCountsMap;
     const { data, error } = await supabase
         .from('playervotes')
         .select('player_id, vote_type')
         .in('player_id', playerIds)     
         .gte('created_at', weekStartTimeISO);
-
     if (error) {
         console.error('Error fetching current week vote counts:', error);
         return voteCountsMap; 
     }
-
     data?.forEach((vote: CurrentWeekPlayerVoteCountsRow) => { 
         const counts = voteCountsMap.get(vote.player_id);
         if (counts) {
@@ -266,23 +254,19 @@ export default function Top100PlayersPage() {
      if (isLoadingPlayers && !lastRearrangementTimeISO && authIsLoading) {
         return;
     }
-
     setIsLoadingPlayers(true);
     setFetchError(null);
     try {
-      const rpcData = await fetchOfficialWeeklyRanking(); // rpcData is RpcRankedPlayerData[]
+      const rpcData = await fetchOfficialWeeklyRanking(); 
       if (rpcData.length === 0) {
         setPlayers([]);
-        setIsLoadingPlayers(false);
-        return;
+        // setIsLoadingPlayers(false); // Handled in finally
+        return; // Return early if no data, isLoadingPlayers will be set to false in finally
       }
-
       const playerIds = rpcData.map(p => p.personId);
-      
       const liveVoteCountsMap = lastRearrangementTimeISO 
         ? await fetchCurrentWeekVoteCountsForPlayers(playerIds, lastRearrangementTimeISO)
         : new Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>();
-
       const currentUserVotesMap = new Map<number, number | null>();
       if (user && playerIds.length > 0) {
         const { data: votesData, error: votesError } = await supabase
@@ -293,12 +277,9 @@ export default function Top100PlayersPage() {
         if (votesError) throw votesError;
         votesData?.forEach(v => currentUserVotesMap.set(v.player_id, v.vote_type));
       }
-
       const combinedPlayersData: TopPlayer[] = rpcData.map(p => {
-        // p is now an RpcRankedPlayerData object, which is flat
         const gamesPlayed = p.G ?? 0;
         const liveCounts = liveVoteCountsMap.get(p.personId) || { upvotes: 0, downvotes: 0, sameSpotVotes: 0 };
-
         return {
           rankNumber: p.rankNumber,
           personId: p.personId,
@@ -323,13 +304,19 @@ export default function Top100PlayersPage() {
         };
       });
       setPlayers(combinedPlayersData);
-
-    } catch (error) {
-      console.error("Error in loadPlayerData:", error);
+    } catch (error) { // Catch block error typing
+      let message = "An unknown error occurred while fetching player data.";
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'string') { // Handle if error is just a string
+        message = error;
+      }
+      setFetchError(message);
+      console.error("Error in loadPlayerData:", error); 
     } finally {
       setIsLoadingPlayers(false);
     }
-  }, [user, fetchOfficialWeeklyRanking, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, authIsLoading, isLoadingPlayers]);
+  }, [user, fetchOfficialWeeklyRanking, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, authIsLoading, isLoadingPlayers]); // Added isLoadingPlayers
 
   useEffect(() => {
     const nextTime = getNextSundayMidnightISO();
@@ -346,36 +333,29 @@ export default function Top100PlayersPage() {
     }
   }, [authIsLoading, loadPlayerData, lastRearrangementTimeISO]);
 
-
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
     if (!user || !session) {
       alert("Please sign in to vote.");
       return;
     }
-    
     const originalPlayersState = JSON.parse(JSON.stringify(players));
-
     setPlayers(prevPlayers => 
       prevPlayers.map(p => {
         if (p.personId === playerId) {
           const updatedPlayer = { ...p };
           const oldVoteType = p.currentUserVote;
           updatedPlayer.currentUserVote = newVoteType === 0 ? null : newVoteType;
-
           if (oldVoteType === 1) updatedPlayer.upvotes = Math.max(0, updatedPlayer.upvotes - 1);
           else if (oldVoteType === -1) updatedPlayer.downvotes = Math.max(0, updatedPlayer.downvotes - 1);
           else if (oldVoteType === 2) updatedPlayer.sameSpotVotes = Math.max(0, updatedPlayer.sameSpotVotes - 1);
-          
           if (newVoteType === 1) updatedPlayer.upvotes += 1;
           else if (newVoteType === -1) updatedPlayer.downvotes += 1;
           else if (newVoteType === 2) updatedPlayer.sameSpotVotes += 1;
-          
           return updatedPlayer;
         }
         return p;
       })
     );
-
     try {
       if (newVoteType === 0) { 
         const { error: deleteError } = await supabase
@@ -386,21 +366,99 @@ export default function Top100PlayersPage() {
       } else { 
         const { error: upsertError } = await supabase
           .from('playervotes')
-          .upsert({
-              player_id: playerId,
-              user_id: user.id, 
-              vote_type: newVoteType
-          }, {
-              onConflict: 'player_id, user_id'
-          });
+          .upsert({ player_id: playerId, user_id: user.id, vote_type: newVoteType }, 
+                  { onConflict: 'player_id, user_id' });
         if (upsertError) throw upsertError;
       }
-    } catch (error) {
-      console.error("Error submitting vote:", error);
-      setPlayers(originalPlayersState); 
+    } catch (error) { // Catch block error typing
+        let message = "An unknown error occurred.";
+        if (error instanceof Error) {
+          message = error.message;
+        } else if (typeof error === 'string') { // Handle if error is just a string
+          message = error;
+        }
+        console.error("Error submitting vote:", error);
+        alert(`Failed to submit vote: ${message}`);
+        setPlayers(originalPlayersState); 
     }
   };
   
+  const handleNominationSearchChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setNominationSearchTerm(term);
+    setNominationMessage(null);
+    if (term.length < 2) {
+      setNominationSuggestions([]);
+      return;
+    }
+    try {
+      const { data, error } = await supabase.rpc('get_player_suggestions_2025', { search_term: term });
+      if (error) {
+        console.error('Error fetching nomination suggestions:', error);
+        setNominationSuggestions([]);
+        return;
+      }
+      const currentTop100Ids = new Set(players.map(p => p.personId));
+      const filteredSuggestions = (data || []).filter(
+        (suggestion: PlayerSuggestion) => !currentTop100Ids.has(suggestion.personId)
+      );
+      setNominationSuggestions(filteredSuggestions as PlayerSuggestion[]);
+    } catch (err) {
+      console.error('Exception fetching nomination suggestions:', err);
+      setNominationSuggestions([]);
+    }
+  };
+
+  const handleNominatePlayer = async (playerToNominate: PlayerSuggestion) => {
+    if (!user || !session) {
+      alert("Please sign in to nominate a player.");
+      setNominationMessage("Please sign in to nominate.");
+      return;
+    }
+    if (isNominating) return;
+    if (players.some(p => p.personId === playerToNominate.personId)) {
+        setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} is already in the Top 100.`);
+        setNominationSearchTerm('');
+        setNominationSuggestions([]);
+        return;
+    }
+    setIsNominating(true);
+    setNominationMessage(`Nominating ${playerToNominate.firstName} ${playerToNominate.lastName}...`);
+    try {
+      const { data: existingVote, error: existingVoteError } = await supabase
+        .from('playervotes')
+        .select('vote_type')
+        .eq('user_id', user.id)
+        .eq('player_id', playerToNominate.personId)
+        .maybeSingle();
+      if (existingVoteError) throw existingVoteError;
+      if (existingVote && existingVote.vote_type === 1) {
+        setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} has already been upvoted/nominated by you.`);
+        setIsNominating(false);
+        setNominationSearchTerm('');
+        setNominationSuggestions([]);
+        return;
+      }
+      const { error: upsertError } = await supabase
+        .from('playervotes')
+        .upsert({ player_id: playerToNominate.personId, user_id: user.id, vote_type: 1 }, 
+                { onConflict: 'player_id, user_id' });
+      if (upsertError) throw upsertError;
+      setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
+      setNominationSearchTerm('');
+      setNominationSuggestions([]);
+    } catch (error) { // Catch block error typing
+      let message = "Failed to nominate player.";
+      if (error instanceof Error) message = error.message;
+      else if (typeof error === 'string') message = error;
+      console.error("Error nominating player:", error);
+      setNominationMessage(`Error: ${message}`);
+    } finally {
+      setIsNominating(false);
+      setTimeout(() => setNominationMessage(null), 5000);
+    }
+  };
+
   const pageTitle = "Top 100 Players";
   const pageSubtitle = "(Weekly Ranking)";
 
@@ -432,7 +490,7 @@ export default function Top100PlayersPage() {
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-400 mb-6 sm:mb-8 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
-        <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p>
+        <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p> {/* Corrected apostrophe */}
         <p className="text-center text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p>
       </div>
     );
@@ -448,7 +506,7 @@ export default function Top100PlayersPage() {
 
         {!user && !authIsLoading && (
             <p className="text-center text-sky-300 my-6">
-                <Link href="/signin" className="underline hover:text-sky-100">Sign in</Link> to vote on player rankings!
+                <Link href="/signin" className="underline hover:text-sky-100">Sign in</Link> to vote on player rankings or nominate players!
             </p>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 mt-6">
@@ -462,6 +520,41 @@ export default function Top100PlayersPage() {
           ))}
         </div>
       </div>
+      {/* Nomination Section */}
+      {user && (
+          <div className="mb-8 p-4 ">
+            <h2 className="text-xl font-semibold text-sky-300 mb-3">Nominate a Player for Top 100 (2025 Season)</h2>
+            <p className="text-sm text-slate-400 mb-3">
+              Search for a player who played in the 2025 season and isn&apos;t currently in the Top 100. 
+              Each nomination counts as an upvote.
+            </p>
+            <input
+              type="text"
+              placeholder="Search player name to nominate..."
+              value={nominationSearchTerm}
+              onChange={handleNominationSearchChange}
+              className="w-full p-2 rounded bg-slate-600 text-slate-100 placeholder-slate-400 focus:ring-sky-500 focus:border-sky-500"
+            />
+            {nominationSuggestions.length > 0 && (
+              <ul className="mt-2 bg-slate-600 rounded shadow-lg max-h-48 overflow-y-auto">
+                {nominationSuggestions.map((playerSugg) => (
+                  <li key={playerSugg.personId} 
+                      className="p-2 hover:bg-sky-600 cursor-pointer border-b border-slate-500 last:border-b-0"
+                      onClick={() => handleNominatePlayer(playerSugg)}>
+                    {playerSugg.firstName} {playerSugg.lastName}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {nominationMessage && (
+              <p className={`mt-2 text-sm ${nominationMessage.includes('Error:') || nominationMessage.includes('Failed') ? 'text-red-400' : 'text-green-400'}`}>
+                {nominationMessage}
+              </p>
+            )}
+          </div>
+        )}
+        {/* End Nomination Section */}
     </div>
+    
   );
 }
