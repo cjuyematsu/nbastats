@@ -9,6 +9,131 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          key: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
+      currentweeklyrankings: {
+        Row: {
+          player_id: number
+          rank_position: number
+          ranked_at: string | null
+          stats_based_prominence: number | null
+          week_of_year: number
+          weekly_movement_score: number | null
+          weekly_same_spot_votes: number | null
+          year: number
+        }
+        Insert: {
+          player_id: number
+          rank_position: number
+          ranked_at?: string | null
+          stats_based_prominence?: number | null
+          week_of_year: number
+          weekly_movement_score?: number | null
+          weekly_same_spot_votes?: number | null
+          year: number
+        }
+        Update: {
+          player_id?: number
+          rank_position?: number
+          ranked_at?: string | null
+          stats_based_prominence?: number | null
+          week_of_year?: number
+          weekly_movement_score?: number | null
+          weekly_same_spot_votes?: number | null
+          year?: number
+        }
+        Relationships: []
+      }
+      gamescores: {
+        Row: {
+          attempts: number | null
+          game_data: Json | null
+          game_type: string
+          id: number
+          played_at: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          game_data?: Json | null
+          game_type: string
+          id?: number
+          played_at?: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          game_data?: Json | null
+          game_type?: string
+          id?: number
+          played_at?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      playervotes: {
+        Row: {
+          created_at: string | null
+          player_id: number
+          updated_at: string | null
+          user_id: string
+          vote_type: number
+        }
+        Insert: {
+          created_at?: string | null
+          player_id: number
+          updated_at?: string | null
+          user_id?: string
+          vote_type: number
+        }
+        Update: {
+          created_at?: string | null
+          player_id?: number
+          updated_at?: string | null
+          user_id?: string
+          vote_type?: number
+        }
+        Relationships: []
+      }
       playoffstats: {
         Row: {
           AST_per_g: number | null
@@ -153,6 +278,42 @@ export type Database = {
           TRB_total?: number | null
           TS_PCT?: number | null
           WINS?: number | null
+        }
+        Relationships: []
+      }
+      rankinghistory: {
+        Row: {
+          archived_at: string | null
+          history_id: number
+          player_id: number
+          rank_position: number
+          stats_based_prominence: number | null
+          week_of_year: number
+          weekly_movement_score: number | null
+          weekly_same_spot_votes: number | null
+          year: number
+        }
+        Insert: {
+          archived_at?: string | null
+          history_id?: number
+          player_id: number
+          rank_position: number
+          stats_based_prominence?: number | null
+          week_of_year: number
+          weekly_movement_score?: number | null
+          weekly_same_spot_votes?: number | null
+          year: number
+        }
+        Update: {
+          archived_at?: string | null
+          history_id?: number
+          player_id?: number
+          rank_position?: number
+          stats_based_prominence?: number | null
+          week_of_year?: number
+          weekly_movement_score?: number | null
+          weekly_same_spot_votes?: number | null
+          year?: number
         }
         Relationships: []
       }
@@ -424,6 +585,39 @@ export type Database = {
           ts_pct: number
         }[]
       }
+      get_current_ranking_with_details: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          rankNumber: number
+          personId: number
+          weeklyMovementScore: number
+          statsBasedProminence: number
+          firstName: string
+          lastName: string
+          playerteamName: string
+          G: number
+          PTS_total: number
+          TRB_total: number
+          AST_total: number
+          STL_total: number
+          BLK_total: number
+          FGA_total: number
+          FGM_total: number
+          FG3A_total: number
+          FG3M_total: number
+          FTA_total: number
+          FTM_total: number
+          Prominence_rs: number
+        }[]
+      }
+      get_next_rearrangement_time: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_next_rearrangement_time_calculated: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_player_suggestions: {
         Args: { search_term: string }
         Returns: {
@@ -432,6 +626,40 @@ export type Database = {
           lastName: string
           startYear: number
           endYear: number
+        }[]
+      }
+      get_player_suggestions_2025: {
+        Args: { search_term: string }
+        Returns: {
+          personId: number
+          firstName: string
+          lastName: string
+          min_season: number
+          max_season: number
+        }[]
+      }
+      get_top_100_players_vote_refined: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          rankNumber: number
+          personId: number
+          firstName: string
+          lastName: string
+          playerteamName: string
+          gamesPlayed: number
+          pointsPerGame: number
+          reboundsPerGame: number
+          assistsPerGame: number
+          stealsPerGame: number
+          blocksPerGame: number
+          fieldGoalPercentage: number
+          threePointPercentage: number
+          freeThrowPercentage: number
+          weightedProminence: number
+          upvotes: number
+          downvotes: number
+          sameSpotVotes: number
+          finalMovementScore: number
         }[]
       }
       get_top_100_prominence_2025_stats: {
@@ -457,6 +685,10 @@ export type Database = {
       safe_to_integer: {
         Args: { val: string; default_val?: number }
         Returns: number
+      }
+      submit_player_vote: {
+        Args: { target_player_id: number; new_vote_type: number }
+        Returns: undefined
       }
     }
     Enums: {
