@@ -1,7 +1,7 @@
 // app/top-100-players/page.tsx
 'use client'; 
 
-import { useState, useEffect, useCallback, ChangeEvent } from 'react'; // Added ChangeEvent
+import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabaseClient'; 
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext'; 
@@ -258,10 +258,9 @@ export default function Top100PlayersPage() {
     setFetchError(null);
     try {
       const rpcData = await fetchOfficialWeeklyRanking(); 
-      if (rpcData.length === 0) {
+      if (rpcData.length === 0 && !authIsLoading) { 
         setPlayers([]);
-        // setIsLoadingPlayers(false); // Handled in finally
-        return; // Return early if no data, isLoadingPlayers will be set to false in finally
+        return; 
       }
       const playerIds = rpcData.map(p => p.personId);
       const liveVoteCountsMap = lastRearrangementTimeISO 
@@ -304,11 +303,11 @@ export default function Top100PlayersPage() {
         };
       });
       setPlayers(combinedPlayersData);
-    } catch (error) { // Catch block error typing
+    } catch (error) { 
       let message = "An unknown error occurred while fetching player data.";
       if (error instanceof Error) {
         message = error.message;
-      } else if (typeof error === 'string') { // Handle if error is just a string
+      } else if (typeof error === 'string') { 
         message = error;
       }
       setFetchError(message);
@@ -316,22 +315,25 @@ export default function Top100PlayersPage() {
     } finally {
       setIsLoadingPlayers(false);
     }
-  }, [user, fetchOfficialWeeklyRanking, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, authIsLoading, isLoadingPlayers]); // Added isLoadingPlayers
+  }, [user, fetchOfficialWeeklyRanking, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, authIsLoading, isLoadingPlayers]); 
 
   useEffect(() => {
-    const nextTime = getNextSundayMidnightISO();
-    setNextRearrangementTime(nextTime);
-    const lastSunday = new Date(nextTime);
-    lastSunday.setDate(lastSunday.getDate() - 7);
-    lastSunday.setHours(0,0,0,0); 
-    setLastRearrangementTimeISO(lastSunday.toISOString());
-  }, []); 
+    if (!nextRearrangementTime) {
+        const nextTime = getNextSundayMidnightISO();
+        setNextRearrangementTime(nextTime);
+        
+        const lastSunday = new Date(nextTime);
+        lastSunday.setDate(lastSunday.getDate() - 7);
+        lastSunday.setHours(0,0,0,0); 
+        setLastRearrangementTimeISO(lastSunday.toISOString());
+    }
+  }, [nextRearrangementTime]); 
 
   useEffect(() => {
     if (!authIsLoading && lastRearrangementTimeISO) { 
         loadPlayerData();
     }
-  }, [authIsLoading, loadPlayerData, lastRearrangementTimeISO]);
+  }, [authIsLoading, lastRearrangementTimeISO, loadPlayerData]);
 
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
     if (!user || !session) {
@@ -370,11 +372,11 @@ export default function Top100PlayersPage() {
                   { onConflict: 'player_id, user_id' });
         if (upsertError) throw upsertError;
       }
-    } catch (error) { // Catch block error typing
+    } catch (error) { 
         let message = "An unknown error occurred.";
         if (error instanceof Error) {
           message = error.message;
-        } else if (typeof error === 'string') { // Handle if error is just a string
+        } else if (typeof error === 'string') { 
           message = error;
         }
         console.error("Error submitting vote:", error);
@@ -403,8 +405,15 @@ export default function Top100PlayersPage() {
         (suggestion: PlayerSuggestion) => !currentTop100Ids.has(suggestion.personId)
       );
       setNominationSuggestions(filteredSuggestions as PlayerSuggestion[]);
-    } catch (err) {
+    } catch (err) { 
+        let message = "Exception fetching nomination suggestions.";
+        if (err instanceof Error) { 
+            message = err.message;
+        } else if (typeof err === 'string') { 
+            message = err;
+        }
       console.error('Exception fetching nomination suggestions:', err);
+      setNominationMessage(`Error: ${message}`);
       setNominationSuggestions([]);
     }
   };
@@ -420,7 +429,7 @@ export default function Top100PlayersPage() {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} is already in the Top 100.`);
         setNominationSearchTerm('');
         setNominationSuggestions([]);
-        return;
+        return; 
     }
     setIsNominating(true);
     setNominationMessage(`Nominating ${playerToNominate.firstName} ${playerToNominate.lastName}...`);
@@ -434,10 +443,10 @@ export default function Top100PlayersPage() {
       if (existingVoteError) throw existingVoteError;
       if (existingVote && existingVote.vote_type === 1) {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} has already been upvoted/nominated by you.`);
-        setIsNominating(false);
+        // No setIsNominating(false) here, finally block handles it
         setNominationSearchTerm('');
         setNominationSuggestions([]);
-        return;
+        return; 
       }
       const { error: upsertError } = await supabase
         .from('playervotes')
@@ -447,15 +456,15 @@ export default function Top100PlayersPage() {
       setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       setNominationSearchTerm('');
       setNominationSuggestions([]);
-    } catch (error) { // Catch block error typing
+    } catch (error) { 
       let message = "Failed to nominate player.";
-      if (error instanceof Error) message = error.message;
+      if (error instanceof Error) message = error.message; 
       else if (typeof error === 'string') message = error;
       console.error("Error nominating player:", error);
       setNominationMessage(`Error: ${message}`);
     } finally {
       setIsNominating(false);
-      setTimeout(() => setNominationMessage(null), 5000);
+      setTimeout(() => setNominationMessage(null), 5000); 
     }
   };
 
@@ -490,7 +499,7 @@ export default function Top100PlayersPage() {
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-400 mb-6 sm:mb-8 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
-        <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p> {/* Corrected apostrophe */}
+        <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p>
         <p className="text-center text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p>
       </div>
     );
@@ -498,7 +507,7 @@ export default function Top100PlayersPage() {
 
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
-      <div className="p-4 md:py-6">
+      <div className="p-4 md:py-6"> {/* Main content padding */}
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-400 mb-1 text-center">{pageSubtitle}</p>
         
@@ -520,41 +529,47 @@ export default function Top100PlayersPage() {
           ))}
         </div>
       </div>
-      {/* Nomination Section */}
+
+      {/* Nomination Section - Placed at the bottom with specified bottom margin */}
       {user && (
-          <div className="mb-8 p-4 ">
-            <h2 className="text-xl font-semibold text-sky-300 mb-3">Nominate a Player for Top 100 (2025 Season)</h2>
-            <p className="text-sm text-slate-400 mb-3">
-              Search for a player who played in the 2025 season and isn&apos;t currently in the Top 100. 
-              Each nomination counts as an upvote.
-            </p>
-            <input
-              type="text"
-              placeholder="Search player name to nominate..."
-              value={nominationSearchTerm}
-              onChange={handleNominationSearchChange}
-              className="w-full p-2 rounded bg-slate-600 text-slate-100 placeholder-slate-400 focus:ring-sky-500 focus:border-sky-500"
-            />
-            {nominationSuggestions.length > 0 && (
-              <ul className="mt-2 bg-slate-600 rounded shadow-lg max-h-48 overflow-y-auto">
-                {nominationSuggestions.map((playerSugg) => (
-                  <li key={playerSugg.personId} 
-                      className="p-2 hover:bg-sky-600 cursor-pointer border-b border-slate-500 last:border-b-0"
-                      onClick={() => handleNominatePlayer(playerSugg)}>
-                    {playerSugg.firstName} {playerSugg.lastName}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {nominationMessage && (
-              <p className={`mt-2 text-sm ${nominationMessage.includes('Error:') || nominationMessage.includes('Failed') ? 'text-red-400' : 'text-green-400'}`}>
-                {nominationMessage}
-              </p>
-            )}
+          <div className="px-4 md:px-6 pb-8 mb-12"> {/* Outer div for overall bottom margin */}
+            <div className="max-w-2xl mx-auto bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-xl">
+                <h2 className="text-xl font-semibold text-sky-300 mb-3 text-center">Nominate a Player for Top 100</h2>
+                <p className="text-sm text-slate-400 mb-4 text-center">
+                  Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote.
+                </p>
+                <div className="max-w-md mx-auto">
+                  <input
+                    type="text"
+                    placeholder="Search player name to nominate..."
+                    value={nominationSearchTerm}
+                    onChange={handleNominationSearchChange}
+                    className="w-full p-2.5 rounded bg-slate-600 text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  />
+                  {nominationSuggestions.length > 0 && (
+                    <ul className="mt-2 bg-slate-700 rounded shadow-lg max-h-60 overflow-y-auto border border-slate-600">
+                      {nominationSuggestions.map((playerSugg) => (
+                        <li key={playerSugg.personId} 
+                            className="p-2.5 hover:bg-sky-600 cursor-pointer border-b border-slate-600 last:border-b-0"
+                            onClick={() => handleNominatePlayer(playerSugg)}>
+                          {playerSugg.firstName} {playerSugg.lastName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {nominationMessage && (
+                    <p className={`mt-3 text-sm text-center ${
+                        nominationMessage.includes('Error:') || 
+                        nominationMessage.includes('Failed') || 
+                        nominationMessage.includes('already in') 
+                        ? 'text-red-400' : 'text-green-400'}`}>
+                      {nominationMessage}
+                    </p>
+                  )}
+                </div>
+            </div>
           </div>
         )}
-        {/* End Nomination Section */}
     </div>
-    
   );
 }
