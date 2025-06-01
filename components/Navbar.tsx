@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
-// --- Icon Components ---
 const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -44,9 +43,7 @@ const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    {/* Up Arrow */}
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6l-3.5 3.5M12 6l3.5 3.5M12 6v5" />
-    {/* Down Arrow - slightly below the up arrow's reach */}
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18l-3.5-3.5M12 18l3.5-3.5M12 18v-5" />
   </svg>
 );
@@ -57,7 +54,6 @@ const TEXT_VISIBILITY_THRESHOLD = 160;
 
 const NavLink = ({ href, children, icon, showText }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean }) => {
   const pathname = usePathname();
-  // Check if the current pathname is exactly the href or starts with the href followed by a slash (for parent route highlighting)
   const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/")); 
 
   return (
@@ -221,7 +217,6 @@ export default function Navbar() {
         {(isMdScreen || isOpenOnMobile) && (
           <>
             <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
-              {/* Logo area can go here */}
             </div>
             <div className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
               <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
@@ -229,32 +224,18 @@ export default function Navbar() {
               <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
               <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Nine Degrees</NavLink>
               
-              {/* New Games Section Link */}
               <div className="pt-2">
                 {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                 
                 <NavLink 
-                  href="/games/stat-over-under" // Ensure this path matches your game's route
+                  href="/games/stat-over-under" 
                   icon={<OverUnderGameIcon />} 
                   showText={showTextInNav}
                 >
                   Over/Under
                 </NavLink>
-                {/* You can add more NavLink components here for other games */}
-                {/* Example: 
-                <NavLink 
-                  href="/games/another-game" 
-                  icon={<AnotherGameIcon />} // You'd define AnotherGameIcon
-                  showText={showTextInNav}
-                >
-                  Another Game
-                </NavLink>
-                */}
               </div>
-            </div>
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                {/* Optional Navbar Footer Content */}
             </div>
           </>
         )}

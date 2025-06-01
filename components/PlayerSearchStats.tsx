@@ -1,3 +1,4 @@
+//components/PlayerSearchStats.tsx
 'use client';
 
 import { supabase } from '@/lib/supabaseClient';
@@ -47,7 +48,7 @@ export default function PlayerSearchStats() {
         const { data, error: rpcError } = await supabase.rpc('get_player_suggestions', {
           search_term: query,
         });
-        if (rpcError) throw rpcError; // Supabase error object often has message
+        if (rpcError) throw rpcError; 
         setSuggestions(data || []);
         setIsSuggestionsVisible(true);
       } catch (e: unknown) { 
@@ -187,7 +188,7 @@ export default function PlayerSearchStats() {
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Turnovers (TOV)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.tov_total?.toLocaleString() ?? 'N/A'}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Personal Fouls (PF)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{stats.pf_total?.toLocaleString() ?? 'N/A'}</td></tr>
                     </>
-                  ) : ( // Averages & Percentages
+                  ) : ( 
                     <>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Points Per Game (PPG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.pts_per_g)}</td></tr>
                       <tr><td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Assists Per Game (APG)</td><td className="px-4 py-2 text-right text-sm font-mono text-gray-900 dark:text-gray-100">{formatStat(stats.ast_per_g)}</td></tr>

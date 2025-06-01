@@ -1,14 +1,13 @@
 // src/components/HeaderSearchBar.tsx (or your preferred path)
 'use client';
 
-import { supabase } from '@/lib/supabaseClient'; // Adjust path as needed
-import { PlayerSuggestion } from '@/types/stats'; // Adjust path as needed
+import { supabase } from '@/lib/supabaseClient'; 
+import { PlayerSuggestion } from '@/types/stats'; 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 
 interface HeaderSearchBarProps {
   onPlayerSelected: (player: PlayerSuggestion) => void;
-  // You can add more props for styling or behavior customization if needed
 }
 
 export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarProps) {
@@ -24,14 +23,12 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
       if (query.length < 2) {
         setSuggestions([]);
         setIsSuggestionsVisible(false);
-        setError(null); // Clear error when query is too short
+        setError(null); 
         return;
       }
       setIsLoadingSuggestions(true);
       setError(null);
       try {
-        // Ensure your Supabase RPC function 'get_player_suggestions'
-        // returns data in the shape of PlayerSuggestion[]
         const { data, error: rpcError } = await supabase.rpc('get_player_suggestions', {
           search_term: query,
         });
@@ -43,10 +40,6 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
         
         setSuggestions(data || []);
         setIsSuggestionsVisible(true);
-
-        if (!data || data.length === 0) {
-             // setError(`No players found matching "${query}".`); // Optional: set error if no results
-        }
 
       } catch (e: unknown) {
         console.error('Error fetching suggestions:', e);
@@ -81,38 +74,37 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []); // No dependencies needed if searchContainerRef itself doesn't change
+  }, []); 
 
   const handleSelectPlayer = (player: PlayerSuggestion) => {
-    // Set input to selected player's name (optional, good UX)
     setSearchTerm(`${player.firstName || ''} ${player.lastName || ''}`.trim());
     setIsSuggestionsVisible(false);
-    setError(null); // Clear any previous errors
-    onPlayerSelected(player); // Call the callback with the selected player
+    setError(null); 
+    onPlayerSelected(player); 
   };
 
   return (
-    <div ref={searchContainerRef} className="relative w-full"> {/* Adjust width as needed for header */}
+    <div ref={searchContainerRef} className="relative w-full"> 
       <input
         type="text"
-        placeholder="Search player..." // Simplified placeholder
+        placeholder="Search player..." 
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         onFocus={() => searchTerm.length >= 2 && suggestions.length > 0 && setIsSuggestionsVisible(true)}
-        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm" // Adjusted padding and text size for header
+        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm" 
       />
       {isLoadingSuggestions && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div> {/* Slightly smaller spinner */}
+          <div className="w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div> 
         </div>
       )}
       {isSuggestionsVisible && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto"> {/* Adjusted max-height */}
+        <ul className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((player) => (
             <li
-              key={`${player.personId}-${player.firstName}-${player.lastName}-${player.startYear}-${player.endYear}`} // Ensure key is unique
+              key={`${player.personId}-${player.firstName}-${player.lastName}-${player.startYear}-${player.endYear}`}
               onClick={() => handleSelectPlayer(player)}
-              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-700 dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" // Adjusted padding and text size
+              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-700 dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" 
             >
               <span className="font-medium text-gray-800 dark:text-gray-200">{player.firstName} {player.lastName}</span>
               {(player.startYear && player.endYear) && (
@@ -127,7 +119,7 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
           No players found for &quot;{searchTerm}&quot;.
         </div>
       )}
-      {error && isSuggestionsVisible && searchTerm.length >=2 && ( // Display error only if suggestions are meant to be visible
+      {error && isSuggestionsVisible && searchTerm.length >=2 && ( 
          <div className="absolute z-50 w-full bg-red-50 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-md mt-1 shadow-lg p-2 text-red-700 dark:text-red-200 text-sm">
             {error}
         </div>

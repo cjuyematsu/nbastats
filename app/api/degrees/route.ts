@@ -1,8 +1,7 @@
 // app/api/degrees/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient'; // Adjust path if your client is elsewhere
+import { supabase } from '@/lib/supabaseClient';
 
-// --- Type Definitions ---
 interface Player {
     id: number;
     name: string;
@@ -24,8 +23,6 @@ interface BFSResult {
     links: LinkDetailApi[];
     searchedPlayerIds?: { p1: string; p2: string };
 }
-
-// --- In-memory cache, loadGraphData ---
 let adjList: Record<string, number[]> | null = null;
 let playerMap: Record<string, string> | null = null;
 let graphDataLoaded = false;
@@ -66,7 +63,6 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
 }
 
 
-// --- Breadth-First Search (BFS) Implementation ---
 async function performBFS(
     startNodeIdStr: string,
     endNodeIdStr: string,
@@ -139,7 +135,7 @@ async function performBFS(
                             } else {
                                 console.warn(`No teammate data (null) from Supabase for ${sourcePlayer.name} & ${targetPlayer.name}`);
                             }
-                        } catch (catchError: unknown) { // FIX 1: unknown type and safe message access
+                        } catch (catchError: unknown) {
                             const errorMessage = catchError instanceof Error ? catchError.message : String(catchError);
                             console.error(`Exception fetching teammates data for ${sourcePlayer.name} & ${targetPlayer.name}:`, errorMessage);
                         }
@@ -165,7 +161,6 @@ async function performBFS(
     return null;
 }
 
-// --- API POST Handler ---
 export async function POST(request: Request) {
     const getRequestBody = async (req: Request): Promise<{startPlayerId?: string, endPlayerId?: string}> => {
         try { return await req.json(); } catch { return {}; }
@@ -184,7 +179,7 @@ export async function POST(request: Request) {
         let currentGraphData;
         try {
             currentGraphData = await loadGraphData();
-        } catch (loadError: unknown) { // FIX 3: unknown type and safe message access
+        } catch (loadError: unknown) { 
             const details = loadError instanceof Error ? loadError.message : String(loadError);
             return NextResponse.json({
                 error: 'Graph data (JSON) could not be loaded.',
@@ -203,9 +198,8 @@ export async function POST(request: Request) {
         } else {
             return NextResponse.json({ message: 'No connection found within the allowed degrees.', path: [], degrees: -1, links: [], searchedPlayerIds });
         }
-    } catch (error: unknown) { // FIX 4: unknown type
+    } catch (error: unknown) { 
         console.error('API Error in /api/degrees POST handler:', error);
-        // Existing instanceof check is good and works with unknown
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
         return NextResponse.json({
             error: 'An unexpected error occurred on the server.',

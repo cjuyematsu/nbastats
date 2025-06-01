@@ -5,9 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient'; 
 import { useAuth } from '@/app/contexts/AuthContext';   
 import Link from 'next/link';
-import { Database } from '@/types/supabase'; // Path to your generated types
+import { Database } from '@/types/supabase'; 
 
-// --- Icon Components ---
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5l7.5-7.5 7.5 7.5" /> 
@@ -42,11 +41,6 @@ interface GameDetailsForJsonb {
 
 type GameStatus = 'loading' | 'not_played_yet' | 'playing' | 'round_feedback' | 'completed' | 'already_played' | 'no_game_today' | 'error_loading';
 
-// It's good practice to define the Json type based on what Supabase expects if it's not globally available
-// from your generated types directly as 'Json'. Often it is part of the Database type.
-// If Database['public']['Tables']['gamescores']['Insert']['game_details'] is `Json | null | undefined`,
-// we can derive it or use `any` for the cast if really stuck.
-// For this example, we'll assume `Json` is a type we can reference or that the cast to the specific column type handles it.
 type SupabaseJsonType = Database['public']['Tables']['gamescores']['Insert']['game_details'];
 
 
@@ -189,8 +183,6 @@ export default function StatOverUnderGamePage() {
           game_type: 'STAT_OVER_UNDER_DAILY_V1', 
           played_on_date: todayDateISO, 
           score: finalScore, 
-          // This cast tells TypeScript to trust that gameDataToSave is compatible
-          // with the Json type expected by the game_details column.
           game_details: gameDataToSave as unknown as SupabaseJsonType, 
         });
       if (error) {
@@ -246,8 +238,6 @@ export default function StatOverUnderGamePage() {
     }
   }, [currentRoundIndex, challenges.length, userAnswers]);
   
-
-  // --- Render Logic ---
   if (authIsLoading || isLoading) {
     return <div className="text-center p-10 text-slate-300">Loading Game...</div>;
   }

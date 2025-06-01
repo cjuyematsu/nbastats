@@ -228,7 +228,7 @@ export default function PlayerComparisonChart() {
     setIsLoadingChart(true);
     setError(null);
     const datasets: ChartDataset<'line', CustomChartPoint[]>[] = [];
-    const allAgesWithData = new Set<number>(); // Renamed for clarity
+    const allAgesWithData = new Set<number>(); 
     const currentTableName = seasonType === 'regular' ? 'regularseasonstats' : 'playoffstats';
 
     try {
@@ -263,7 +263,7 @@ export default function PlayerComparisonChart() {
           let lastKnownTeam = validSeasons[0]?.playerteamName || null;
 
           for (let age = playerMinAge; age <= playerMaxAge; age++) {
-            allAgesWithData.add(age); // Collect all ages that have actual data or are within a player's career span
+            allAgesWithData.add(age); 
             const currentAgeData = seasonDataMap.get(age);
             if (currentAgeData) {
               playerCareerDataPoints.push({ x: age, y: (currentAgeData.stat === null || isNaN(currentAgeData.stat)) ? null : currentAgeData.stat, team: currentAgeData.team || lastKnownTeam });
@@ -387,14 +387,14 @@ export default function PlayerComparisonChart() {
         scales: {
           x: {
             type: 'linear',
-            min: xMin, // Explicitly set the min of the x-axis
-            max: xMax, // Explicitly set the max of the x-axis
-            title: { display: true, text: 'Player Age', color: chartTextColor, font: { size: 14, weight: 'bold' }}, // Using 'bold' as per your last code
-            ticks: { color: chartTextColor, stepSize: 1 }, // Suggest stepSize for integer ticks
+            min: xMin, 
+            max: xMax, 
+            title: { display: true, text: 'Player Age', color: chartTextColor, font: { size: 14, weight: 'bold' }}, 
+            ticks: { color: chartTextColor, stepSize: 1 }, 
             grid: { color: chartGridColor }
           },
           y: {
-            title: { display: true, text: availableStats.find(s => s.value === selectedStat)?.label || selectedStat, color: chartTextColor, font: { size: 14, weight: 'bold' }}, // Using 'bold'
+            title: { display: true, text: availableStats.find(s => s.value === selectedStat)?.label || selectedStat, color: chartTextColor, font: { size: 14, weight: 'bold' }}, 
             ticks: {
                 color: chartTextColor,
                 callback: function(value: string | number) {
@@ -409,7 +409,7 @@ export default function PlayerComparisonChart() {
         },
     };
     return options;
-  }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]); // Added chartData dependency
+  }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]); 
 
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">

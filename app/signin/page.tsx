@@ -3,14 +3,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient'; // Adjust path if needed
+import { supabase } from '@/lib/supabaseClient'; 
 import Link from 'next/link';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [isErrorMessage, setIsErrorMessage] = useState(false); // New state for message type
+  const [isErrorMessage, setIsErrorMessage] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -18,9 +18,9 @@ export default function SignInPage() {
     event.preventDefault();
     setIsLoading(true);
     setMessage('');
-    setIsErrorMessage(false); // Reset message type
+    setIsErrorMessage(false); 
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ // Renamed error to signInError
+    const { error: signInError } = await supabase.auth.signInWithPassword({ 
       email,
       password,
     });

@@ -2,8 +2,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js'; // Added Subscription type
-import { supabase } from '@/lib/supabaseClient'; // Adjust path if your supabaseClient is elsewhere
+import { Session, User } from '@supabase/supabase-js'; 
+import { supabase } from '@/lib/supabaseClient'; 
 
 interface AuthContextType {
   session: Session | null;
@@ -34,24 +34,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     fetchSession();
 
-    // onAuthStateChange returns an object with a data property, 
-    // which in turn has a subscription property.
     const { data: authStateChangeListener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        // Set loading to false after initial session is processed or auth state changes
         if (_event === 'INITIAL_SESSION' || _event === 'SIGNED_IN' || _event === 'SIGNED_OUT') {
           setIsLoading(false);
         }
       }
     );
 
-    // The object returned by onAuthStateChange has a `subscription` property.
-    // That subscription object has the `unsubscribe` method.
     return () => {
-      authStateChangeListener?.subscription?.unsubscribe(); // Corrected: access subscription property
+      authStateChangeListener?.subscription?.unsubscribe(); 
     };
   }, []);
 
@@ -60,7 +55,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
         console.error('Error signing out:', error);
     }
-    // onAuthStateChange will handle setting session and user to null
   };
 
   return (

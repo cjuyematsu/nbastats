@@ -9,7 +9,6 @@ export interface PlayerSuggestion {
   }
   
   export interface CareerStatsData {
-    // Identifying Info (comes from the Supabase function directly)
     personId: number;
     firstName: string | null;
     lastName: string | null;
