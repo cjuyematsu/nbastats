@@ -3,14 +3,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient'; // Adjust path if needed
+import { supabase } from '@/lib/supabaseClient'; 
 import Link from 'next/link';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [isErrorMessage, setIsErrorMessage] = useState(false); // New state for message type
+  const [isErrorMessage, setIsErrorMessage] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -18,9 +18,9 @@ export default function SignUpPage() {
     event.preventDefault();
     setIsLoading(true);
     setMessage('');
-    setIsErrorMessage(false); // Reset message type
+    setIsErrorMessage(false); 
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ // Renamed error to signUpError
+    const { data, error: signUpError } = await supabase.auth.signUp({ 
       email,
       password,
       options: {
@@ -37,7 +37,7 @@ export default function SignUpPage() {
         setMessage(
           'User may already exist with an unconfirmed email. Please check your inbox to confirm, or try signing in.'
         );
-        setIsErrorMessage(true); // This is more of a warning/error state for UI
+        setIsErrorMessage(true); 
       } 
       else if (data.session) { 
         setMessage('Sign up successful! Redirecting...');

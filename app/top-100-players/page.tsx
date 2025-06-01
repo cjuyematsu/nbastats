@@ -9,7 +9,6 @@ import CountdownTimer from '@/components/CountdownTimer';
 
 const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v1';
 
-// Helper function to calculate next Sunday midnight
 function getNextSundayMidnightISO(): string {
   const now = new Date();
   const nextSunday = new Date(now.getTime());
@@ -24,7 +23,6 @@ function getNextSundayMidnightISO(): string {
   return nextSunday.toISOString();
 }
 
-// --- Interface Definitions ---
 interface RpcRankedPlayerData { 
   rankNumber: number; 
   personId: number; 
@@ -89,7 +87,6 @@ interface CachedTop100Data {
   expiresAt: string; 
 }
 
-// --- VotingButton Component ---
 interface VotingButtonProps {
   onClick: () => void;
   isActive: boolean;
@@ -116,13 +113,12 @@ const VotingButton: React.FC<VotingButtonProps> = ({
 };
 
 interface AggregatedVotesData {
-  playerId: number; // Ensure type matches what your RPC returns (player_id from SQL)
-  upvotes: number;  // bigint from SQL sum usually maps to number in JS if not too large
+  playerId: number;  
+  upvotes: number; 
   downvotes: number;
   sameSpotVotes: number;
 }
 
-// --- PlayerBox Component ---
 interface PlayerBoxProps {
   player: TopPlayer;
   onVote: (playerId: number, newVoteType: number) => Promise<void>;
@@ -212,7 +208,6 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   );
 };
 
-// --- Top100PlayersPage Component ---
 export default function Top100PlayersPage() {
   const { user, isLoading: authIsLoading, session } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>([]);
@@ -271,10 +266,9 @@ export default function Top100PlayersPage() {
         return voteCountsMap;
     }
     
-    // Call the new RPC function
     const { data, error } = await supabase.rpc('get_aggregated_weekly_votes_for_players', {
         player_ids_array: playerIds,
-        p_week_start_time: weekStartTimeISO // Ensure param name matches SQL function
+        p_week_start_time: weekStartTimeISO 
     });
 
     if (error) {
@@ -282,10 +276,7 @@ export default function Top100PlayersPage() {
         return voteCountsMap; 
     }
 
-    // Process the data from the RPC
-    // The RPC returns an array of objects like { playerId, upvotes, downvotes, sameSpotVotes }
     data?.forEach((row: AggregatedVotesData) => { 
-        // Ensure your AggregatedVotesData interface matches the RPC output column names
         voteCountsMap.set(row.playerId, { 
             upvotes: row.upvotes,
             downvotes: row.downvotes,
@@ -356,12 +347,11 @@ export default function Top100PlayersPage() {
 
 
   useEffect(() => {
-    // Conditions under which we should attempt to load data
     if (!authIsLoading && lastRearrangementTimeISO && nextRearrangementTime) {
       let isMounted = true;
       
-      setIsLoadingPlayers(true); // Set loading true before the async call
-      loadPlayerDataInternal(nextRearrangementTime) // Pass current nextRearrangementTime for cache
+      setIsLoadingPlayers(true);
+      loadPlayerDataInternal(nextRearrangementTime) 
         .catch(err => { 
           if (isMounted) {
             let message = "Failed to load player data.";
@@ -450,7 +440,6 @@ export default function Top100PlayersPage() {
       }
       timeout = setTimeout(() => func(...args), waitFor);
     };
-    // Adjust return type if func returns a Promise or specific type
     return debounced as (...args: Args) => void;
   }
   const debouncedFetchNominationSuggestions = useCallback(
@@ -479,7 +468,7 @@ export default function Top100PlayersPage() {
         setNominationSuggestions([]);
       }
     }, 300),
-    [players] // players is a dependency here because of currentTop100Ids
+    [players] 
   );
 
   const handleNominationSearchChange = (e: ChangeEvent<HTMLInputElement>) => {

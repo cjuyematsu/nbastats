@@ -8,15 +8,13 @@
 }
 
 :root {
-  --header-height: 64px; /* Example: 4rem or h-16 in Tailwind */
-  --nav-container-padding: 12px; /* Example: 0.75rem or p-3 in Tailwind for desktop */
+  --header-height: 64px; 
+  --nav-container-padding: 12px; 
   
-  /* Initial values, will be updated by JavaScript */
-  --nav-actual-width: 256px; /* Default navbar width */
+  --nav-actual-width: 256px; 
   --nav-offset-left: calc(var(--nav-container-padding) + var(--nav-actual-width));
 }
 
-/* Mobile overrides where the offset is typically zero when nav is closed */
 @media (max-width: 767px) {
   :root {
     --nav-actual-width: 0px;

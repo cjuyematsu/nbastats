@@ -1,16 +1,14 @@
 // app/degrees-of-separation/page.tsx
 "use client";
 
-import { Suspense } from 'react'; // Step 1: Import Suspense
+import { Suspense } from 'react'; 
 
-// Step 2: Keep original imports needed for the client component logic
 import { useState, useCallback, Fragment, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import HeaderSearchBar from '@/components/HeaderSearchBar';
 import type { PlayerSuggestion } from '@/types/stats';
 
-// --- Type Definitions (Copied from your original page) ---
 type PathNode = {
   id: number;
   name: string;
@@ -44,7 +42,6 @@ interface ApiErrorOrMessageResponse {
   searchedPlayerIds?: { p1: string; p2: string };
 }
 
-// --- PlayerCard and ConnectionDetailsCard Components (Copied from your original page) ---
 const PlayerCard = ({ playerNode }: { playerNode: PathNode }) => {
   return (
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
@@ -79,13 +76,12 @@ const ConnectionDetailsCard = ({ linkDetail }: { linkDetail: LinkDetail }) => {
   );
 };
 
-// Step 3: Define the Client Component containing all original page logic
 function DegreesOfSeparationClientContent() {
-  'use client'; // This is crucial
+  'use client'; 
 
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams(); // This hook requires the Suspense boundary
+  const searchParams = useSearchParams(); 
 
   const [selectedStartPlayer, setSelectedStartPlayer] = useState<PlayerSuggestion | null>(null);
   const [selectedEndPlayer, setSelectedEndPlayer] = useState<PlayerSuggestion | null>(null);
@@ -126,7 +122,6 @@ function DegreesOfSeparationClientContent() {
     if (storedResultsItem) {
       try {
         const parsedResults = JSON.parse(storedResultsItem) as ApiSuccessResponse;
-        // Results should match if the currently selected players (derived from URL/session) match those in stored results
         const storedP1Id = parsedResults.searchedPlayerIds?.p1;
         const storedP2Id = parsedResults.searchedPlayerIds?.p2;
 
@@ -134,8 +129,7 @@ function DegreesOfSeparationClientContent() {
           setPath(parsedResults.path || []);
           setDegrees(parsedResults.degrees !== undefined ? parsedResults.degrees : null);
           setLinks(parsedResults.links || []);
-          setError(null); // Clear previous errors if we are loading valid stored results
-          // Set info message based on loaded results
+          setError(null); 
           if (parsedResults.degrees === 0 && parsedResults.path.length === 1) {
             setInfoMessage(`${parsedResults.path[0].name} is the selected player.`);
           } else if (parsedResults.path.length > 0 && typeof parsedResults.degrees === 'number' && parsedResults.degrees >= 0) {
@@ -144,29 +138,25 @@ function DegreesOfSeparationClientContent() {
             setInfoMessage(parsedResults.message);
           }
         } else {
-          // If URL params don't match stored results, clear them.
           sessionStorage.removeItem('dos_results');
-          // Optionally clear path/links/degrees too, or let new search handle it
         }
       } catch (e) { 
         console.error("Error parsing results from session storage:", e); 
         sessionStorage.removeItem('dos_results');
       }
     }
-  }, [searchParams]); // searchParams is a dependency for this effect
+  }, [searchParams]);
 
   const handleFindConnection = useCallback(async () => {
     if (!selectedStartPlayer || !selectedEndPlayer) { setError('Please select both players.'); return; }
     const startIdStr = String(selectedStartPlayer.personId);
     const endIdStr = String(selectedEndPlayer.personId);
 
-    // Update URL immediately
     const newParams = new URLSearchParams(searchParams?.toString());
     newParams.set('p1', startIdStr);
     newParams.set('p2', endIdStr);
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
     
-    // Store selected players in session storage
     sessionStorage.setItem('dos_startPlayer', JSON.stringify(selectedStartPlayer));
     sessionStorage.setItem('dos_endPlayer', JSON.stringify(selectedEndPlayer));
 
@@ -182,7 +172,7 @@ function DegreesOfSeparationClientContent() {
         return;
     }
 
-    setIsLoading(true); setError(null); setInfoMessage(null); // Clear previous messages/errors for new search
+    setIsLoading(true); setError(null); setInfoMessage(null);
 
     try {
       const response = await fetch('/api/degrees', {
@@ -191,14 +181,12 @@ function DegreesOfSeparationClientContent() {
       });
       const result: ApiSuccessResponse | ApiErrorOrMessageResponse = await response.json();
       
-      // Ensure the results correspond to the *current* search
       if (result.searchedPlayerIds?.p1 !== startIdStr || result.searchedPlayerIds?.p2 !== endIdStr) {
-          // Stale result, ignore it or handle appropriately
           console.warn("Received stale search result, ignoring.");
-          setIsLoading(false); // Still need to turn off loading
+          setIsLoading(false);
           return;
       }
-      sessionStorage.setItem('dos_results', JSON.stringify(result)); // Store result
+      sessionStorage.setItem('dos_results', JSON.stringify(result)); 
 
       if (!response.ok) {
         const errorResult = result as ApiErrorOrMessageResponse;
@@ -223,7 +211,7 @@ function DegreesOfSeparationClientContent() {
     } catch (e) { 
         console.error('Failed to find connection:', e);
         setError(e instanceof Error ? e.message : 'Failed to connect to the server or parse the response.');
-        sessionStorage.removeItem('dos_results'); // Clear potentially bad stored result on error
+        sessionStorage.removeItem('dos_results');
     } finally { setIsLoading(false); }
   }, [selectedStartPlayer, selectedEndPlayer, router, pathname, searchParams]);
 
@@ -253,7 +241,7 @@ function DegreesOfSeparationClientContent() {
         <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 mb-6 items-start">
           <div>
             <label htmlFor="startPlayerSearch" className="block text-sm font-medium text-gray-300 mb-1">Select Start Player</label>
-            <HeaderSearchBar onPlayerSelected={(player) => { setSelectedStartPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]); /* Clear old results */ }} />
+            <HeaderSearchBar onPlayerSelected={(player) => { setSelectedStartPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]);}} />
             {selectedStartPlayer && (
               <p className="text-sm text-slate-400 mt-2">
                 Selected: <Link href={`/player/${selectedStartPlayer.personId}`} className="font-semibold text-sky-400 hover:text-sky-300">{`${selectedStartPlayer.firstName} ${selectedStartPlayer.lastName}`}</Link>
@@ -262,7 +250,7 @@ function DegreesOfSeparationClientContent() {
           </div>
           <div>
             <label htmlFor="endPlayerSearch" className="block text-sm font-medium text-gray-300 mb-1">Select End Player</label>
-            <HeaderSearchBar onPlayerSelected={(player) => { setSelectedEndPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]); /* Clear old results */ }} />
+            <HeaderSearchBar onPlayerSelected={(player) => { setSelectedEndPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]);}} />
             {selectedEndPlayer && (
               <p className="text-sm text-slate-400 mt-2">
                 Selected: <Link href={`/player/${selectedEndPlayer.personId}`} className="font-semibold text-sky-400 hover:text-sky-300">{`${selectedEndPlayer.firstName} ${selectedEndPlayer.lastName}`}</Link>
@@ -292,7 +280,6 @@ function DegreesOfSeparationClientContent() {
         )}
         {path.length > 0 && degrees !== null && degrees >= 0 && !error && (
           <div className="mt-8">
-            {/* Title for results section is dynamic based on infoMessage or degrees; so only render here if no separate infoMessage */}
             {!infoMessage && (
                  <h2 className="text-2xl font-semibold mb-4 text-slate-100 text-center">
                     Connected in <span className="text-sky-400">{degrees} {degrees === 1 ? "Degree" : "Degrees"}</span>
@@ -321,7 +308,6 @@ function DegreesOfSeparationClientContent() {
   );
 }
 
-// Step 4: Define a Loading Fallback UI
 function LoadingState() {
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
@@ -329,14 +315,12 @@ function LoadingState() {
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-sky-400">
           Nine Degrees
         </h1>
-        {/* Basic loading text, you can replace with a spinner or more elaborate skeleton UI */}
         <p className="text-xl text-slate-300">Loading page and connections...</p>
       </div>
     </div>
   );
 }
 
-// Step 5: The default export for the page (Server Component)
 export default function DegreesOfSeparationPage() {
   return (
     <Suspense fallback={<LoadingState />}>

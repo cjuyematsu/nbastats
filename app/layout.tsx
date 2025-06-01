@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description: 'Search and compare NBA player statistics',
 };
 
-// These constants are from your provided layout
 const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256;
 const PAGE_INSET_PADDING_PX = 12;
 const NAVBAR_HEADER_GAP_PX = 12;
@@ -48,17 +47,17 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
       <AuthProvider>
           <div 
-            className="fixed inset-0 md:p-[var(--page-inset-padding)] pointer-events-none z-[49]" // Navbar wrapper is z-49
+            className="fixed inset-0 md:p-[var(--page-inset-padding)] pointer-events-none z-[49]"
           >
             <Navbar /> 
           </div>
           <div
-            className="hidden md:block fixed bg-gray-100 dark:bg-gray-900 z-30" // z-index below Header (z-40) but above content
+            className="hidden md:block fixed bg-gray-100 dark:bg-gray-900 z-30"
             style={{
               top: '0px',
-              left: 'var(--nav-offset-left)', // Aligns with Header's horizontal start
-              right: 'var(--page-inset-padding)', // Aligns with Header's horizontal end
-              height: 'var(--page-inset-padding)', // Covers exactly the gap height
+              left: 'var(--nav-offset-left)', 
+              right: 'var(--page-inset-padding)',
+              height: 'var(--page-inset-padding)', 
             }}
           />
           

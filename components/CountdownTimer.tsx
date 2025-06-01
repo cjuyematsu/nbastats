@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 
 interface CountdownTimerProps {
-  targetTimeIso: string | null; // ISO string for the target date/time
+  targetTimeIso: string | null;
 }
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTimeIso }) => {
@@ -30,7 +30,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTimeIso }) => {
       if (distance < 0) {
         clearInterval(intervalId);
         setTimeLeft('The list may have recently been rearranged or is updating!');
-        // You might want to trigger a data refresh on the parent page here
         return;
       }
 
@@ -47,7 +46,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTimeIso }) => {
       setTimeLeft(timerText);
     }, 1000);
 
-    // Initial call to set time immediately
     const now = new Date().getTime();
     const distance = targetTime - now;
     if (distance < 0) {
@@ -65,7 +63,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTimeIso }) => {
     }
 
 
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+    return () => clearInterval(intervalId); 
   }, [targetTimeIso]);
 
   return (
