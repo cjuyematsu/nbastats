@@ -571,7 +571,7 @@ export type Database = {
         }[]
       }
       get_aggregated_weekly_votes_for_players: {
-        Args: { player_ids_array: number[]; week_start_time: string }
+        Args: { player_ids_array: number[]; p_week_start_time: string }
         Returns: {
           playerId: number
           upvotes: number
@@ -652,6 +652,14 @@ export type Database = {
           weightedProminence: number
         }[]
       }
+      perform_weekly_player_rearrangement: {
+        Args: {
+          p_target_year: number
+          p_target_week_of_year: number
+          p_previous_rearrangement_tstamp: string
+        }
+        Returns: string
+      }
       safe_to_integer: {
         Args: { val: string; default_val?: number }
         Returns: number
@@ -665,7 +673,28 @@ export type Database = {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      player_ranking_entry_type: {
+        player_id: number | null
+        current_rank: number | null
+        first_name: string | null
+        last_name: string | null
+        team_name: string | null
+        weekly_final_movement_score: number | null
+        weekly_base_same_spot_votes: number | null
+        stats_prominence: number | null
+        base_g: number | null
+        base_pts_total: number | null
+        base_trb_total: number | null
+        base_ast_total: number | null
+        base_stl_total: number | null
+        base_blk_total: number | null
+        base_fga_total: number | null
+        base_fgm_total: number | null
+        base_fg3a_total: number | null
+        base_fg3m_total: number | null
+        base_fta_total: number | null
+        base_ftm_total: number | null
+      }
     }
   }
 }
