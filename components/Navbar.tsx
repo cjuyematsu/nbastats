@@ -5,35 +5,49 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
-// --- Icon Components (No changes here) ---
+// --- Icon Components ---
 const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
 );
+
 const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
+
 const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
   </svg>
 );
+
 const UsersIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
   </svg>
 );
+
 const ChartBarIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
   </svg>
 );
+
 const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+  </svg>
+);
+
+const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+    {/* Up Arrow */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6l-3.5 3.5M12 6l3.5 3.5M12 6v5" />
+    {/* Down Arrow - slightly below the up arrow's reach */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18l-3.5-3.5M12 18l3.5-3.5M12 18v-5" />
   </svg>
 );
 
@@ -43,7 +57,8 @@ const TEXT_VISIBILITY_THRESHOLD = 160;
 
 const NavLink = ({ href, children, icon, showText }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean }) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  // Check if the current pathname is exactly the href or starts with the href followed by a slash (for parent route highlighting)
+  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/")); 
 
   return (
     <Link
@@ -110,25 +125,15 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        !isMdScreen &&
-        isOpenOnMobile &&
-        navRef.current &&
-        toggleButtonRef.current
-      ) {
-        if (
-          !navRef.current.contains(event.target as Node) &&
-          !toggleButtonRef.current.contains(event.target as Node)
-        ) {
+      if (!isMdScreen && isOpenOnMobile && navRef.current && toggleButtonRef.current) {
+        if (!navRef.current.contains(event.target as Node) && !toggleButtonRef.current.contains(event.target as Node)) {
           setIsOpenOnMobile(false);
         }
       }
     };
-
     if (!isMdScreen && isOpenOnMobile) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -136,14 +141,14 @@ export default function Navbar() {
 
   const handleToggleNav = () => {
     if (isMdScreen) {
-      if (navWidth > MIN_NAV_WIDTH) {
-        setLastExpandedDesktopWidth(navWidth);
-        setNavWidth(MIN_NAV_WIDTH);
-      } else {
-        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH);
+      if (navWidth > MIN_NAV_WIDTH) { 
+        setLastExpandedDesktopWidth(navWidth); 
+        setNavWidth(MIN_NAV_WIDTH); 
+      } else { 
+        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH); 
       }
-    } else {
-      setIsOpenOnMobile(!isOpenOnMobile);
+    } else { 
+      setIsOpenOnMobile(!isOpenOnMobile); 
     }
   };
 
@@ -163,25 +168,17 @@ export default function Navbar() {
       ? (navWidth > MIN_NAV_WIDTH ? CloseIcon : MenuIcon)
       : (isOpenOnMobile ? CloseIcon : MenuIcon);
 
-  // --- MODIFIED SECTION ---
   const hamburgerButtonStyle: React.CSSProperties = {
     left: (() => {
-      if (!isMdScreen) { // Mobile
-        // When mobile menu is open (showing X icon), adjust left for horizontal alignment.
-        // Otherwise (Menu icon), use original '1rem'.
+      if (!isMdScreen) { 
         return isOpenOnMobile ? '1.25rem' : '1rem';
       }
-      // Desktop logic (remains as you had it)
       return navWidth > MIN_NAV_WIDTH
         ? `calc(var(--page-inset-padding) + 18px)`
         : `calc(var(--page-inset-padding) + 20px)`;
     })(),
-    // Vertical position remains as it was in your provided code:
-    // It will always align with the page header's vertical center.
-    // On mobile, --page-inset-padding is 0, so effectively var(--header-height) / 2.
     top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))`,
   };
-  // --- END OF MODIFIED SECTION ---
 
   return (
     <>
@@ -223,17 +220,41 @@ export default function Navbar() {
       >
         {(isMdScreen || isOpenOnMobile) && (
           <>
-            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700 ${''}`}>
-              {/* Logo area empty */}
+            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
+              {/* Logo area can go here */}
             </div>
             <div className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
-              <NavLink href="/" icon={<HomeIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Home</NavLink>
-              <NavLink href="/top-100-players" icon={<UsersIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Top 100</NavLink>              
-              <NavLink href="/compare" icon={<ChartBarIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Compare Players</NavLink>
-              <NavLink href="/degrees-of-separation" icon={<LinkIcon className="w-5 h-5 flex-shrink-0" />} showText={showTextInNav}>Nine Degrees</NavLink>
+              <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
+              <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
+              <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
+              <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Nine Degrees</NavLink>
+              
+              {/* New Games Section Link */}
+              <div className="pt-2">
+                {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
+                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                
+                <NavLink 
+                  href="/games/stat-over-under" // Ensure this path matches your game's route
+                  icon={<OverUnderGameIcon />} 
+                  showText={showTextInNav}
+                >
+                  Over/Under
+                </NavLink>
+                {/* You can add more NavLink components here for other games */}
+                {/* Example: 
+                <NavLink 
+                  href="/games/another-game" 
+                  icon={<AnotherGameIcon />} // You'd define AnotherGameIcon
+                  showText={showTextInNav}
+                >
+                  Another Game
+                </NavLink>
+                */}
+              </div>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                {/* Footer content was removed in user's last provided code */}
+                {/* Optional Navbar Footer Content */}
             </div>
           </>
         )}
