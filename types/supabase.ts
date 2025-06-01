@@ -46,6 +46,7 @@ export type Database = {
         Row: {
           attempts: number | null
           game_data: Json | null
+          game_details: Json | null
           game_type: string
           id: number
           played_at: string
@@ -55,6 +56,7 @@ export type Database = {
         Insert: {
           attempts?: number | null
           game_data?: Json | null
+          game_details?: Json | null
           game_type: string
           id?: number
           played_at?: string
@@ -64,6 +66,7 @@ export type Database = {
         Update: {
           attempts?: number | null
           game_data?: Json | null
+          game_details?: Json | null
           game_type?: string
           id?: number
           played_at?: string
@@ -449,6 +452,45 @@ export type Database = {
         }
         Relationships: []
       }
+      stat_ou_daily_challenges: {
+        Row: {
+          actual_stat_value: number
+          challenge_date: string
+          created_at: string | null
+          displayed_line_value: number
+          player_id: number
+          player_name: string
+          round_number: number
+          season_year: number
+          stat_category: string
+          team_name: string
+        }
+        Insert: {
+          actual_stat_value: number
+          challenge_date: string
+          created_at?: string | null
+          displayed_line_value: number
+          player_id: number
+          player_name: string
+          round_number: number
+          season_year: number
+          stat_category: string
+          team_name: string
+        }
+        Update: {
+          actual_stat_value?: number
+          challenge_date?: string
+          created_at?: string | null
+          displayed_line_value?: number
+          player_id?: number
+          player_name?: string
+          round_number?: number
+          season_year?: number
+          stat_category?: string
+          team_name?: string
+        }
+        Relationships: []
+      }
       teammates: {
         Row: {
           EndYearTogether: number | null
@@ -570,6 +612,10 @@ export type Database = {
           ts_pct: number
         }[]
       }
+      generate_stat_ou_challenges: {
+        Args: { p_target_date: string }
+        Returns: undefined
+      }
       get_aggregated_weekly_votes_for_players: {
         Args: { player_ids_array: number[]; p_week_start_time: string }
         Returns: {
@@ -630,6 +676,21 @@ export type Database = {
           lastName: string
           min_season: number
           max_season: number
+        }[]
+      }
+      get_stat_ou_challenges_for_date: {
+        Args: { p_challenge_date: string }
+        Returns: {
+          actual_stat_value: number
+          challenge_date: string
+          created_at: string | null
+          displayed_line_value: number
+          player_id: number
+          player_name: string
+          round_number: number
+          season_year: number
+          stat_category: string
+          team_name: string
         }[]
       }
       get_top_100_prominence_2025_stats: {
