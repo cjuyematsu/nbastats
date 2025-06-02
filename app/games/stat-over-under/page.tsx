@@ -18,7 +18,6 @@ const ArrowDownIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// --- Interface Definitions ---
 type GameChallenge = Database['public']['Functions']['get_stat_ou_challenges_for_date']['Returns'][number];
 
 interface UserRoundAnswer {
