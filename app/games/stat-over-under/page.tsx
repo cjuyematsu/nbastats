@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient'; 
-import { useAuth } from '@/app/contexts/AuthContext';  
+import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { Database } from '@/types/supabase'; 
 
