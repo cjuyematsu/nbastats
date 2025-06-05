@@ -44,44 +44,27 @@ export type Database = {
       }
       gamescores: {
         Row: {
-          attempts: number | null
-          game_data: Json | null
-          game_details: Json | null
-          game_type: string
-          id: number
-          played_at: string
-          score: number
+          game_id: string
+          played_on_date: string
+          points: number | null
+          potential_points: number | null
           user_id: string
         }
         Insert: {
-          attempts?: number | null
-          game_data?: Json | null
-          game_details?: Json | null
-          game_type: string
-          id?: number
-          played_at?: string
-          score: number
+          game_id: string
+          played_on_date: string
+          points?: number | null
+          potential_points?: number | null
           user_id: string
         }
         Update: {
-          attempts?: number | null
-          game_data?: Json | null
-          game_details?: Json | null
-          game_type?: string
-          id?: number
-          played_at?: string
-          score?: number
+          game_id?: string
+          played_on_date?: string
+          points?: number | null
+          potential_points?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "game_scores_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       players: {
         Row: {
@@ -458,6 +441,7 @@ export type Database = {
           challenge_date: string
           created_at: string | null
           displayed_line_value: number
+          game_era: string
           player_id: number
           player_name: string
           round_number: number
@@ -470,6 +454,7 @@ export type Database = {
           challenge_date: string
           created_at?: string | null
           displayed_line_value: number
+          game_era: string
           player_id: number
           player_name: string
           round_number: number
@@ -482,6 +467,7 @@ export type Database = {
           challenge_date?: string
           created_at?: string | null
           displayed_line_value?: number
+          game_era?: string
           player_id?: number
           player_name?: string
           round_number?: number
@@ -679,12 +665,13 @@ export type Database = {
         }[]
       }
       get_stat_ou_challenges_for_date: {
-        Args: { p_challenge_date: string }
+        Args: { p_challenge_date: string; p_game_era: string }
         Returns: {
           actual_stat_value: number
           challenge_date: string
           created_at: string | null
           displayed_line_value: number
+          game_era: string
           player_id: number
           player_name: string
           round_number: number
@@ -720,6 +707,10 @@ export type Database = {
           p_previous_rearrangement_tstamp: string
         }
         Returns: string
+      }
+      run_weekly_ranking_job: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       safe_to_integer: {
         Args: { val: string; default_val?: number }
