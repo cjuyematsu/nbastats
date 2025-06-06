@@ -1,3 +1,5 @@
+// app/draft-quiz/[year]/page.tsx
+
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -26,32 +28,22 @@ export default function DraftQuizPage() {
   const year = parseInt(params.year);
   const { user, session, supabase, isLoading: isAuthLoading } = useAuth();
   
-  // The Supabase client should be created once using useState
   const [draftPicks, setDraftPicks] = useState<DraftPick[]>([]);
   const [guessedIds, setGuessedIds] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- NEW: Use a ref to hold the latest guessedIds ---
-  // This ref will be updated every time the guessedIds state changes.
-  // We use this to prevent a "stale closure" problem in our save function.
   const guessedIdsRef = useRef(guessedIds);
   useEffect(() => {
     guessedIdsRef.current = guessedIds;
   }, [guessedIds]);
 
-  // --- REVISED: The final, most reliable saveProgress function ---
-const saveProgress = useCallback(async () => {
-    // We read from the ref to ensure we always have the LATEST set of guessed IDs.
+  const saveProgress = useCallback(async () => {
     const idsToSave = Array.from(guessedIdsRef.current);
     
-    // THE FIX: We now check for the `session` object directly from our Auth Context.
-    // This avoids a network call during the fragile 'beforeunload' event.
     if (user && session && idsToSave.length > 0) {
-      
       console.log(`Saving ${idsToSave.length} guessed IDs...`);
       
-      // We don't need to fetch the session, we just use the token we already have.
       await fetch('/api/quiz/save', {
         method: 'POST',
         headers: {
@@ -62,34 +54,25 @@ const saveProgress = useCallback(async () => {
           draft_year: year,
           guessed_ids: idsToSave,
         }),
-        // 'keepalive' is crucial for making sure the request is sent
-        // even if the page is being closed.
         keepalive: true,
       });
     }
-    // No 'else' block needed. If there's no session or no progress, we simply do nothing.
-}, [user, session, year]); // Add `session` to the dependency array.
+}, [user, session, year]);
 
-  // --- REVISED: The new effect for saving on exit ---
-  // This effect now only runs ONCE when the component mounts.
   useEffect(() => {
-    // This function will be called when the user closes the tab or navigates away.
     const handleSaveOnExit = () => {
       saveProgress();
     };
 
     window.addEventListener('beforeunload', handleSaveOnExit);
 
-    // The cleanup function of this effect will now run only when the component
-    // is truly unmounting (e.g., navigating to another page in the app).
     return () => {
       window.removeEventListener('beforeunload', handleSaveOnExit);
       handleSaveOnExit();
     };
-  }, [saveProgress]); // The dependency is stable and won't cause re-runs.
+  }, [saveProgress]);
 
 
-  // Fetching data logic remains the same
   useEffect(() => {
     if (isAuthLoading) return;
     async function fetchData() {
@@ -113,7 +96,6 @@ const saveProgress = useCallback(async () => {
     fetchData();
   }, [year, user, supabase]);
 
-  // Guess submission logic remains the same
   const handleGuessSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const guess = inputValue.trim();
@@ -139,42 +121,47 @@ const saveProgress = useCallback(async () => {
     setInputValue('');
   };
 
-  // JSX remains the same
   if (isLoading) {
     return <div className="text-center p-10">Loading Quiz...</div>;
   }
   
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-2 text-center">{year} NBA Draft Quiz</h1>
-      <div className="text-center mb-4 text-xl">Score: {guessedIds.size} / {draftPicks.length}</div>
-      <form onSubmit={handleGuessSubmit} className="mb-4">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter player name..."
-          className="w-full p-3 text-lg bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          autoCapitalize="off"
-          autoCorrect="off"
-        />
-      </form>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-        {draftPicks.map(pick => {
-          const isGuessed = guessedIds.has(pick.compositeKey);
-          return (
-            <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-blue-800' : 'bg-gray-800'}`}>
-              <div className="w-1/5 font-semibold text-gray-400">R{pick.Round} P{pick.Pick}</div>
-              <div className="w-4/5">
-                <div className="font-bold text-lg">{isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}</div>
-                <div className="text-sm text-gray-300 flex justify-between">
-                  <span>{pick['NBA Team'] || ''}</span>
-                  <span className="truncate text-right">{pick['School/Club Team'] || ''}</span>
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      
+      <div className="p-4 container mx-auto">
+        <h1 className="text-3xl font-bold mb-2 text-center">{year} NBA Draft Quiz</h1>
+        <div className="text-center mb-4 text-xl">Score: {guessedIds.size} / {draftPicks.length}</div>
+        <form onSubmit={handleGuessSubmit} className="mb-2">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Enter player name..."
+            className="w-full p-3 text-lg bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoCapitalize="off"
+            autoCorrect="off"
+          />
+        </form>
+      </div>
+
+      <div className="flex-grow overflow-y-auto p-4 container mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {draftPicks.map(pick => {
+            const isGuessed = guessedIds.has(pick.compositeKey);
+            return (
+              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-blue-800' : 'bg-gray-800'}`}>
+                <div className="w-1/5 font-semibold text-gray-400">R{pick.Round} P{pick.Pick}</div>
+                <div className="w-4/5">
+                  <div className="font-bold text-lg">{isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}</div>
+                  <div className="text-sm text-gray-300 flex justify-between">
+                    <span>{pick['NBA Team'] || ''}</span>
+                    <span className="truncate text-right">{pick['School/Club Team'] || ''}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
