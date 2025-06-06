@@ -1,14 +1,13 @@
+// app/contexts/AuthContext.tsx
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-// Import the SupabaseClient type
 import { Session, User, SupabaseClient } from '@supabase/supabase-js';
-// This is your shared client, which is great!
 import { supabase } from '@/lib/supabaseClient';
 
-// --- 1. ADD `supabase` TO THE TYPE DEFINITION ---
 interface AuthContextType {
-  supabase: SupabaseClient; // Add this line
+  supabase: SupabaseClient;
   session: Session | null;
   user: User | null;
   isLoading: boolean;
@@ -22,7 +21,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Your existing useEffect logic is perfectly fine, no changes needed here.
   useEffect(() => {
     const fetchSession = async () => {
       try {
@@ -57,13 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
-  // --- 2. ADD `supabase` TO THE VALUE PROVIDED BY THE CONTEXT ---
   const value = {
     session,
     user,
     isLoading,
     signOut,
-    supabase, // Add this line
+    supabase, 
   };
 
   return (

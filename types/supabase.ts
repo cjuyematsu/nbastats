@@ -287,7 +287,6 @@ export type Database = {
           created_at: string | null
           draft_year: number
           guessed_ids: Json
-          id: string
           updated_at: string | null
           user_id: string
         }
@@ -295,7 +294,6 @@ export type Database = {
           created_at?: string | null
           draft_year: number
           guessed_ids: Json
-          id?: string
           updated_at?: string | null
           user_id: string
         }
@@ -303,7 +301,6 @@ export type Database = {
           created_at?: string | null
           draft_year?: number
           guessed_ids?: Json
-          id?: string
           updated_at?: string | null
           user_id?: string
         }
@@ -761,6 +758,14 @@ export type Database = {
           threePointPercentage: number
           freeThrowPercentage: number
           weightedProminence: number
+        }[]
+      }
+      get_user_quiz_summary: {
+        Args: { p_user_id: string }
+        Returns: {
+          year: number
+          correct_count: number
+          total_count: number
         }[]
       }
       perform_weekly_player_rearrangement: {
