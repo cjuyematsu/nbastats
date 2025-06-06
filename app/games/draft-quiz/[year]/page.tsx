@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export const dynamic = 'force-dynamic';
 
