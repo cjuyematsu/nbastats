@@ -1,4 +1,5 @@
 // app/degrees-of-separation/page.tsx
+
 "use client";
 
 import { Suspense } from 'react'; 
