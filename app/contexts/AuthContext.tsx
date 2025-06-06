@@ -1,14 +1,17 @@
-// contexts/AuthContext.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js'; 
-import { supabase } from '@/lib/supabaseClient'; 
+// Import the SupabaseClient type
+import { Session, User, SupabaseClient } from '@supabase/supabase-js';
+// This is your shared client, which is great!
+import { supabase } from '@/lib/supabaseClient';
 
+// --- 1. ADD `supabase` TO THE TYPE DEFINITION ---
 interface AuthContextType {
+  supabase: SupabaseClient; // Add this line
   session: Session | null;
   user: User | null;
-  isLoading: boolean; 
+  isLoading: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -19,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Your existing useEffect logic is perfectly fine, no changes needed here.
   useEffect(() => {
     const fetchSession = async () => {
       try {
@@ -28,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error("Error fetching initial session:", error);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     };
 
@@ -38,7 +42,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        
         if (_event === 'INITIAL_SESSION' || _event === 'SIGNED_IN' || _event === 'SIGNED_OUT') {
           setIsLoading(false);
         }
@@ -46,19 +49,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return () => {
-      authStateChangeListener?.subscription?.unsubscribe(); 
+      authStateChangeListener?.subscription?.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        console.error('Error signing out:', error);
-    }
+    await supabase.auth.signOut();
+  };
+
+  // --- 2. ADD `supabase` TO THE VALUE PROVIDED BY THE CONTEXT ---
+  const value = {
+    session,
+    user,
+    isLoading,
+    signOut,
+    supabase, // Add this line
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isLoading, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

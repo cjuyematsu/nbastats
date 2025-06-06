@@ -25,11 +25,9 @@ const createCompositeKey = (pick: { Year: number; Round: number; Pick: number })
 export default function DraftQuizPage() {
   const params = useParams<{ year: string }>();
   const year = parseInt(params.year);
-  const { user, session } = useAuth();
+  const { user, session, supabase, isLoading: isAuthLoading } = useAuth();
   
   // The Supabase client should be created once using useState
-  const [supabase] = useState(() => createClientComponentClient());
-
   const [draftPicks, setDraftPicks] = useState<DraftPick[]>([]);
   const [guessedIds, setGuessedIds] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState('');
@@ -94,6 +92,7 @@ const saveProgress = useCallback(async () => {
 
   // Fetching data logic remains the same
   useEffect(() => {
+    if (isAuthLoading) return;
     async function fetchData() {
       setIsLoading(true);
       const selectQuery = 'Year, Round, Pick, FirstName, LastName, "NBA Team", "School/Club Team"';
