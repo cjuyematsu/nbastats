@@ -1,8 +1,6 @@
-// app/draft-quiz/page.tsx
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext'; 
 
@@ -18,38 +16,58 @@ export default function DraftQuizLobby() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const getLobbyData = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return; 
-      }
-
+  const getLobbyData = useCallback(async () => {
+    if (progressData.length === 0) {
       setIsLoading(true);
+    } else {
+    }
 
-      const { data, error } = await supabase.rpc('get_user_quiz_summary', {
-        p_user_id: user.id
-      });
+    const MINIMUM_LOADING_MS = 400; 
 
-      if (error) {
-        console.error("Error fetching quiz summary:", error.message);
-        setError("Sorry, we couldn't load the quiz data. Please try again later.");
-        setProgressData([]);
-      } else {
-        setProgressData((data as QuizProgress[]) || []);
-        setError(null);
-      }
-      setIsLoading(false);
+    const dataPromise = supabase.rpc('get_user_quiz_summary', {
+      p_user_id: user ? user.id : null
+    });
+    
+    const timerPromise = new Promise(resolve => setTimeout(resolve, MINIMUM_LOADING_MS));
+
+    const [dataResponse] = await Promise.all([dataPromise, timerPromise]);
+
+    const { data, error } = dataResponse;
+
+    if (error) {
+      console.error("Error fetching quiz summary:", error.message);
+      setError("Sorry, we couldn't load the quiz data. Please try again later.");
+      setProgressData([]);
+    } else {
+      setProgressData((data as QuizProgress[]) || []);
+      setError(null);
+    }
+    
+    setIsLoading(false);
+  }, [user, supabase, progressData.length]);
+
+  useEffect(() => {
+    getLobbyData();
+  }, [getLobbyData]); 
+
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Lobby focused, refetching score data...');
+      getLobbyData();
     };
 
-    getLobbyData();
-  }, [user, supabase]); 
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [getLobbyData]);
 
   if (isLoading) {
     return (
       <div className="container mx-auto p-4 text-center">
         <h1 className="text-3xl font-bold mb-6">NBA Draft Quiz</h1>
-        <p>Loading your progress...</p>
+        <p>Loading Quizzes...</p>
       </div>
     );
   }
@@ -77,22 +95,26 @@ export default function DraftQuizLobby() {
             <Link
               key={item.year}
               href={`/games/draft-quiz/${item.year}`}
-              className="block p-4 bg-gray-800 rounded-lg hover:bg-sky-700 transition-colors shadow-lg"
+              className={`block p-4 bg-gray-800 rounded-lg hover:bg-sky-700 transition-colors shadow-lg ${!user ? 'pb-6' : ''}`}
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-2xl text-white">{item.year}</span>
-                {item.total_count > 0 && (
+                
+                {user && item.total_count > 0 && (
                   <span className="text-sm font-medium bg-gray-700 text-sky-300 px-2 py-1 rounded">
                     {item.correct_count} / {item.total_count}
                   </span>
                 )}
               </div>
-              <div className="w-full bg-gray-600 rounded-full h-2.5 dark:bg-gray-700">
-                <div 
-                  className="bg-sky-500 h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
+
+              {user && (
+                <div className="w-full bg-gray-600 rounded-full h-2.5 dark:bg-gray-700">
+                  <div 
+                    className="bg-sky-500 h-2.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+              )}
             </Link>
           );
         })}
