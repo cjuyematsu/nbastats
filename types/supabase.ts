@@ -42,6 +42,36 @@ export type Database = {
         }
         Relationships: []
       }
+      draft: {
+        Row: {
+          FirstName: string | null
+          LastName: string | null
+          "NBA Team": string | null
+          Pick: number
+          Round: number
+          "School/Club Team": string | null
+          Year: number
+        }
+        Insert: {
+          FirstName?: string | null
+          LastName?: string | null
+          "NBA Team"?: string | null
+          Pick: number
+          Round: number
+          "School/Club Team"?: string | null
+          Year: number
+        }
+        Update: {
+          FirstName?: string | null
+          LastName?: string | null
+          "NBA Team"?: string | null
+          Pick?: number
+          Round?: number
+          "School/Club Team"?: string | null
+          Year?: number
+        }
+        Relationships: []
+      }
       gamescores: {
         Row: {
           game_id: string
@@ -249,6 +279,33 @@ export type Database = {
           TRB_total?: number | null
           TS_PCT?: number | null
           WINS?: number | null
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          created_at: string | null
+          draft_year: number
+          guessed_ids: Json
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          draft_year: number
+          guessed_ids: Json
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          draft_year?: number
+          guessed_ids?: Json
+          id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -634,6 +691,12 @@ export type Database = {
           FTA_total: number
           FTM_total: number
           Prominence_rs: number
+        }[]
+      }
+      get_distinct_draft_years: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          year: number
         }[]
       }
       get_next_rearrangement_time: {

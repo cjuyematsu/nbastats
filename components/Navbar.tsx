@@ -1,4 +1,3 @@
-// components/Navbar.tsx
 'use client';
 
 import Link from 'next/link';
@@ -47,6 +46,14 @@ const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18l-3.5-3.5M12 18l3.5-3.5M12 18v-5" />
   </svg>
 );
+
+// --- 1. ADD THE NEW ICON COMPONENT HERE ---
+const QuizIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+    </svg>
+);
+
 
 const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
@@ -235,6 +242,16 @@ export default function Navbar() {
                 >
                   Over/Under
                 </NavLink>
+
+                {/* --- 2. ADD THE NEW NAVLINK FOR THE DRAFT QUIZ --- */}
+                <NavLink 
+                  href="/games/draft-quiz" 
+                  icon={<QuizIcon />} 
+                  showText={showTextInNav}
+                >
+                  Draft Quiz
+                </NavLink>
+
               </div>
             </div>
           </>
