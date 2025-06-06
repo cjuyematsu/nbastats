@@ -1,9 +1,7 @@
-// app/draft-quiz/[year]/page.tsx
-
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +23,7 @@ const createCompositeKey = (pick: { Year: number; Round: number; Pick: number })
 
 export default function DraftQuizPage() {
   const params = useParams<{ year: string }>();
+  const router = useRouter();
   const year = parseInt(params.year);
   const { user, session, supabase, isLoading: isAuthLoading } = useAuth();
   
@@ -57,7 +56,7 @@ export default function DraftQuizPage() {
         keepalive: true,
       });
     }
-}, [user, session, year]);
+  }, [user, session, year]);
 
   useEffect(() => {
     const handleSaveOnExit = () => {
@@ -129,7 +128,16 @@ export default function DraftQuizPage() {
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       
       <div className="p-4 container mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-center">{year} NBA Draft Quiz</h1>
+        <div className="relative flex justify-center items-center mb-2">
+          <button
+            onClick={() => router.push('/games/draft-quiz')}
+            className="absolute left-0 text-white bg-gray-700 hover:bg-gray-600 font-medium rounded-lg text-sm px-4 py-2 transition-colors"
+          >
+            Pick Year
+          </button>
+          <h1 className="text-3xl font-bold text-center">{year}</h1>
+        </div>
+
         <div className="text-center mb-4 text-xl">Score: {guessedIds.size} / {draftPicks.length}</div>
         <form onSubmit={handleGuessSubmit} className="mb-2">
           <input
