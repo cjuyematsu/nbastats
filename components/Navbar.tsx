@@ -53,11 +53,18 @@ const QuizIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-// --- 1. ADD THE NEW ICON COMPONENT FOR THE RANKING GAME ---
 const RankingGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h12.75M3 9h9.75M3 13.5h5.25m-5.25 4.5h3" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-2.25 2.25m0 0l2.25 2.25M17.25 10.5V3.75m0 12.75v-3.75" />
+    </svg>
+);
+
+// --- 1. ADD THE NEW ICON COMPONENT FOR THE "ODD MAN OUT" GAME ---
+const OddManOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.25v3h3v-3h-3zm0 7.5v3h3v-3h-3zm7.5-7.5v3h3v-3h-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75v3h3v-3h-3z" />
     </svg>
 );
 
@@ -255,16 +262,24 @@ export default function Navbar() {
                   icon={<QuizIcon />} 
                   showText={showTextInNav}
                 >
-                  Draft
+                  Fill in the Draft
                 </NavLink>
 
-                {/* --- 2. ADD THE NEW NAVLINK FOR THE RANKING GAME --- */}
                 <NavLink 
                   href="/games/ranking-game" 
                   icon={<RankingGameIcon />} 
                   showText={showTextInNav}
                 >
-                  Rankings
+                  Guess the Ranking
+                </NavLink>
+
+                {/* --- 2. ADD THE NEW NAVLINK FOR THE "ODD MAN OUT" GAME --- */}
+                <NavLink 
+                  href="/games/odd-man-out" 
+                  icon={<OddManOutIcon />} 
+                  showText={showTextInNav}
+                >
+                  Odd Man Out
                 </NavLink>
 
               </div>

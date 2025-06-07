@@ -704,6 +704,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_odd_man_out_game_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          players: Json
+          oddManOutId: number
+          connectionName: string
+        }[]
+      }
       get_player_suggestions: {
         Args: { search_term: string }
         Returns: {
