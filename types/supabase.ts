@@ -724,6 +724,18 @@ export type Database = {
           max_season: number
         }[]
       }
+      get_ranking_game_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          personId: number
+          firstName: string
+          lastName: string
+          SeasonYear: number
+          statValue: number
+          categoryName: string
+          categoryOptions: string[]
+        }[]
+      }
       get_stat_ou_challenges_for_date: {
         Args: { p_challenge_date: string; p_game_era: string }
         Returns: {
