@@ -119,6 +119,25 @@ interface AggregatedVotesData {
   sameSpotVotes: number;
 }
 
+const getTeamLogoUrl = (teamName: string | null): string => {
+  if (!teamName) {
+    // Return a path to a default logo you can keep in your public folder
+    return '/nba-logo.png'; 
+  }
+
+  // Handle the special case for "Trail Blazers"
+  if (teamName.toLowerCase().includes('trail blazers')) {
+    return '/trailblazers.png';
+  }
+
+  // For all other teams, take the last word, make it lowercase, and add .png
+  const nameParts = teamName.split(' ');
+  const logoName = nameParts[nameParts.length - 1].toLowerCase();
+  
+  return `/${logoName}.png`;
+};
+
+
 interface PlayerBoxProps {
   player: TopPlayer;
   onVote: (playerId: number, newVoteType: number) => Promise<void>;
@@ -141,14 +160,26 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
     const newVoteType = player.currentUserVote === voteTypeClicked ? 0 : voteTypeClicked;
     onVote(player.personId, newVoteType);
   };
-
   return (
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center flex-grow min-w-0">
           <span className="text-3xl font-bold text-sky-400 mr-3 sm:mr-4 w-10 sm:w-12 text-right flex-shrink-0">{player.rankNumber}.</span>
+          
+          {/* Team Logo */}
+          <img 
+            src={getTeamLogoUrl(player.playerteamName)} 
+            alt={`${player.playerteamName} logo`}
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain mr-3 flex-shrink-0"
+            onError={(e) => { 
+              // Fallback if a specific team logo is missing from your public folder
+              e.currentTarget.onerror = null; 
+              e.currentTarget.src = '/nba-logo.png'; // Make sure you have a default logo here
+            }}
+          />
+
           <div className="flex-grow">
-          <Link 
+            <Link 
               href={`/player/${player.personId}`}
               className="text-xl font-semibold leading-tight hover:text-sky-300 cursor-pointer break-words"
             >
@@ -159,6 +190,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         </div>
         
         <div className="flex flex-col space-y-1 items-center ml-2 flex-shrink-0"> 
+            {/* Voting buttons remain the same */}
             <VotingButton
               onClick={() => handleVoteClick(1)}
               isActive={player.currentUserVote === 1}
@@ -192,7 +224,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                <span className="text-xs ml-1">{player.downvotes}</span>
             </VotingButton>
-          </div>
+        </div>
       </div>
       <div className="mt-auto pt-3 border-t border-slate-500/50">
         <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-sm font-mono">
@@ -207,6 +239,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
     </div>
   );
 };
+
 
 export default function Top100PlayersPage() {
   const { user, isLoading: authIsLoading, session } = useAuth();
