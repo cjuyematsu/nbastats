@@ -84,7 +84,7 @@ export default function DraftQuizLobby() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">NBA Draft Quiz</h1>
-      <p className="text-center mb-8">Select a year to test your knowledge of the draft board.</p>
+      <p className="text-center mb-8">Select a year and see how many you know</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {progressData.map(item => {
           const progressPercentage = item.total_count > 0 

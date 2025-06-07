@@ -47,10 +47,17 @@ const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// --- 1. ADD THE NEW ICON COMPONENT HERE ---
 const QuizIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+    </svg>
+);
+
+// --- 1. ADD THE NEW ICON COMPONENT FOR THE RANKING GAME ---
+const RankingGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h12.75M3 9h9.75M3 13.5h5.25m-5.25 4.5h3" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-2.25 2.25m0 0l2.25 2.25M17.25 10.5V3.75m0 12.75v-3.75" />
     </svg>
 );
 
@@ -243,13 +250,21 @@ export default function Navbar() {
                   Over/Under
                 </NavLink>
 
-                {/* --- 2. ADD THE NEW NAVLINK FOR THE DRAFT QUIZ --- */}
                 <NavLink 
                   href="/games/draft-quiz" 
                   icon={<QuizIcon />} 
                   showText={showTextInNav}
                 >
-                  Draft Quiz
+                  Draft
+                </NavLink>
+
+                {/* --- 2. ADD THE NEW NAVLINK FOR THE RANKING GAME --- */}
+                <NavLink 
+                  href="/games/ranking-game" 
+                  icon={<RankingGameIcon />} 
+                  showText={showTextInNav}
+                >
+                  Rankings
                 </NavLink>
 
               </div>
