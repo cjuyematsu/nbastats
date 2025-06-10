@@ -1,0 +1,358 @@
+'use client';
+
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/app/contexts/AuthContext';
+
+// --- Type Definitions ---
+type AdjacencyList = {
+  [playerId: string]: number[];
+};
+
+type PlayerSuggestion = {
+    personId: number;
+    firstName: string | null;
+    lastName: string | null;
+  };
+  
+
+type GamePuzzle = {
+  player_a_id: number;
+  player_a_name: string;
+  player_b_id: number;
+  player_b_name: string;
+  solution_path_ids: number[];
+  solution_path_names: string[];
+  game_date?: string;
+};
+
+type Guess = {
+    id: number;
+    name: string;
+};
+
+type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error';
+// --- End Type Definitions ---
+
+
+// --- Debounce Helper Function ---
+function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  const debounced = (...args: Args) => {
+    if (timeout !== null) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), waitFor);
+  };
+  return debounced;
+}
+
+
+// --- Player Autocomplete Input Component ---
+function PlayerInput({ 
+  onSelect, 
+  placeholder, 
+  disabled 
+}: { 
+  onSelect: (player: Guess) => void;
+  placeholder: string;
+  disabled: boolean;
+}) {
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<{id: number, name: string}[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const searchPlayers = async (searchTerm: string) => {
+        if (searchTerm.length < 2) {
+            setResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const { data, error } = await supabase.rpc('get_player_suggestions', {
+                search_term: searchTerm
+            });
+            if (error) throw error;
+            
+            const formattedResults = data.map((p: PlayerSuggestion) => ({
+                id: p.personId,
+                name: `${p.firstName} ${p.lastName}`
+            }));
+            setResults(formattedResults);
+            setIsOpen(true);
+        } catch (error) {
+            console.error("Error searching players:", error);
+            setResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedSearch = useCallback(debounce(searchPlayers, 300), []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newQuery = e.target.value;
+        setQuery(newQuery);
+        debouncedSearch(newQuery);
+    };
+    
+    const handleSelect = (player: Guess) => {
+        if(disabled) return;
+        onSelect(player);
+        setQuery('');
+        setResults([]);
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="relative w-full">
+            <input 
+                type="text"
+                value={query}
+                onChange={handleInputChange}
+                onFocus={() => query.length > 2 && setIsOpen(true)}
+                onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                placeholder={placeholder}
+                disabled={disabled}
+                className="bg-slate-700 p-3 rounded w-full text-center text-white placeholder-gray-400 disabled:bg-slate-800 disabled:text-gray-500 disabled:cursor-not-allowed text-lg"
+                autoComplete="off"
+            />
+            {isOpen && (
+                <ul className="absolute z-10 w-full bg-slate-600 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                    {isSearching ? (
+                         <li className="px-3 py-2 text-sm text-gray-400">Searching...</li>
+                    ) : results.length > 0 ? (
+                        results.map(player => (
+                            <li 
+                                key={player.id} 
+                                onMouseDown={() => handleSelect(player)}
+                                className="px-3 py-2 text-sm text-white hover:bg-sky-700 cursor-pointer"
+                            >
+                                {player.name}
+                            </li>
+                        ))
+                    ) : query.length > 2 ? (
+                        <li className="px-3 py-2 text-sm text-gray-400">No players found.</li>
+                    ) : null}
+                </ul>
+            )}
+        </div>
+    );
+}
+
+// --- Main Game Content ---
+function SixDegreesGameContent() {
+    const params = useParams();
+    const router = useRouter();
+    const gameId = params.gameId as string;
+    const { user, isLoading: authIsLoading } = useAuth();
+
+    const [puzzle, setPuzzle] = useState<GamePuzzle | null>(null);
+    const [adjacencyList, setAdjacencyList] = useState<AdjacencyList | null>(null);
+    
+    const MAX_GUESSES = 6;
+    const [path, setPath] = useState<Guess[]>([]);
+    const [guessHistory, setGuessHistory] = useState<Guess[]>([]);
+    const [gameStatus, setGameStatus] = useState<GameStatus>('loading');
+    const [feedbackMessage, setFeedbackMessage] = useState<string>('');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const resetGameState = useCallback(() => {
+        setPath([]);
+        setGuessHistory([]);
+        setFeedbackMessage('');
+        setPuzzle(null);
+        setGameStatus('loading');
+    }, []);
+
+    const saveDailyResult = useCallback(async (isSuccess: boolean, finalPath: Guess[]) => {
+        if (!user || gameId !== 'daily' || !puzzle?.game_date) return;
+        const completePathForSave = [...finalPath, { id: puzzle.player_b_id, name: puzzle.player_b_name }];
+        const { error } = await supabase.from('six_degrees_scores').insert({
+            user_id: user.id, game_date: puzzle.game_date,
+            is_successful: isSuccess, guess_count: finalPath.length - 1,
+            solution_path_names: puzzle.solution_path_names,
+            guessed_path_names: completePathForSave.map(p => p.name)
+        });
+        if (error) console.error("Error saving daily game score:", error);
+        else console.log("Daily score saved successfully!");
+    }, [user, gameId, puzzle]);
+
+
+    // This main useEffect orchestrates the entire game setup.
+    useEffect(() => {
+        const initialize = async () => {
+            resetGameState();
+            
+            // Step 1: Fetch adjacency list if not already loaded
+            let adjList = adjacencyList;
+            if (!adjList) {
+                try {
+                    console.log("Fetching adjacency list...");
+                    const response = await fetch('/adjacency_list.json');
+                    if (!response.ok) throw new Error("Failed to fetch adjacency list");
+                    adjList = await response.json();
+                    setAdjacencyList(adjList);
+                    console.log("Adjacency list loaded.");
+                } catch (error) {
+                    console.error("Error loading adjacency data:", error);
+                    setGameStatus('error');
+                    setErrorMsg("Could not load game engine data. Please try again later.");
+                    return; // Stop execution
+                }
+            }
+
+            // Step 2: Determine game type and fetch puzzle
+            try {
+                let gameData: GamePuzzle | null = null;
+
+                if (gameId === 'daily') {
+                    if (!user) {
+                        alert("Please sign in to play the daily challenge.");
+                        router.push('/signin');
+                        return;
+                    }
+                    const today = new Date().toISOString().split('T')[0];
+                    const { data: priorPlay } = await supabase.from('six_degrees_scores').select('id').eq('user_id', user.id).eq('game_date', today).single();
+                    if (priorPlay) {
+                        alert("You've already played the daily challenge today. Redirecting to lobby.");
+                        router.push('/games/six-degrees');
+                        return;
+                    }
+                    const { data, error } = await supabase.from('daily_connection_games').select('*').eq('game_date', today).single();
+                    if (error && error.code !== 'PGRST116') throw error;
+                    gameData = data;
+                } else {
+                    const { data, error } = await supabase.rpc('generate_connection_game', { is_daily: false }).single();
+                    if (error) throw error;
+                    gameData = data;
+                }
+                
+                if(gameData && gameData.player_a_id) {
+                    setPuzzle(gameData);
+                    setPath([{ id: gameData.player_a_id, name: gameData.player_a_name }]);
+                    setGameStatus('playing');
+                } else {
+                     throw new Error("No daily game found. Please check back tomorrow.");
+                }
+            } catch (error) {
+                console.error("Error loading game puzzle:", error);
+                setGameStatus('error');
+            }
+        };
+
+        if (!authIsLoading) {
+            initialize();
+        }
+    }, [gameId, user, authIsLoading, router, resetGameState]); // Main trigger
+
+    const handleGuess = (guessedPlayer: Guess) => {
+        if (gameStatus !== 'playing' || !puzzle || !adjacencyList) return;
+
+        const newGuessHistory = [...guessHistory, guessedPlayer];
+        setGuessHistory(newGuessHistory);
+
+        const lastPlayerInPath = path[path.length - 1];
+        const teammatesOfLastPlayer = adjacencyList[lastPlayerInPath.id] || [];
+
+        if (teammatesOfLastPlayer.includes(guessedPlayer.id)) {
+            const newPath = [...path, guessedPlayer];
+            setPath(newPath);
+            
+            const finalLinkTeammates = adjacencyList[guessedPlayer.id] || [];
+            if (finalLinkTeammates.includes(puzzle.player_b_id)) {
+                setGameStatus('won');
+                setFeedbackMessage(`Success! You found a path in ${newPath.length - 1} link(s).`);
+                saveDailyResult(true, newPath);
+            } else if (newGuessHistory.length >= MAX_GUESSES) {
+                setGameStatus('lost');
+                setFeedbackMessage('You ran out of guesses!');
+                saveDailyResult(false, newGuessHistory);
+            } else {
+                setFeedbackMessage(`Correct! Now find a teammate of ${guessedPlayer.name}.`);
+            }
+        } else {
+            setFeedbackMessage(`Incorrect. ${guessedPlayer.name} was not a teammate of ${lastPlayerInPath.name}.`);
+            if (newGuessHistory.length >= MAX_GUESSES) {
+                setGameStatus('lost');
+                saveDailyResult(false, newGuessHistory);
+            }
+        }
+    };
+    
+    if (gameStatus === 'loading' || authIsLoading || !puzzle) {
+        return <div className="flex justify-center items-center min-h-screen text-slate-300"><p className="text-xl">Loading Game...</p></div>;
+    }
+    if (gameStatus === 'error') {
+        return <div className="flex justify-center items-center min-h-screen text-red-400"><p>Error: {errorMsg}</p></div>;
+    }
+
+    const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
+
+    return (
+        <div className="container mx-auto p-4 text-center max-w-lg text-white">
+            <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
+            <p className="mb-4">Connect <span className="font-bold text-sky-400">{puzzle.player_a_name}</span> to <span className="font-bold text-sky-400">{puzzle.player_b_name}</span>.</p>
+            <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? 'text-red-500' : 'text-sky-400'}>{MAX_GUESSES - guessHistory.length}</span></p>
+
+            <div className="space-y-4 mb-6">
+                {path.map((player, index) => (
+                     <div key={`${player.id}-${index}`} className="flex flex-col items-center">
+                        <div className="w-full p-4 bg-slate-800 rounded-lg shadow-lg">
+                            <p className="text-sm text-sky-400">{index === 0 ? 'Start Player' : `Link #${index}`}</p>
+                            <p className="text-2xl font-bold">{player.name}</p>
+                        </div>
+                        {gameStatus === 'playing' && index < path.length - 1 && (
+                            <span className="text-2xl text-green-400 transform rotate-90 leading-none -my-1.5">→</span>
+                        )}
+                    </div>
+                ))}
+                
+                {gameStatus === 'playing' && nextPlayerToGuessFor && (
+                    <div className="flex flex-col items-center">
+                         <span className="text-2xl text-gray-400 transform rotate-90 leading-none -my-1.5">→</span>
+                         <div className="w-full">
+                            <PlayerInput 
+                                placeholder={`Find a teammate of ${nextPlayerToGuessFor.name}...`}
+                                onSelect={handleGuess}
+                                disabled={false}
+                            />
+                         </div>
+                    </div>
+                )}
+                
+                <div className="p-4 bg-slate-800 rounded-lg shadow-lg mt-4">
+                    <p className="text-sm text-sky-400">End Player</p>
+                    <p className="text-2xl font-bold">{puzzle.player_b_name}</p>
+                </div>
+            </div>
+
+            <div className="h-7 my-4">
+                {feedbackMessage && <p className={`text-lg font-semibold ${feedbackMessage.startsWith('Correct') ? 'text-green-400' : 'text-red-400'}`}>{feedbackMessage}</p>}
+            </div>
+
+             {(gameStatus === 'won' || gameStatus === 'lost') && (
+                <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? 'bg-green-900/50 border border-green-500' : 'bg-red-900/50 border border-red-500'}`}>
+                    <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-300' : 'text-red-300'}`}>
+                        {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
+                    </h2>
+                    {gameStatus === 'won' && <p className="mt-2">Your winning path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
+                    {gameStatus === 'lost' && <p className="mt-2">The solution was: {puzzle.solution_path_names.join(' → ')}</p>}
+                     <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
+                        Play Again
+                     </button>
+                </div>
+             )}
+        </div>
+    );
+}
+
+// Default export wrapper to provide Suspense for hooks
+export default function SixDegreesGameLoader() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen text-white"><p className="text-xl">Loading Game...</p></div>}>
+            <SixDegreesGameContent />
+        </Suspense>
+    );
+}
