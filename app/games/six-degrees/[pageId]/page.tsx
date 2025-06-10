@@ -1,3 +1,4 @@
+// app/games/six-degrees/[gameId]/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -9,13 +10,6 @@ import { useAuth } from '@/app/contexts/AuthContext';
 type AdjacencyList = {
   [playerId: string]: number[];
 };
-
-type PlayerSuggestion = {
-    personId: number;
-    firstName: string | null;
-    lastName: string | null;
-  };
-  
 
 type GamePuzzle = {
   player_a_id: number;
@@ -32,7 +26,20 @@ type Guess = {
     name: string;
 };
 
-type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error';
+type DailyScore = {
+    is_successful: boolean;
+    guess_count: number;
+    solution_path_names: string[] | null;
+};
+
+type PlayerSuggestion = {
+    personId: number;
+    firstName: string | null; // Names can be null in the database
+    lastName: string | null;
+    // You can also add min_season and max_season if you need them later
+  };
+
+type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error' | 'already_played';
 // --- End Type Definitions ---
 
 
@@ -73,7 +80,6 @@ function PlayerInput({
                 search_term: searchTerm
             });
             if (error) throw error;
-            
             const formattedResults = data.map((p: PlayerSuggestion) => ({
                 id: p.personId,
                 name: `${p.firstName} ${p.lastName}`
@@ -145,7 +151,7 @@ function PlayerInput({
 function SixDegreesGameContent() {
     const params = useParams();
     const router = useRouter();
-    const gameId = params.gameId as string;
+    const gameId = params.pageId as string;
     const { user, isLoading: authIsLoading } = useAuth();
 
     const [puzzle, setPuzzle] = useState<GamePuzzle | null>(null);
@@ -157,84 +163,110 @@ function SixDegreesGameContent() {
     const [gameStatus, setGameStatus] = useState<GameStatus>('loading');
     const [feedbackMessage, setFeedbackMessage] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [priorPlayResult, setPriorPlayResult] = useState<DailyScore | null>(null);
 
     const resetGameState = useCallback(() => {
         setPath([]);
         setGuessHistory([]);
         setFeedbackMessage('');
         setPuzzle(null);
+        setPriorPlayResult(null);
         setGameStatus('loading');
     }, []);
 
     const saveDailyResult = useCallback(async (isSuccess: boolean, finalPath: Guess[]) => {
-        if (!user || gameId !== 'daily' || !puzzle?.game_date) return;
+        if (!user || gameId !== 'daily' || !puzzle?.game_date) {
+            return;
+        }
         const completePathForSave = [...finalPath, { id: puzzle.player_b_id, name: puzzle.player_b_name }];
         const { error } = await supabase.from('six_degrees_scores').insert({
-            user_id: user.id, game_date: puzzle.game_date,
-            is_successful: isSuccess, guess_count: finalPath.length - 1,
+            user_id: user.id,
+            game_date: puzzle.game_date,
+            is_successful: isSuccess,
+            guess_count: finalPath.length - 1,
             solution_path_names: puzzle.solution_path_names,
             guessed_path_names: completePathForSave.map(p => p.name)
         });
         if (error) console.error("Error saving daily game score:", error);
-        else console.log("Daily score saved successfully!");
     }, [user, gameId, puzzle]);
 
 
-    // This main useEffect orchestrates the entire game setup.
+    // Effect to fetch the adjacency list (runs once on mount)
     useEffect(() => {
-        const initialize = async () => {
-            resetGameState();
-            
-            // Step 1: Fetch adjacency list if not already loaded
-            let adjList = adjacencyList;
-            if (!adjList) {
-                try {
-                    console.log("Fetching adjacency list...");
-                    const response = await fetch('/adjacency_list.json');
-                    if (!response.ok) throw new Error("Failed to fetch adjacency list");
-                    adjList = await response.json();
-                    setAdjacencyList(adjList);
-                    console.log("Adjacency list loaded.");
-                } catch (error) {
-                    console.error("Error loading adjacency data:", error);
-                    setGameStatus('error');
-                    setErrorMsg("Could not load game engine data. Please try again later.");
-                    return; // Stop execution
-                }
+        async function loadAdjacencyList() {
+            try {
+                const response = await fetch('/adjacency_list.json');
+                if (!response.ok) throw new Error("Failed to fetch adjacency list");
+                setAdjacencyList(await response.json());
+                console.log("Adjacency list loaded.");
+            } catch {
+                setGameStatus('error');
+                setErrorMsg("Could not load game engine data.");
+            }
+        }
+        loadAdjacencyList();
+    }, []);
+
+    // Main useEffect for initializing the game
+    useEffect(() => {
+        const initializeGame = async () => {
+            // Guard clause: Wait for dependencies
+            if (!adjacencyList || authIsLoading) {
+                console.log(`Waiting for dependencies: adjacencyList=${!!adjacencyList}, authIsLoading=${authIsLoading}`);
+                return;
+            }
+            if (!gameId) {
+                console.log("[EFFECT] Waiting for gameId from params...");
+                return;
             }
 
-            // Step 2: Determine game type and fetch puzzle
+
+            resetGameState();
+            setGameStatus('loading');
+            
             try {
                 let gameData: GamePuzzle | null = null;
+                console.log(`[DEBUG] Initializing for gameId: "${gameId}"`);
 
                 if (gameId === 'daily') {
-                    if (!user) {
-                        alert("Please sign in to play the daily challenge.");
-                        router.push('/signin');
-                        return;
-                    }
+                    console.log("[DEBUG] Daily game logic started.");
                     const today = new Date().toISOString().split('T')[0];
-                    const { data: priorPlay } = await supabase.from('six_degrees_scores').select('id').eq('user_id', user.id).eq('game_date', today).single();
-                    if (priorPlay) {
-                        alert("You've already played the daily challenge today. Redirecting to lobby.");
-                        router.push('/games/six-degrees');
-                        return;
+
+                    if (user) {
+                        const { data: priorPlay, error: priorPlayError } = await supabase
+                            .from('six_degrees_scores').select('*')
+                            .eq('user_id', user.id).eq('game_date', today).single();
+                        
+                        if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
+                        
+                        if (priorPlay) {
+                            console.log("[DEBUG] User has already played today.");
+                            setPriorPlayResult(priorPlay as DailyScore);
+                            setGameStatus('already_played');
+                            return; // Stop execution
+                        }
                     }
+                    
+                    console.log("[DEBUG] Fetching daily puzzle from DB table...");
                     const { data, error } = await supabase.from('daily_connection_games').select('*').eq('game_date', today).single();
                     if (error && error.code !== 'PGRST116') throw error;
                     gameData = data;
-                } else {
+                    if (!gameData) throw new Error("No daily game found for today. Please check back tomorrow.");
+                
+                } else { // This block only runs if gameId is NOT 'daily'
+                    console.log("[DEBUG] Random game logic started.");
                     const { data, error } = await supabase.rpc('generate_connection_game', { is_daily: false }).single();
                     if (error) throw error;
                     gameData = data;
                 }
                 
-                if(gameData && gameData.player_a_id) {
+                if (gameData && gameData.player_a_id) {
+                    console.log("%c[DEBUG] Puzzle data fetched successfully.", 'color: green');
                     setPuzzle(gameData);
                     setPath([{ id: gameData.player_a_id, name: gameData.player_a_name }]);
                     setGameStatus('playing');
                 } else {
-                     throw new Error("No daily game found. Please check back tomorrow.");
+                     throw new Error("Could not retrieve a valid puzzle.");
                 }
             } catch (error) {
                 console.error("Error loading game puzzle:", error);
@@ -242,10 +274,9 @@ function SixDegreesGameContent() {
             }
         };
 
-        if (!authIsLoading) {
-            initialize();
-        }
-    }, [gameId, user, authIsLoading, router, resetGameState]); // Main trigger
+        initializeGame();
+    // This effect runs when the user's login state changes, or when the gameId in the URL changes.
+    }, [gameId, adjacencyList, user, authIsLoading, resetGameState, router]);
 
     const handleGuess = (guessedPlayer: Guess) => {
         if (gameStatus !== 'playing' || !puzzle || !adjacencyList) return;
@@ -265,12 +296,13 @@ function SixDegreesGameContent() {
                 setGameStatus('won');
                 setFeedbackMessage(`Success! You found a path in ${newPath.length - 1} link(s).`);
                 saveDailyResult(true, newPath);
-            } else if (newGuessHistory.length >= MAX_GUESSES) {
-                setGameStatus('lost');
-                setFeedbackMessage('You ran out of guesses!');
-                saveDailyResult(false, newGuessHistory);
             } else {
                 setFeedbackMessage(`Correct! Now find a teammate of ${guessedPlayer.name}.`);
+                if (newGuessHistory.length >= MAX_GUESSES) {
+                    setGameStatus('lost');
+                    setFeedbackMessage('You ran out of guesses!');
+                    saveDailyResult(false, newGuessHistory);
+                }
             }
         } else {
             setFeedbackMessage(`Incorrect. ${guessedPlayer.name} was not a teammate of ${lastPlayerInPath.name}.`);
@@ -281,11 +313,51 @@ function SixDegreesGameContent() {
         }
     };
     
-    if (gameStatus === 'loading' || authIsLoading || !puzzle) {
+    // --- Render Logic ---
+    if (gameStatus === 'loading' || authIsLoading) {
         return <div className="flex justify-center items-center min-h-screen text-slate-300"><p className="text-xl">Loading Game...</p></div>;
     }
     if (gameStatus === 'error') {
         return <div className="flex justify-center items-center min-h-screen text-red-400"><p>Error: {errorMsg}</p></div>;
+    }
+
+    if (gameStatus === 'already_played') {
+        return (
+             <div className="container mx-auto p-4 text-center max-w-lg text-white">
+                <h1 className="text-3xl font-bold text-sky-400 mb-6">Daily Challenge Complete</h1>
+                
+                {/* The line below has been REMOVED */}
+                {/* <p className="mb-8">You've already played today. Check the lobby for your score and come back tomorrow!</p> */}
+    
+                {priorPlayResult ? (
+                     <div className="text-left p-4 bg-slate-700/50 rounded-lg">
+                        <h3 className="text-center text-xl font-semibold text-slate-200 mb-3">Today&apos;s Result</h3>
+                        {priorPlayResult.is_successful ? (
+                            <p className="text-green-400 text-center font-semibold">
+                                Solved in {priorPlayResult.guess_count} {priorPlayResult.guess_count > 1 ? 'links' : 'link'}!
+                            </p>
+                        ) : (
+                            <p className="text-red-400 text-center font-semibold">
+                                You didn&apos;t solve it in {MAX_GUESSES} guesses.
+                            </p>
+                        )}
+                         <p className="text-xs text-slate-400 mt-2 text-center">
+                           Solution: {priorPlayResult.solution_path_names?.join(' → ')}
+                        </p>
+                    </div>
+                ) : (
+                    <p className="my-8">Your previous result could not be loaded.</p>
+                )}
+    
+                <button onClick={() => router.push('/games/six-degrees')} className="mt-8 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
+                    Back to Lobby
+                </button>
+            </div>
+        );
+    }
+
+    if (!puzzle) {
+        return <div className="flex justify-center items-center min-h-screen text-slate-300"><p>Could not load puzzle data.</p></div>;
     }
 
     const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
@@ -337,10 +409,10 @@ function SixDegreesGameContent() {
                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-300' : 'text-red-300'}`}>
                         {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
                     </h2>
-                    {gameStatus === 'won' && <p className="mt-2">Your winning path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
-                    {gameStatus === 'lost' && <p className="mt-2">The solution was: {puzzle.solution_path_names.join(' → ')}</p>}
+                    {gameStatus === 'won' && <p className="mt-2">Your Path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
+                    {gameStatus === 'lost' && <p className="mt-2">A possible solution was: {puzzle.solution_path_names.join(' → ')}</p>}
                      <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
-                        Play Again
+                        Back to Lobby
                      </button>
                 </div>
              )}

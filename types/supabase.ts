@@ -530,6 +530,7 @@ export type Database = {
           created_at: string | null
           game_date: string
           guess_count: number
+          guessed_path_names: string[] | null
           id: number
           is_successful: boolean
           solution_path_names: string[] | null
@@ -539,6 +540,7 @@ export type Database = {
           created_at?: string | null
           game_date: string
           guess_count: number
+          guessed_path_names?: string[] | null
           id?: number
           is_successful: boolean
           solution_path_names?: string[] | null
@@ -548,6 +550,7 @@ export type Database = {
           created_at?: string | null
           game_date?: string
           guess_count?: number
+          guessed_path_names?: string[] | null
           id?: number
           is_successful?: boolean
           solution_path_names?: string[] | null
@@ -819,6 +822,14 @@ export type Database = {
           statValue: number
           categoryName: string
           categoryOptions: string[]
+        }[]
+      }
+      get_six_degrees_history: {
+        Args: { p_user_id: string }
+        Returns: {
+          game_date: string
+          is_successful: boolean
+          guess_count: number
         }[]
       }
       get_stat_ou_challenges_for_date: {
