@@ -68,6 +68,15 @@ const OddManOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const SixDegreesIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75a3 3 0 11-6 0 3 3 0 016 0z" transform="translate(15 0)" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75a3 3 0 11-6 0 3 3 0 016 0z" transform="translate(3 9)" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 15.75l-3-3m-4.5 0l-3 3" />
+  </svg>
+);
+
 
 const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
@@ -280,6 +289,14 @@ export default function Navbar() {
                   showText={showTextInNav}
                 >
                   Odd Man Out
+                </NavLink>
+
+                <NavLink 
+                  href="/games/six-degrees" 
+                  icon={<SixDegreesIcon />} 
+                  showText={showTextInNav}
+                >
+                  Six Degrees
                 </NavLink>
 
               </div>

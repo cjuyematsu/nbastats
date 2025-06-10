@@ -42,12 +42,46 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_connection_games: {
+        Row: {
+          created_at: string | null
+          game_date: string
+          player_a_id: number
+          player_a_name: string
+          player_b_id: number
+          player_b_name: string
+          solution_path_ids: number[]
+          solution_path_names: string[]
+        }
+        Insert: {
+          created_at?: string | null
+          game_date: string
+          player_a_id: number
+          player_a_name: string
+          player_b_id: number
+          player_b_name: string
+          solution_path_ids: number[]
+          solution_path_names: string[]
+        }
+        Update: {
+          created_at?: string | null
+          game_date?: string
+          player_a_id?: number
+          player_a_name?: string
+          player_b_id?: number
+          player_b_name?: string
+          solution_path_ids?: number[]
+          solution_path_names?: string[]
+        }
+        Relationships: []
+      }
       draft: {
         Row: {
           FirstName: string | null
           LastName: string | null
           "NBA Team": string | null
           Pick: number
+          playerId: number | null
           Round: number
           "School/Club Team": string | null
           Year: number
@@ -57,6 +91,7 @@ export type Database = {
           LastName?: string | null
           "NBA Team"?: string | null
           Pick: number
+          playerId?: number | null
           Round: number
           "School/Club Team"?: string | null
           Year: number
@@ -66,6 +101,7 @@ export type Database = {
           LastName?: string | null
           "NBA Team"?: string | null
           Pick?: number
+          playerId?: number | null
           Round?: number
           "School/Club Team"?: string | null
           Year?: number
@@ -489,6 +525,36 @@ export type Database = {
         }
         Relationships: []
       }
+      six_degrees_scores: {
+        Row: {
+          created_at: string | null
+          game_date: string
+          guess_count: number
+          id: number
+          is_successful: boolean
+          solution_path_names: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          game_date: string
+          guess_count: number
+          id?: number
+          is_successful: boolean
+          solution_path_names?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          game_date?: string
+          guess_count?: number
+          id?: number
+          is_successful?: boolean
+          solution_path_names?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       stat_ou_daily_challenges: {
         Row: {
           actual_stat_value: number
@@ -652,6 +718,17 @@ export type Database = {
           ts_pct: number
         }[]
       }
+      generate_connection_game: {
+        Args: { is_daily: boolean }
+        Returns: {
+          player_a_id: number
+          player_a_name: string
+          player_b_id: number
+          player_b_name: string
+          solution_path_ids: number[]
+          solution_path_names: string[]
+        }[]
+      }
       generate_stat_ou_challenges: {
         Args: { p_target_date: string }
         Returns: undefined
@@ -708,7 +785,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           players: Json
-          oddManOutId: number
+          oddManOutName: string
           connectionName: string
         }[]
       }
@@ -813,6 +890,10 @@ export type Database = {
       [_ in never]: never
     }
     CompositeTypes: {
+      player_info: {
+        id: number | null
+        name: string | null
+      }
       player_ranking_entry_type: {
         player_id: number | null
         current_rank: number | null
