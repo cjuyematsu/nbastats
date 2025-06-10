@@ -1,86 +1,148 @@
 // app/games/six-degrees/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Link from 'next/link';
 
-// Type for the score data
-type DailyScore = {
+// Type for the raw score data from our new RPC function
+type ScoreHistoryRecord = {
     game_date: string;
     is_successful: boolean;
     guess_count: number;
 };
 
-// Component to render the Wordle-like grid summary
-function ScoreHistory({ scores }: { scores: DailyScore[] }) {
-    if (!scores || scores.length === 0) {
-        return <p className="mt-4 text-slate-400 text-sm">Play the daily challenge to start building your stats!</p>;
-    }
-    
-    // Create a 7x5 grid representing the last 35 days (5 weeks)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to start of day
-    const gridDays = Array.from({ length: 35 }).map((_, i) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        return date.toISOString().split('T')[0];
-    }).reverse();
+// Component to render the stats and distribution chart
+function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
+    // useMemo will recalculate stats only when the scores array changes
+    const stats = useMemo(() => {
+        if (!scores || scores.length === 0) {
+            return {
+                played: 0,
+                winPercentage: 0,
+                currentStreak: 0,
+                maxStreak: 0,
+                guessDistribution: [0, 0, 0, 0, 0, 0], // For 1 to 6 guesses
+            };
+        }
 
-    const scoresByDate = new Map(scores.map(s => [s.game_date, s]));
+        const played = scores.length;
+        const wins = scores.filter(s => s.is_successful).length;
+        const winPercentage = Math.round((wins / played) * 100);
+
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let tempStreak = 0;
+        // Scores are sorted by date ascending from the DB query
+        for (const score of scores) {
+            if (score.is_successful) {
+                tempStreak++;
+            } else {
+                maxStreak = Math.max(maxStreak, tempStreak);
+                tempStreak = 0;
+            }
+        }
+        maxStreak = Math.max(maxStreak, tempStreak); // Final check for streak ending today
+
+        // Calculate current streak by looking from the end of the array
+        let currentTempStreak = 0;
+        for (let i = scores.length - 1; i >= 0; i--) {
+            if (scores[i].is_successful) {
+                currentTempStreak++;
+            } else {
+                break; // Streak is broken
+            }
+        }
+        currentStreak = currentTempStreak;
+
+        const guessDistribution = [0, 0, 0, 0, 0, 0];
+        scores.forEach(score => {
+            if (score.is_successful && score.guess_count >= 1 && score.guess_count <= 6) {
+                guessDistribution[score.guess_count - 1]++;
+            }
+        });
+
+        return { played, winPercentage, currentStreak, maxStreak, guessDistribution };
+    }, [scores]);
+
+    const maxDistributionCount = Math.max(...stats.guessDistribution, 1);
 
     return (
-        <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-            <h3 className="font-semibold text-lg text-slate-200 mb-3">Your Recent Daily Record</h3>
-            <div className="grid grid-cols-7 gap-1.5 justify-center">
-                {gridDays.map(dateStr => {
-                    const score = scoresByDate.get(dateStr);
-                    let bgColor = 'bg-slate-700'; // Default for no play
-                    if (score) {
-                        bgColor = score.is_successful ? 'bg-green-500' : 'bg-red-500';
-                    }
-                    return <div key={dateStr} className={`w-5 h-5 rounded-sm ${bgColor}`} title={`Date: ${dateStr}, Guesses: ${score ? score.guess_count : 'N/A'}`} />;
-                })}
+        <div className="mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full">
+            <h3 className="font-bold text-xl text-slate-100 mb-4 text-center">Your Statistics</h3>
+            <div className="flex justify-around text-center mb-6">
+                <div>
+                    <p className="text-3xl font-bold">{stats.played}</p>
+                    <p className="text-xs text-slate-400">Played</p>
+                </div>
+                <div>
+                    <p className="text-3xl font-bold">{stats.winPercentage}</p>
+                    <p className="text-xs text-slate-400">Win %</p>
+                </div>
+                <div>
+                    <p className="text-3xl font-bold">{stats.currentStreak}</p>
+                    <p className="text-xs text-slate-400">Current Streak</p>
+                </div>
+                <div>
+                    <p className="text-3xl font-bold">{stats.maxStreak}</p>
+                    <p className="text-xs text-slate-400">Max Streak</p>
+                </div>
+            </div>
+            
+            <h4 className="font-semibold text-center text-slate-200 mb-3">Guess Distribution</h4>
+            <div className="space-y-2">
+                {stats.guessDistribution.map((count, index) => (
+                    <div key={index} className="flex items-center text-sm">
+                        <div className="w-4 font-bold">{index + 1}</div>
+                        <div className="flex-grow bg-slate-700 rounded-sm mx-2">
+                            <div 
+                                className="bg-sky-500 text-right px-2 py-0.5 rounded-sm text-white font-bold"
+                                style={{ width: count > 0 ? `${Math.max(8, (count / maxDistributionCount) * 100)}%` : '0%' }}
+                            >
+                                {count > 0 && count}
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
+
 export default function SixDegreesLobby() {
     const router = useRouter();
     const { user, isLoading: authIsLoading } = useAuth();
-    const [dailyScores, setDailyScores] = useState<DailyScore[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [scoreHistory, setScoreHistory] = useState<ScoreHistoryRecord[]>([]);
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
 
     useEffect(() => {
+        if (authIsLoading) return;
+        
         if (!user) {
-            setIsLoading(false);
+            setIsLoadingStats(false);
             return;
         }
 
-        const fetchDailyResults = async () => {
-            setIsLoading(true);
-            const { data, error } = await supabase
-                .from('six_degrees_scores')
-                .select('game_date, is_successful, guess_count')
-                .eq('user_id', user.id)
-                .order('game_date', { ascending: false })
-                .limit(35); // Fetch last 35 days of results
+        const fetchScoreHistory = async () => {
+            setIsLoadingStats(true);
+            const { data, error } = await supabase.rpc('get_six_degrees_history', {
+                p_user_id: user.id
+            });
 
             if (error) {
                 console.error("Error fetching score history:", error);
             } else if (data) {
-                setDailyScores(data as DailyScore[]);
+                setScoreHistory(data as ScoreHistoryRecord[]);
             }
-            setIsLoading(false);
+            setIsLoadingStats(false);
         };
 
-        if (user) {
-            fetchDailyResults();
-        }
-    }, [user]);
+        fetchScoreHistory();
+    }, [user, authIsLoading]);
 
     const handlePlayRandom = () => {
         const randomGameId = uuidv4();
@@ -106,12 +168,16 @@ export default function SixDegreesLobby() {
                         Play Random Game
                     </button>
                 </div>
-                {authIsLoading || isLoading ? (
-                    <div className="mt-4 text-slate-400">Loading your stats...</div>
+                
+                {/* Display logic for stats */}
+                {authIsLoading || isLoadingStats ? (
+                    <div className="mt-8 text-slate-400">Loading your stats...</div>
                 ) : user ? (
-                    <ScoreHistory scores={dailyScores} />
+                    <StatsDisplay scores={scoreHistory} />
                 ) : (
-                    <p className="mt-4 text-slate-400 text-sm">Sign in to save your daily stats and track your progress!</p>
+                    <p className="mt-8 text-slate-400 text-sm">
+                        <Link href="/signin" className="underline hover:text-sky-400">Sign in</Link> to save your daily stats and track your progress!
+                    </p>
                 )}
             </div>
         </div>
