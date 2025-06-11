@@ -40,6 +40,12 @@ const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const TrendingUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://ww w.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.307a11.95 11.95 0 0 1 5.814-5.519l2.74-1.22m0 0-3.182 3.182m3.182-3.182v3.182H19.5" />
+    </svg>
+);
+  
 const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6l-3.5 3.5M12 6l3.5 3.5M12 6v5" />
@@ -60,7 +66,6 @@ const RankingGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-// --- 1. ADD THE NEW ICON COMPONENT FOR THE "ODD MAN OUT" GAME ---
 const OddManOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
       <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.25v3h3v-3h-3zm0 7.5v3h3v-3h-3zm7.5-7.5v3h3v-3h-3z" />
@@ -76,7 +81,6 @@ const SixDegreesIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 15.75l-3-3m-4.5 0l-3 3" />
   </svg>
 );
-
 
 const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
@@ -250,55 +254,43 @@ export default function Navbar() {
             </div>
             <div className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
               <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
-              <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
-              <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
-              <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Nine Degrees</NavLink>
               
+                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
+                <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
+                <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Nine Degrees</NavLink>
+
+              <div className="pt-2">
+                {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
+                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                <NavLink 
+                  href="/analysis/salary-vs-points" 
+                  icon={<TrendingUpIcon />} 
+                  showText={showTextInNav}
+                >
+                  Salary vs. Points
+                </NavLink>
+              </div>
+
               <div className="pt-2">
                 {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                 
-                <NavLink 
-                  href="/games/stat-over-under" 
-                  icon={<OverUnderGameIcon />} 
-                  showText={showTextInNav}
-                >
+                <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
                   Over/Under
                 </NavLink>
-
-                <NavLink 
-                  href="/games/draft-quiz" 
-                  icon={<QuizIcon />} 
-                  showText={showTextInNav}
-                >
+                <NavLink href="/games/draft-quiz" icon={<QuizIcon />} showText={showTextInNav}>
                   Fill in the Draft
                 </NavLink>
-
-                <NavLink 
-                  href="/games/ranking-game" 
-                  icon={<RankingGameIcon />} 
-                  showText={showTextInNav}
-                >
+                <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
                   Guess the Ranking
                 </NavLink>
-
-                {/* --- 2. ADD THE NEW NAVLINK FOR THE "ODD MAN OUT" GAME --- */}
-                <NavLink 
-                  href="/games/odd-man-out" 
-                  icon={<OddManOutIcon />} 
-                  showText={showTextInNav}
-                >
+                <NavLink href="/games/odd-man-out" icon={<OddManOutIcon />} showText={showTextInNav}>
                   Odd Man Out
                 </NavLink>
-
-                <NavLink 
-                  href="/games/six-degrees" 
-                  icon={<SixDegreesIcon />} 
-                  showText={showTextInNav}
-                >
+                <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
                   Six Degrees
                 </NavLink>
-
               </div>
             </div>
           </>
