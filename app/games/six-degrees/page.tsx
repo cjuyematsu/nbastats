@@ -1,4 +1,3 @@
-// app/games/six-degrees/page.tsx
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,35 +7,24 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 
-// Type for the raw score data from our new RPC function
 type ScoreHistoryRecord = {
     game_date: string;
     is_successful: boolean;
     guess_count: number;
 };
 
-// Component to render the stats and distribution chart
+const MIN_LOADING_TIME_MS = 400;
+
 function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
-    // useMemo will recalculate stats only when the scores array changes
     const stats = useMemo(() => {
         if (!scores || scores.length === 0) {
-            return {
-                played: 0,
-                winPercentage: 0,
-                currentStreak: 0,
-                maxStreak: 0,
-                guessDistribution: [0, 0, 0, 0, 0, 0], // For 1 to 6 guesses
-            };
+            return { played: 0, winPercentage: 0, currentStreak: 0, maxStreak: 0, guessDistribution: [0, 0, 0, 0, 0, 0] };
         }
-
         const played = scores.length;
         const wins = scores.filter(s => s.is_successful).length;
-        const winPercentage = Math.round((wins / played) * 100);
-
-        let currentStreak = 0;
+        const winPercentage = played > 0 ? Math.round((wins / played) * 100) : 0;
         let maxStreak = 0;
         let tempStreak = 0;
-        // Scores are sorted by date ascending from the DB query
         for (const score of scores) {
             if (score.is_successful) {
                 tempStreak++;
@@ -45,26 +33,21 @@ function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
                 tempStreak = 0;
             }
         }
-        maxStreak = Math.max(maxStreak, tempStreak); // Final check for streak ending today
-
-        // Calculate current streak by looking from the end of the array
-        let currentTempStreak = 0;
+        maxStreak = Math.max(maxStreak, tempStreak);
+        let currentStreak = 0;
         for (let i = scores.length - 1; i >= 0; i--) {
             if (scores[i].is_successful) {
-                currentTempStreak++;
+                currentStreak++;
             } else {
-                break; // Streak is broken
+                break;
             }
         }
-        currentStreak = currentTempStreak;
-
         const guessDistribution = [0, 0, 0, 0, 0, 0];
         scores.forEach(score => {
             if (score.is_successful && score.guess_count >= 1 && score.guess_count <= 6) {
                 guessDistribution[score.guess_count - 1]++;
             }
         });
-
         return { played, winPercentage, currentStreak, maxStreak, guessDistribution };
     }, [scores]);
 
@@ -91,7 +74,6 @@ function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
                     <p className="text-xs text-slate-400">Max Streak</p>
                 </div>
             </div>
-            
             <h4 className="font-semibold text-center text-slate-200 mb-3">Guess Distribution</h4>
             <div className="space-y-2">
                 {stats.guessDistribution.map((count, index) => (
@@ -117,37 +99,64 @@ export default function SixDegreesLobby() {
     const router = useRouter();
     const { user, isLoading: authIsLoading } = useAuth();
     const [scoreHistory, setScoreHistory] = useState<ScoreHistoryRecord[]>([]);
-    const [isLoadingStats, setIsLoadingStats] = useState(true);
+    const [isLoadingPage, setIsLoadingPage] = useState(true);
 
     useEffect(() => {
-        if (authIsLoading) return;
-        
-        if (!user) {
-            setIsLoadingStats(false);
-            return;
-        }
+        let isMounted = true;
 
-        const fetchScoreHistory = async () => {
-            setIsLoadingStats(true);
-            const { data, error } = await supabase.rpc('get_six_degrees_history', {
-                p_user_id: user.id
-            });
+        const loadLobbyData = async () => {
+            if (authIsLoading) return; 
 
-            if (error) {
-                console.error("Error fetching score history:", error);
-            } else if (data) {
-                setScoreHistory(data as ScoreHistoryRecord[]);
+            const startTime = Date.now();
+
+            try {
+                if (user) {
+                    const { data, error } = await supabase.rpc('get_six_degrees_history', {
+                        p_user_id: user.id
+                    });
+
+                    if (!isMounted) return; 
+
+                    if (error) {
+                        console.error("Error fetching score history:", error);
+                    } else if (data) {
+                        setScoreHistory(data as ScoreHistoryRecord[]);
+                    }
+                }
+            } catch (err) {
+                console.error("Caught an exception while fetching score history", err);
+            } finally {
+                if (isMounted) {
+                    const elapsedTime = Date.now() - startTime;
+                    const remainingTime = MIN_LOADING_TIME_MS - elapsedTime;
+
+                    if (remainingTime > 0) {
+                        await new Promise(resolve => setTimeout(resolve, remainingTime));
+                    }
+                    setIsLoadingPage(false);
+                }
             }
-            setIsLoadingStats(false);
         };
 
-        fetchScoreHistory();
-    }, [user, authIsLoading]);
+        loadLobbyData();
+
+        return () => {
+            isMounted = false; 
+        };
+    }, [user, authIsLoading, supabase]);
 
     const handlePlayRandom = () => {
         const randomGameId = uuidv4();
         router.push(`/games/six-degrees/${randomGameId}`);
     };
+
+    if (isLoadingPage) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100">
+                <p className="text-xl text-slate-300">Loading Game...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-12 px-4">
@@ -169,16 +178,15 @@ export default function SixDegreesLobby() {
                     </button>
                 </div>
                 
-                {/* Display logic for stats */}
-                {authIsLoading || isLoadingStats ? (
-                    <div className="mt-8 text-slate-400">Loading your stats...</div>
-                ) : user ? (
-                    <StatsDisplay scores={scoreHistory} />
-                ) : (
-                    <p className="mt-8 text-slate-400 text-sm">
-                        <Link href="/signin" className="underline hover:text-sky-400">Sign in</Link> to save your daily stats and track your progress!
-                    </p>
-                )}
+                <div className="mt-8">
+                    {user ? (
+                        <StatsDisplay scores={scoreHistory} />
+                    ) : (
+                        <p className="mt-8 text-slate-400 text-sm">
+                            <Link href="/signin" className="underline hover:text-sky-400">Sign in</Link> to save your daily stats and track your progress!
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );
