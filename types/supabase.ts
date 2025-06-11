@@ -848,6 +848,14 @@ export type Database = {
           team_name: string
         }[]
       }
+      get_stat_ou_history: {
+        Args: { p_user_id: string }
+        Returns: {
+          game_era: string
+          points: number
+          potential_points: number
+        }[]
+      }
       get_top_100_prominence_2025_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
