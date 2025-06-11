@@ -159,10 +159,10 @@ export default function SalaryAnalysisPage() {
                     
                     <section className="space-y-8">
                         <PlayerTable data={bestValueAll} title="Top 10 Best Value Players (Overall)" />
-                        <ValueChart data={bestValueAll.slice().reverse()} title="Best Value (Lowest Dollars per Point)" barColor="#4ade80" />
+                        <ValueChart data={bestValueAll.slice().reverse()} title="" barColor="#4ade80" />
                         
                         <PlayerTable data={worstValueAll} title="Top 10 Worst Value Players (Overall)" />
-                        <ValueChart data={worstValueAll.slice().reverse()} title="Worst Value (Highest Dollars per Point)" barColor="#f87171" />
+                        <ValueChart data={worstValueAll.slice().reverse()} title="" barColor="#f87171" />
                     </section>
 
                     <section>
@@ -174,10 +174,10 @@ export default function SalaryAnalysisPage() {
 
                     <section className="space-y-8">
                         <PlayerTable data={bestValue50Games} title="Top 10 Best Value (min. 50 Games)" />
-                        <ValueChart data={bestValue50Games.slice().reverse()} title="Best Value (min. 50 Games)" barColor="#4ade80" />
+                        <ValueChart data={bestValue50Games.slice().reverse()} title="" barColor="#4ade80" />
                         
                         <PlayerTable data={worstValue50Games} title="Top 10 Worst Value (min. 50 Games)" />
-                        <ValueChart data={worstValue50Games.slice().reverse()} title="Worst Value (min. 50 Games)" barColor="#f87171" />
+                        <ValueChart data={worstValue50Games.slice().reverse()} title="" barColor="#f87171" />
                     </section>
 
                     <section>
@@ -189,7 +189,7 @@ export default function SalaryAnalysisPage() {
 
                     <section className="space-y-8">
                         <PlayerTable data={starPlayers} title="Star Player Value Comparison" />
-                        <ValueChart data={starPlayers.slice().reverse()} title="Star Player 'Dollars per Point'" barColor="#60a5fa" />
+                        <ValueChart data={starPlayers.slice().reverse()} title="" barColor="#60a5fa" />
                     </section>
 
                     <footer className="pt-8 border-t border-gray-200 dark:border-gray-700">
