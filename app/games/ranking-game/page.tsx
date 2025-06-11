@@ -42,7 +42,6 @@ export default function RankingGame() {
   const [correctOrder, setCorrectOrder] = useState<Player[]>([]);
   const [categoryName, setCategoryName] = useState<string>('');
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
-  const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
   const [message, setMessage] = useState<string>('');
   const [hasGameBeenPlayed, setHasGameBeenPlayed] = useState<boolean>(false);
@@ -51,7 +50,6 @@ export default function RankingGame() {
     const startTime = Date.now();
     setStatus(GameStatus.Loading);
     
-    setScore(0);
     setMessage('');
     setPlayers([]);
     setCorrectOrder([]);
@@ -113,7 +111,6 @@ export default function RankingGame() {
     setTimeout(() => {
         const isCorrect = items.every((player, index) => player.personId === correctOrder[index].personId);
         if (isCorrect) {
-          setScore(10);
           setStatus(GameStatus.Guessing); 
         }
     }, 100);
@@ -142,7 +139,6 @@ export default function RankingGame() {
       <div className="text-center mb-4">
         {correctOrder.length > 0 && <p className="text-lg">{correctOrder[0].SeasonYear} Regular Season</p>}
         <p>Current Streak: {streak}</p>
-        {status === GameStatus.Finished && hasGameBeenPlayed && <p className="font-bold text-xl">Score: {score.toFixed(0)}/10</p>}
       </div>
 
       {status === GameStatus.Ranking && (
