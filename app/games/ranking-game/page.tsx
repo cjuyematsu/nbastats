@@ -203,7 +203,7 @@ export default function RankingGame() {
                   {correctOrder.map((player, index) => (
                       <div key={player.personId} className="p-3 bg-gray-700 rounded-lg">
                           <p className="font-bold text-lg">{index + 1}. {player.firstName} {player.lastName}</p>
-                          <p className="text-md">{player.statValue.toFixed(2)} {categoryName}</p>
+                          <p className="text-md">{player.statValue.toFixed(2)} {categoryName} per game</p>
                       </div>
                   ))}
               </div>
