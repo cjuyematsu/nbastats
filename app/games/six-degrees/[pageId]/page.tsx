@@ -1,4 +1,4 @@
-// app/games/six-degrees/[gameId]/page.tsx
+// app/games/six-degrees/[pageId]/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -6,7 +6,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 
-// --- Type Definitions ---
 type AdjacencyList = {
   [playerId: string]: number[];
 };
@@ -34,16 +33,11 @@ type DailyScore = {
 
 type PlayerSuggestion = {
     personId: number;
-    firstName: string | null; // Names can be null in the database
+    firstName: string | null; 
     lastName: string | null;
-    // You can also add min_season and max_season if you need them later
   };
 
 type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error' | 'already_played';
-// --- End Type Definitions ---
-
-
-// --- Debounce Helper Function ---
 function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor: number) {
   let timeout: ReturnType<typeof setTimeout> | null = null;
   const debounced = (...args: Args) => {
@@ -53,8 +47,6 @@ function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor
   return debounced;
 }
 
-
-// --- Player Autocomplete Input Component ---
 function PlayerInput({ 
   onSelect, 
   placeholder, 
@@ -94,7 +86,6 @@ function PlayerInput({
         }
     };
     
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSearch = useCallback(debounce(searchPlayers, 300), []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,7 +138,6 @@ function PlayerInput({
     );
 }
 
-// --- Main Game Content ---
 function SixDegreesGameContent() {
     const params = useParams();
     const router = useRouter();
@@ -191,7 +181,6 @@ function SixDegreesGameContent() {
     }, [user, gameId, puzzle]);
 
 
-    // Effect to fetch the adjacency list (runs once on mount)
     useEffect(() => {
         async function loadAdjacencyList() {
             try {
@@ -207,10 +196,8 @@ function SixDegreesGameContent() {
         loadAdjacencyList();
     }, []);
 
-    // Main useEffect for initializing the game
     useEffect(() => {
         const initializeGame = async () => {
-            // Guard clause: Wait for dependencies
             if (!adjacencyList || authIsLoading) {
                 console.log(`Waiting for dependencies: adjacencyList=${!!adjacencyList}, authIsLoading=${authIsLoading}`);
                 return;
@@ -243,7 +230,7 @@ function SixDegreesGameContent() {
                             console.log("[DEBUG] User has already played today.");
                             setPriorPlayResult(priorPlay as DailyScore);
                             setGameStatus('already_played');
-                            return; // Stop execution
+                            return; 
                         }
                     }
                     
@@ -253,7 +240,7 @@ function SixDegreesGameContent() {
                     gameData = data;
                     if (!gameData) throw new Error("No daily game found for today. Please check back tomorrow.");
                 
-                } else { // This block only runs if gameId is NOT 'daily'
+                } else { 
                     console.log("[DEBUG] Random game logic started.");
                     const { data, error } = await supabase.rpc('generate_connection_game', { is_daily: false }).single();
                     if (error) throw error;
@@ -275,7 +262,6 @@ function SixDegreesGameContent() {
         };
 
         initializeGame();
-    // This effect runs when the user's login state changes, or when the gameId in the URL changes.
     }, [gameId, adjacencyList, user, authIsLoading, resetGameState, router]);
 
     const handleGuess = (guessedPlayer: Guess) => {
@@ -313,7 +299,6 @@ function SixDegreesGameContent() {
         }
     };
     
-    // --- Render Logic ---
     if (gameStatus === 'loading' || authIsLoading) {
         return <div className="flex justify-center items-center min-h-screen text-slate-300"><p className="text-xl">Loading Game...</p></div>;
     }
@@ -404,23 +389,33 @@ function SixDegreesGameContent() {
                 {feedbackMessage && <p className={`text-lg font-semibold ${feedbackMessage.startsWith('Correct') ? 'text-green-400' : 'text-red-400'}`}>{feedbackMessage}</p>}
             </div>
 
-             {(gameStatus === 'won' || gameStatus === 'lost') && (
-                <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? 'bg-green-900/50 border border-green-500' : 'bg-red-900/50 border border-red-500'}`}>
-                    <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-300' : 'text-red-300'}`}>
-                        {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
-                    </h2>
-                    {gameStatus === 'won' && <p className="mt-2">Your Path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
-                    {gameStatus === 'lost' && <p className="mt-2">A possible solution was: {puzzle.solution_path_names.join(' → ')}</p>}
-                     <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
-                        Back to Lobby
-                     </button>
+            {gameStatus === 'playing' && (
+                <div className="mt-6">
+                    <button
+                        onClick={() => router.back()}
+                        className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold"
+                    >
+                        Back
+                    </button>
                 </div>
+            )}
+
+             {(gameStatus === 'won' || gameStatus === 'lost') && (
+                 <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? 'bg-green-900/50 border border-green-500' : 'bg-red-900/50 border border-red-500'}`}>
+                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-300' : 'text-red-300'}`}>
+                         {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
+                     </h2>
+                     {gameStatus === 'won' && <p className="mt-2">Your Path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
+                     {gameStatus === 'lost' && <p className="mt-2">A possible solution was: {puzzle.solution_path_names.join(' → ')}</p>}
+                      <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
+                          Back
+                      </button>
+                 </div>
              )}
         </div>
     );
 }
 
-// Default export wrapper to provide Suspense for hooks
 export default function SixDegreesGameLoader() {
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen text-white"><p className="text-xl">Loading Game...</p></div>}>
