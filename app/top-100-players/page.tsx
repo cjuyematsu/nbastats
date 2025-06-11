@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext'; 
 import CountdownTimer from '@/components/CountdownTimer'; 
+import Image from 'next/image';
 
 const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v1';
 
@@ -121,28 +122,22 @@ interface AggregatedVotesData {
 
 const getTeamLogoUrl = (teamName: string | null): string => {
   if (!teamName) {
-    // Return a path to a default logo you can keep in your public folder
     return '/nba-logo.png'; 
   }
-
-  // Handle the special case for "Trail Blazers"
   if (teamName.toLowerCase().includes('trail blazers')) {
     return '/trailblazers.png';
   }
-
-  // For all other teams, take the last word, make it lowercase, and add .png
   const nameParts = teamName.split(' ');
   const logoName = nameParts[nameParts.length - 1].toLowerCase();
-  
   return `/${logoName}.png`;
 };
-
 
 interface PlayerBoxProps {
   player: TopPlayer;
   onVote: (playerId: number, newVoteType: number) => Promise<void>;
   isVotingDisabled: boolean;
 }
+
 const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled }) => {
   const statItems = [
     { label: "GP", value: player.gamesPlayed ?? 'N/A' },
@@ -160,25 +155,25 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
     const newVoteType = player.currentUserVote === voteTypeClicked ? 0 : voteTypeClicked;
     onVote(player.personId, newVoteType);
   };
+
   return (
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex items-center flex-grow min-w-0">
-          <span className="text-3xl font-bold text-sky-400 mr-3 sm:mr-4 w-10 sm:w-12 text-right flex-shrink-0">{player.rankNumber}.</span>
           
-          {/* Team Logo */}
-          <img 
+          <Image
             src={getTeamLogoUrl(player.playerteamName)} 
             alt={`${player.playerteamName} logo`}
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain mr-3 flex-shrink-0"
             onError={(e) => { 
-              // Fallback if a specific team logo is missing from your public folder
               e.currentTarget.onerror = null; 
-              e.currentTarget.src = '/nba-logo.png'; // Make sure you have a default logo here
+              e.currentTarget.src = '/nba-logo.png';
             }}
           />
 
-          <div className="flex-grow">
+          <span className="text-3xl font-bold text-sky-400 mr-3 sm:mr-4 w-10 sm:w-12 text-right flex-shrink-0">{player.rankNumber}.</span>
+          
+          <div className="flex-grow min-w-0">
             <Link 
               href={`/player/${player.personId}`}
               className="text-xl font-semibold leading-tight hover:text-sky-300 cursor-pointer break-words"
@@ -190,7 +185,6 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         </div>
         
         <div className="flex flex-col space-y-1 items-center ml-2 flex-shrink-0"> 
-            {/* Voting buttons remain the same */}
             <VotingButton
               onClick={() => handleVoteClick(1)}
               isActive={player.currentUserVote === 1}
@@ -226,6 +220,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
             </VotingButton>
         </div>
       </div>
+      
       <div className="mt-auto pt-3 border-t border-slate-500/50">
         <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-sm font-mono">
           {statItems.map(item => (
@@ -240,7 +235,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   );
 };
 
-
+// --- Main Page Component and Hooks (no changes) ---
 export default function Top100PlayersPage() {
   const { user, isLoading: authIsLoading, session } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>([]);
@@ -544,7 +539,7 @@ export default function Top100PlayersPage() {
   };
 
   const pageTitle = "Top 100 Players";
-  const pageSubtitle = "(Weekly Ranking)";
+  const pageSubtitle = "Give your opinion on how players should be moved";
 
   if (authIsLoading || (isLoadingPlayers && players.length === 0 && !fetchError)) { 
     return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6 text-center"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-slate-300 py-10 text-xl">Loading players...</p> </div> );
@@ -553,7 +548,8 @@ export default function Top100PlayersPage() {
      return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-center text-red-300 mt-4">Error: {fetchError}</p> </div> );
   }
   if (!isLoadingPlayers && players.length === 0) { 
-    return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8 text-center">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p> <p className="text-center text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p> </div> );
+    return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8 text-center">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p> <p className="text-center text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p> 
+</div> );
   }
 
   return (
@@ -563,7 +559,7 @@ export default function Top100PlayersPage() {
         <p className="text-lg text-slate-400 mb-1 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
         {!user && !authIsLoading && ( <p className="text-center text-sky-300 my-6"> <Link href="/signin" className="underline hover:text-sky-100">Sign in</Link> to vote on player rankings or nominate players! </p> )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
           {players.map((player) => (
             <PlayerBox 
               key={player.personId.toString()} 
