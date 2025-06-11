@@ -162,6 +162,8 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         <div className="flex items-center flex-grow min-w-0">
           
           <Image
+            width="500"
+            height="500"
             src={getTeamLogoUrl(player.playerteamName)} 
             alt={`${player.playerteamName} logo`}
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain mr-3 flex-shrink-0"
