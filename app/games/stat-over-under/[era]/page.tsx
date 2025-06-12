@@ -340,11 +340,11 @@ function StatOverUnderEraGameContent() {
   const eraName = AVAILABLE_ERAS.find(e=>e.id===gameEraFromParam)?.name || gameEraFromParam || 'Selected Era';
 
   if (gameStatus === 'initial_loading' || (gameStatus === 'fetching_challenges')) {
-    return <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900"><p className="text-center p-10 text-slate-300 text-xl">Loading {eraName} Game...</p></div>;
+    return <div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl"><p className="text-center p-10 text-slate-300 text-xl">Loading {eraName} Game...</p></div>;
   }
   if (gameStatus === 'error_loading') { 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-12 px-4">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
             <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
                 <h2 className="text-2xl font-semibold text-red-400 mb-4">Error Loading Game</h2>
                 <p className="text-slate-300 mb-6">{pageFetchError || "Could not load game data."}</p>
@@ -356,7 +356,7 @@ function StatOverUnderEraGameContent() {
   }
   if (gameStatus === 'no_game_today') { 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-12 px-4">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
             <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
                 <h2 className="text-2xl font-semibold text-sky-400 mb-4">No Game Today</h2>
                 <p className="text-slate-300 mb-6">No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
@@ -369,7 +369,7 @@ function StatOverUnderEraGameContent() {
     const isCompleted = gameStatus === 'completed';
     const potentialPoints = isCompleted ? challenges.length : 10;
     return (
-      <div className="w-full bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 min-h-screen flex items-center justify-center py-12 px-4">
+      <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 min-h-screen flex items-center justify-center py-12 px-4">
         <div className="max-w-lg w-full mx-auto p-6 sm:p-8 bg-slate-800/70 rounded-xl shadow-2xl text-center backdrop-blur-md">
             <h1 className="text-3xl font-bold text-sky-400 mb-2">{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className="text-xl font-medium text-slate-300 mb-2">{eraName} - {todayDateISO}</h2>
@@ -391,11 +391,12 @@ function StatOverUnderEraGameContent() {
   }
   const currentChallenge = challenges[currentRoundIndex];
   if (!currentChallenge) {
-      return <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900"><p className="text-center p-10 text-slate-300 text-xl">Loading round...</p></div>;
+      return <div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl">
+        <p className="text-center p-10 text-slate-300 text-xl">Loading round...</p></div>;
   }
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-8 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-8 px-4">
         <div className="w-full max-w-lg">
             <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className="text-sm text-sky-400 hover:text-sky-300 underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm">Select Different Era</button></div>
             <h1 className="text-2xl md:text-3xl font-bold text-sky-400 text-center mb-1">{eraName}</h1>
@@ -430,7 +431,7 @@ function StatOverUnderEraGameContent() {
 
 export default function StatOverUnderGamePageLoader() {
     return (
-        <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900"><p className="text-center p-10 text-slate-300 text-xl">Loading Game Data...</p></div>}>
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl"><p className="text-center p-10 text-slate-300 text-xl">Loading Game Data...</p></div>}>
             <StatOverUnderEraGameContent />
         </Suspense>
     );

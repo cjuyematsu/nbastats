@@ -308,7 +308,7 @@ function SixDegreesGameContent() {
 
     if (gameStatus === 'already_played') {
         return (
-             <div className="container mx-auto p-4 text-center max-w-lg text-white">
+             <div className="w-full bg-gray-800 rounded-lg shadow-2xl p-4 text-center text-white">
                 <h1 className="text-3xl font-bold text-sky-400 mb-6">Daily Challenge Complete</h1>
                 
                 {/* The line below has been REMOVED */}
@@ -348,6 +348,7 @@ function SixDegreesGameContent() {
     const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
 
     return (
+        <div className="w-full h-full bg-gray-800 rounded-lg shadow-2xl">
         <div className="container mx-auto p-4 text-center max-w-lg text-white">
             <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
             <p className="mb-4">Connect <span className="font-bold text-sky-400">{puzzle.player_a_name}</span> to <span className="font-bold text-sky-400">{puzzle.player_b_name}</span>.</p>
@@ -412,6 +413,7 @@ function SixDegreesGameContent() {
                       </button>
                  </div>
              )}
+        </div>
         </div>
     );
 }

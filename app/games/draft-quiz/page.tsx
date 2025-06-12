@@ -65,7 +65,7 @@ export default function DraftQuizLobby() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 text-center">
+      <div className="bg-gray-800 rounded-lg shadow-2xl p-4 text-center">
         <h1 className="text-3xl font-bold mb-6">NBA Draft Quiz</h1>
         <p>Loading Quizzes...</p>
       </div>
@@ -74,7 +74,7 @@ export default function DraftQuizLobby() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 text-center">
+      <div className="bg-gray-800 rounded-lg shadow-2xl p-4 text-center">
         <h1 className="text-3xl font-bold mb-6 text-red-500">Error</h1>
         <p>{error}</p>
       </div>
@@ -82,10 +82,10 @@ export default function DraftQuizLobby() {
   }
   
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 bg-gray-800 rounded-lg shadow-2xl">
       <h1 className="text-3xl font-bold mb-6 text-center">NBA Draft Quiz</h1>
       <p className="text-center mb-8">Select a year and see how many you know</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ">
         {progressData.map(item => {
           const progressPercentage = item.total_count > 0 
             ? (item.correct_count / item.total_count) * 100 
@@ -95,20 +95,20 @@ export default function DraftQuizLobby() {
             <Link
               key={item.year}
               href={`/games/draft-quiz/${item.year}`}
-              className={`block p-4 bg-gray-800 rounded-lg hover:bg-sky-700 transition-colors shadow-lg ${!user ? 'pb-6' : ''}`}
+              className={`block p-4 bg-slate-700 rounded-lg hover:bg-sky-700 transition-colors shadow-lg ${!user ? 'pb-6' : ''}`}
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-2xl text-white">{item.year}</span>
                 
                 {user && item.total_count > 0 && (
-                  <span className="text-sm font-medium bg-gray-700 text-sky-300 px-2 py-1 rounded">
+                  <span className="text-sm font-medium bg-gray-800 text-sky-300 px-2 py-1 rounded">
                     {item.correct_count} / {item.total_count}
                   </span>
                 )}
               </div>
 
               {user && (
-                <div className="w-full bg-gray-600 rounded-full h-2.5 dark:bg-gray-700">
+                <div className="w-full bg-gray-800 rounded-full h-2.5 dark:bg-gray-800">
                   <div 
                     className="bg-sky-500 h-2.5 rounded-full transition-all duration-500" 
                     style={{ width: `${progressPercentage}%` }}

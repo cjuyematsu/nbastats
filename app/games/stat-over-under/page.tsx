@@ -20,7 +20,7 @@ export default function SelectEraPage() { // Renamed for clarity
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-12 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
       <div className="text-center w-full max-w-md sm:max-w-lg">
         <h1 className="text-3xl sm:text-4xl font-bold text-sky-400 mb-4">
           Daily Stat Over/Under
