@@ -175,7 +175,7 @@ export default function OddManOutGame() {
   }
 
   return (
-    <div className="container mx-auto p-4 text-white max-w-3xl text-center">
+    <div className="w-full h-full bg-gray-800 rounded-lg shadow-2xl p-4 text-white text-center">
       <h1 className="text-3xl font-bold mb-2">Odd Man Out</h1>
       <p className="text-lg mb-2">Three of these players played for the same program prior to being drafted. Pick the odd one out... </p>
       

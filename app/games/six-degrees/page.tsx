@@ -152,14 +152,14 @@ export default function SixDegreesLobby() {
 
     if (isLoadingPage) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100">
+            <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
                 <p className="text-xl text-slate-300">Loading Game...</p>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-slate-900 text-slate-100 py-12 px-4">
+        <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100 py-12 px-4">
             <div className="text-center w-full max-w-md">
                 <h1 className="text-4xl font-bold text-sky-400 mb-4">Six Degrees of NBA</h1>
                 <p className="text-lg text-slate-300 mb-10">Connect two NBA players through a chain of former teammates.</p>

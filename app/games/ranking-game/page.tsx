@@ -216,10 +216,11 @@ export default function RankingGame() {
   }
   
   return (
+    <div className="bg-gray-800 rounded-lg shadow-2xl">
     <div className="container mx-auto p-4 text-white max-w-2xl">
       <h1 className="text-3xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h1>
       <h2 className="text-sm font-bold text-center mb-2">Green means the player is in the correct ranking and yellow means they are one away</h2>
-      <div className="text-center mb-4 p-3 bg-gray-800/50 rounded-lg">
+      <div className="text-center mb-4 p-3 bg-gray-700/50 rounded-lg">
         {correctOrder.length > 0 && <p className="text-lg">{correctOrder[0].SeasonYear} Regular Season</p>}
         <div className="flex justify-center space-x-6">
             <p>Current Streak: {currentStreak}</p>
@@ -244,7 +245,7 @@ export default function RankingGame() {
                       const correctIndex = correctOrder.findIndex(p => p.personId === player.personId);
                       const isCorrect = index === correctIndex;
                       const isClose = Math.abs(index - correctIndex) === 1;
-                      let bgColor = 'bg-gray-800';
+                      let bgColor = 'bg-gray-900';
                       if (isCorrect) bgColor = 'bg-green-700';
                       else if (isClose) bgColor = 'bg-yellow-600';
                       return (
@@ -291,7 +292,7 @@ export default function RankingGame() {
           {correctOrder.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {correctOrder.map((player, index) => (
-                      <div key={player.personId} className="p-3 bg-gray-700 rounded-lg">
+                      <div key={player.personId} className="p-3 bg-gray-900 rounded-lg">
                           <p className="font-bold text-lg">{index + 1}. {player.firstName} {player.lastName}</p>
                           <p className="text-md">{player.statValue.toFixed(2)} {categoryName}</p>
                       </div>
@@ -306,6 +307,7 @@ export default function RankingGame() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }
