@@ -1,86 +1,93 @@
+//components/Navbar.tsx
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
-const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+const MenuIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M4 5H20V7H4z"/>
+    <path d="M4 11H20V13H4z"/>
+    <path d="M4 17H20V19H4z"/>
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m12.71 8.71-1.42-1.42L6.59 12l4.7 4.71 1.42-1.42-2.3-2.29H17v-2h-6.59z"/>
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M5 19V5h14v14z"/>
+  </svg>
+);
+
+const HomeIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M3 13h1v7c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h1c.4 0 .77-.24.92-.62.15-.37.07-.8-.22-1.09l-8.99-9a.996.996 0 0 0-1.41 0l-9.01 9c-.29.29-.37.72-.22 1.09s.52.62.92.62Zm7 7v-5h4v5zm2-15.59 6 6V20h-2v-5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v5H6v-9.59z"/>
+  </svg>
+);
+
+const UsersIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M10 15h12v2H10zM10 7h12v2H10zM4 19h2c1.1 0 2-.9 2-2v-2c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4zM4 11h2c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4z"/>
+  </svg>
+);
+
+const ChartBarIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z"/>
+    <path d="M11.25 10.28c.74-.06 1.45.24 1.93.8a4.314 4.314 0 0 0 7.03-.67l1.67-2.91-1.74-.99-1.67 2.91c-.38.66-1.03 1.08-1.79 1.16s-1.48-.22-1.98-.8c-.9-1.05-2.22-1.6-3.6-1.5s-2.6.84-3.34 2.02l-2.61 4.17 1.7 1.06 2.61-4.17c.4-.63 1.05-1.03 1.79-1.08"/>
     </svg>
 );
 
-const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-);
-
-const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
+const LinkIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M19 2c-1.65 0-3 1.35-3 3 0 1 .49 1.87 1.24 2.42l-1.92 4.61c-.11-.01-.21-.03-.32-.03-.46 0-.89.11-1.29.3l-2.02-2.02c.19-.39.3-.82.3-1.29 0-1.65-1.35-3-3-3s-3 1.35-3 3c0 .82.33 1.57.87 2.11l-2.04 4.91c-1.57.09-2.83 1.39-2.83 2.98s1.35 3 3 3 3-1.35 3-3c0-1-.49-1.87-1.24-2.42l1.92-4.61c.11.01.21.03.32.03.46 0 .89-.11 1.29-.3l2.02 2.02c-.19.39-.3.82-.3 1.29 0 1.65 1.35 3 3 3s3-1.35 3-3c0-.82-.33-1.57-.87-2.11l2.04-4.91C20.74 7.89 22 6.59 22 5s-1.35-3-3-3M5 20c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1M8 9c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1m7 7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1m4-10c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1"/>
   </svg>
 );
 
-const UsersIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+const TrendingUpIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m18.29,9.29l-3.29,3.29-4.29-4.29c-.39-.39-1.02-.39-1.41,0l-7,7,1.41,1.41,6.29-6.29,4.29,4.29c.39.39,1.02.39,1.41,0l4-4,2.29,2.29v-6h-6l2.29,2.29Z"/>
   </svg>
-);
-
-const ChartBarIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-  </svg>
-);
-
-const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-  </svg>
-);
-
-const TrendingUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://ww w.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.307a11.95 11.95 0 0 1 5.814-5.519l2.74-1.22m0 0-3.182 3.182m3.182-3.182v3.182H19.5" />
-    </svg>
 );
   
-const OverUnderGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6l-3.5 3.5M12 6l3.5 3.5M12 6v5" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18l-3.5-3.5M12 18l3.5-3.5M12 18v-5" />
+const OverUnderGameIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m6.29 19.29 1.42 1.42 4.29-4.3 4.29 4.3 1.42-1.42-5.71-5.7zM12 7.59l-4.29-4.3-1.42 1.42 5.71 5.7 5.71-5.7-1.42-1.42z"/>
   </svg>
 );
 
-const QuizIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-    </svg>
-);
-
-const RankingGameIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h12.75M3 9h9.75M3 13.5h5.25m-5.25 4.5h3" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-2.25 2.25m0 0l2.25 2.25M17.25 10.5V3.75m0 12.75v-3.75" />
-    </svg>
-);
-
-const OddManOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.25v3h3v-3h-3zm0 7.5v3h3v-3h-3zm7.5-7.5v3h3v-3h-3z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75v3h3v-3h-3z" />
-    </svg>
-);
-
-const SixDegreesIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props} className="w-5 h-5 flex-shrink-0">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75a3 3 0 11-6 0 3 3 0 016 0z" transform="translate(15 0)" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75a3 3 0 11-6 0 3 3 0 016 0z" transform="translate(3 9)" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 15.75l-3-3m-4.5 0l-3 3" />
+const QuizIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m15,3v5h-6c-.55,0-1,.45-1,1v6H3c-.55,0-1,.45-1,1v6h2v-5h5c.55,0,1-.45,1-1v-6h6c.55,0,1-.45,1-1v-5h5v-2h-6c-.55,0-1,.45-1,1Z"/>
   </svg>
 );
+
+const RankingGameIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m22 6-4-4-4 4h3v12h-3l4 4 4-4h-3V6zM2 11h12v2H2zM2 7h12v2H2zM2 15h12v2H2z"/>
+  </svg>
+);
+
+const OddManOutIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zM19.5 3h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zM18 13h-2v3h-3v2h3v3h2v-3h3v-2h-3z"/>
+  </svg>
+);
+
+const SixDegreesIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="m21,14h-1c0-1.08-.21-2.13-.63-3.11-.4-.95-.98-1.81-1.71-2.54-.54-.54-1.14-.99-1.8-1.35-.45-1.72-2-2.99-3.86-2.99s-3.4,1.28-3.86,2.99c-.66.36-1.26.81-1.8,1.35-.73.73-1.31,1.59-1.71,2.54-.42.99-.63,2.03-.63,3.11h-1c-.55,0-1,.45-1,1v4c0,.55.45,1,1,1h4c.55,0,1-.45,1-1v-4c0-.55-.45-1-1-1h-1c0-.81.16-1.6.47-2.34.3-.71.73-1.36,1.29-1.91.15-.15.33-.27.49-.41.56,1.54,2.02,2.65,3.75,2.65s3.19-1.11,3.75-2.65c.17.13.34.25.49.41.55.55.98,1.19,1.29,1.91.31.74.47,1.52.47,2.33h-1c-.55,0-1,.45-1,1v4c0,.55.45,1,1,1h4c.55,0,1-.45,1-1v-4c0-.55-.45-1-1-1Zm-15,4h-2v-2h2v2Zm6-8c-1.1,0-2-.9-2-2s.9-2,2-2,2,.9,2,2-.9,2-2,2Zm8,8h-2v-2h2v2Z"/>
+  </svg>
+);
+
+const SalaryVPointsIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M21 8H7c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h14c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1m-1 8c-1.1 0-2 .9-2 2h-8c0-1.1-.9-2-2-2v-4c1.1 0 2-.9 2-2h8c0 1.1.9 2 2 2z"/>
+    <path d="M18 4H3c-.55 0-1 .45-1 1v11h2V6h14zM14 12a2 2 0 1 0 0 4 2 2 0 1 0 0-4"/>
+  </svg>
+)
 
 const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
@@ -231,7 +238,7 @@ export default function Navbar() {
             : (isOpenOnMobile ? "Close menu" : "Open menu")
         }
       >
-        <ToggleButtonIcon className="h-6 w-6" />
+        <ToggleButtonIcon/>
       </button>
 
       {isOpenOnMobile && !isMdScreen && (
@@ -265,10 +272,17 @@ export default function Navbar() {
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                 <NavLink 
                   href="/analysis/salary-vs-points" 
-                  icon={<TrendingUpIcon />} 
+                  icon={<SalaryVPointsIcon />} 
                   showText={showTextInNav}
                 >
                   Salary vs. Points
+                </NavLink>
+                <NavLink 
+                  href="/analysis/growth-of-nba" 
+                  icon={<TrendingUpIcon />} 
+                  showText={showTextInNav}
+                >
+                  Growth of the NBA
                 </NavLink>
               </div>
 
