@@ -1,9 +1,9 @@
+//app/games/odd-man-out/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext'; 
 
-// --- Interfaces and Enums ---
 interface Player {
   FirstName: string;
   LastName: string;
@@ -21,7 +21,6 @@ enum GameStatus {
   Answered,
 }
 
-// --- A key for our session storage cache ---
 const GAME_SESSION_CACHE_KEY = 'oddManOutGameSession_v1';
 const MIN_LOADING_TIME_MS = 400;
 
@@ -48,17 +47,11 @@ export default function OddManOutGame() {
     }
     const { data } = await supabase
       .from('odd_man_out_streaks')
-      // --- CHANGE: Removed 'is_active' from selection ---
       .select('current_streak, max_streak, total_correct, total_incorrect')
       .eq('user_id', user.id)
       .single();
       
     if (data) {
-      // The current streak is now directly from the DB, assuming logic is handled there
-      // or we can determine it from the `is_active` flag if that's preferred.
-      // For simplicity, let's assume if a streak is > 0, it's active.
-      // A more robust backend might set streak to 0 on a wrong answer.
-      // Re-adding is_active to the select for this logic.
       const { data: dataWithActive } = await supabase
         .from('odd_man_out_streaks')
         .select('current_streak, max_streak, is_active, total_correct, total_incorrect')
@@ -171,65 +164,74 @@ export default function OddManOutGame() {
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
   
   if (status === GameStatus.Loading || authIsLoading) {
-    return <div className="text-center p-10">Loading New Round...</div>;
+    return <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
+    <div className="text-center p-10">Loading New Round...</div>;</div>
   }
 
   return (
-    <div className="w-full h-full bg-gray-800 rounded-lg shadow-2xl p-4 text-white text-center">
-      <h1 className="text-3xl font-bold mb-2">Odd Man Out</h1>
-      <p className="text-lg mb-2">Three of these players played for the same program prior to being drafted. Pick the odd one out... </p>
+    <div className="w-full min-h-screen bg-gray-800 rounded-lg shadow-2xl p-4 text-white text-center flex flex-col">
       
-      <div className="text-center p-3 mb-4">
-        <div className="font-bold text-xl text-yellow-400 flex justify-center space-x-6">
-            <p>Current Streak: {currentStreak}</p>
-            {user && <p>Max Streak: {maxStreak}</p>}
+      <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
+
+        <div>
+            <h1 className="text-3xl font-bold mb-2">Odd Man Out</h1>
+            <p className="text-lg mb-2">Three of these players played for the same program prior to being drafted. Pick the odd one out... </p>
+            
+            <div className="text-center p-3 mb-4">
+            <div className="font-bold text-xl text-yellow-400 flex justify-center space-x-6">
+                <p>Current Streak: {currentStreak}</p>
+                {user && <p>Max Streak: {maxStreak}</p>}
+            </div>
+            {user && totalGames > 0 && (
+                <div className="text-sm mt-2 text-gray-400 flex justify-center space-x-4">
+                <span>W-L: {totalCorrect}-{totalIncorrect}</span>
+                <span>Win %: {winPercentage.toFixed(1)}%</span>
+                </div>
+            )}
+            </div>
         </div>
-        {user && totalGames > 0 && (
-          <div className="text-sm mt-2 text-gray-400 flex justify-center space-x-4">
-            <span>W-L: {totalCorrect}-{totalIncorrect}</span>
-            <span>Win %: {winPercentage.toFixed(1)}%</span>
+      
+        {gameData && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full max-w-5xl mt-4">
+            {gameData.players.map((player, index) => {
+              const playerName = `${player.FirstName} ${player.LastName}`;
+              const isOddManOut = playerName === gameData.oddManOutName;
+              const isGuessed = playerName === userGuessName;
+              let cardClass = 'bg-sky-700 hover:bg-sky-600';
+              if (status === GameStatus.Answered) {
+                if (isGuessed && !isOddManOut) { cardClass = 'bg-red-600'; } 
+                else if (isOddManOut) { cardClass = 'bg-green-600 scale-105'; } 
+                else { cardClass = 'bg-gray-700 opacity-60'; }
+              }
+              return (
+                <button
+                  key={playerName + index}
+                  onClick={() => handleGuess(player)}
+                  disabled={status === GameStatus.Answered}
+                  className={`p-4 rounded-lg shadow-lg text-center transform transition-all duration-300 ${cardClass}`}
+                >
+                  <p className="text-xl font-bold">{player.FirstName}</p>
+                  <p className="text-xl font-bold">{player.LastName}</p>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
-      
-      {gameData && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {gameData.players.map((player, index) => {
-            const playerName = `${player.FirstName} ${player.LastName}`;
-            const isOddManOut = playerName === gameData.oddManOutName;
-            const isGuessed = playerName === userGuessName;
-            let cardClass = 'bg-sky-700 hover:bg-sky-600';
-            if (status === GameStatus.Answered) {
-              if (isGuessed && !isOddManOut) { cardClass = 'bg-red-600'; } 
-              else if (isOddManOut) { cardClass = 'bg-green-600 scale-105'; } 
-              else { cardClass = 'bg-gray-700 opacity-60'; }
-            }
-            return (
-              <button
-                key={playerName + index}
-                onClick={() => handleGuess(player)}
-                disabled={status === GameStatus.Answered}
-                className={`p-4 rounded-lg shadow-lg text-center transform transition-all duration-300 ${cardClass}`}
-              >
-                <p className="text-xl font-bold">{player.FirstName}</p>
-                <p className="text-xl font-bold">{player.LastName}</p>
-              </button>
-            );
-          })}
-        </div>
-      )}
 
-      {status === GameStatus.Answered && (
-        <div className="mt-8 animate-fade-in">
-          <p className="text-2xl font-bold mb-4">{message}</p>
-          <button
-            onClick={handleNextRound}
-            className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-500 transition-colors text-xl"
-          >
-            Next Round
-          </button>
-        </div>
-      )}
+      <div className="h-28 flex items-center justify-center">
+        {status === GameStatus.Answered && (
+          <div className="animate-fade-in">
+            <p className="text-2xl font-bold mb-4">{message}</p>
+            <button
+              onClick={handleNextRound}
+              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-500 transition-colors text-xl"
+            >
+              Next Round
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

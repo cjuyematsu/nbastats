@@ -1,3 +1,4 @@
+//app/games/draft-quiz/[year]/page.tsx
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -127,7 +128,7 @@ export default function DraftQuizPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       
-      <div className="bg-gray-800 rounded-lg shadow-2xl p-4 container mx-auto">
+      <div className="bg-gray-800 rounded-lg shadow-2xl p-4 w-full">
         <div className="relative flex justify-center items-center mb-2">
           <button
             onClick={() => router.push('/games/draft-quiz')}
@@ -152,12 +153,12 @@ export default function DraftQuizPage() {
         </form>
       </div>
 
-      <div className="mt-3 bg-gray-800 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 container mx-auto">
+      <div className="mt-3 bg-gray-800 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {draftPicks.map(pick => {
             const isGuessed = guessedIds.has(pick.compositeKey);
             return (
-              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-blue-800' : 'bg-gray-800'}`}>
+              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-blue-800' : 'bg-gray-900'}`}>
                 <div className="w-1/5 font-semibold text-gray-400">R{pick.Round} P{pick.Pick}</div>
                 <div className="w-4/5">
                   <div className="font-bold text-lg">{isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}</div>
