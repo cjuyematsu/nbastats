@@ -206,7 +206,7 @@ export default function RankingGame() {
 
   if (status === GameStatus.Loading || authIsLoading) {
     return <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
-      <div className="text-center p-10">Loading Game...</div>;
+      <div className="text-center p-10">Loading Game...</div>
     </div>
   }
   
