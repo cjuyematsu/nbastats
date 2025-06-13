@@ -349,7 +349,7 @@ function SixDegreesGameContent() {
 
     return (
         <div className="w-full h-full bg-gray-800 rounded-lg shadow-2xl">
-        <div className="container mx-auto p-4 text-center max-w-lg text-white">
+        <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg container mx-auto p-4 text-center max-w-lg text-white">
             <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
             <p className="mb-4">Connect <span className="font-bold text-sky-400">{puzzle.player_a_name}</span> to <span className="font-bold text-sky-400">{puzzle.player_b_name}</span>.</p>
             <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? 'text-red-500' : 'text-sky-400'}>{MAX_GUESSES - guessHistory.length}</span></p>
