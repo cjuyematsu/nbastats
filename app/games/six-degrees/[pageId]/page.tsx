@@ -199,30 +199,25 @@ function SixDegreesGameContent() {
     useEffect(() => {
         const initializeGame = async () => {
             if (!adjacencyList || authIsLoading) {
-                console.log(`Waiting for dependencies: adjacencyList=${!!adjacencyList}, authIsLoading=${authIsLoading}`);
                 return;
             }
-            if (!gameId) {
-                console.log("[EFFECT] Waiting for gameId from params...");
-                return;
-            }
-
-
+    
             resetGameState();
             setGameStatus('loading');
             
             try {
                 let gameData: GamePuzzle | null = null;
-                console.log(`[DEBUG] Initializing for gameId: "${gameId}"`);
-
+    
                 if (gameId === 'daily') {
                     console.log("[DEBUG] Daily game logic started.");
-                    const today = new Date().toISOString().split('T')[0];
-
+    
                     if (user) {
                         const { data: priorPlay, error: priorPlayError } = await supabase
-                            .from('six_degrees_scores').select('*')
-                            .eq('user_id', user.id).eq('game_date', today).single();
+                            .from('six_degrees_scores')
+                            .select('*')
+                            .eq('user_id', user.id)
+                            .eq('game_date', new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'}))
+                            .single();
                         
                         if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
                         
@@ -234,8 +229,13 @@ function SixDegreesGameContent() {
                         }
                     }
                     
-                    console.log("[DEBUG] Fetching daily puzzle from DB table...");
-                    const { data, error } = await supabase.from('daily_connection_games').select('*').eq('game_date', today).single();
+                    console.log("[DEBUG] Fetching daily puzzle from DB table for today (PST)...");
+                    const { data, error } = await supabase
+                        .from('daily_connection_games')
+                        .select('*')
+                        .eq('game_date', new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'}))
+                        .single();
+    
                     if (error && error.code !== 'PGRST116') throw error;
                     gameData = data;
                     if (!gameData) throw new Error("No daily game found for today. Please check back tomorrow.");
@@ -248,7 +248,6 @@ function SixDegreesGameContent() {
                 }
                 
                 if (gameData && gameData.player_a_id) {
-                    console.log("%c[DEBUG] Puzzle data fetched successfully.", 'color: green');
                     setPuzzle(gameData);
                     setPath([{ id: gameData.player_a_id, name: gameData.player_a_name }]);
                     setGameStatus('playing');
@@ -260,7 +259,7 @@ function SixDegreesGameContent() {
                 setGameStatus('error');
             }
         };
-
+    
         initializeGame();
     }, [gameId, adjacencyList, user, authIsLoading, resetGameState, router]);
 
@@ -310,10 +309,7 @@ function SixDegreesGameContent() {
         return (
              <div className="w-full bg-gray-800 rounded-lg shadow-2xl p-4 text-center text-white">
                 <h1 className="text-3xl font-bold text-sky-400 mb-6">Daily Challenge Complete</h1>
-                
-                {/* The line below has been REMOVED */}
-                {/* <p className="mb-8">You've already played today. Check the lobby for your score and come back tomorrow!</p> */}
-    
+                    
                 {priorPlayResult ? (
                      <div className="text-left p-4 bg-slate-700/50 rounded-lg">
                         <h3 className="text-center text-xl font-semibold text-slate-200 mb-3">Today&apos;s Result</h3>
@@ -348,8 +344,8 @@ function SixDegreesGameContent() {
     const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
 
     return (
-        <div className="w-full h-full bg-gray-800 rounded-lg shadow-2xl">
-        <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg container mx-auto p-4 text-center max-w-lg text-white">
+        <div className="w-full min-h-screen bg-gray-800 rounded-lg shadow-2xl">
+        <div className="container mx-auto p-4 text-center max-w-lg text-white">
             <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
             <p className="mb-4">Connect <span className="font-bold text-sky-400">{puzzle.player_a_name}</span> to <span className="font-bold text-sky-400">{puzzle.player_b_name}</span>.</p>
             <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? 'text-red-500' : 'text-sky-400'}>{MAX_GUESSES - guessHistory.length}</span></p>
