@@ -230,8 +230,8 @@ function DegreesOfSeparationClientContent() {
   return (
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
       <div className="container mx-auto p-4 text-slate-100 min-h-screen">
-        <h1 className="text-4xl font-bold text-sky-400 sm:text-5xl md:text-6xl text-center mb-3">
-          Nine Degrees
+        <h1 className="mt-4 text-4xl font-bold text-sky-400 sm:text-5xl md:text-6xl text-center mb-3">
+          Connect Players Through Teammates
         </h1>
         <h2 className="text-xl font-semibold text-slate-200 sm:text-2xl text-center mb-2">
           The max separation between any two players is nine degrees.

@@ -1,3 +1,4 @@
+//app/games/ranking-game/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,7 +6,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useAuth } from '@/app/contexts/AuthContext'; 
 import { PostgrestError } from '@supabase/supabase-js';
 
-// --- (Interfaces and Enums are unchanged) ---
 interface Player {
   personId: number;
   firstName: string;
@@ -68,22 +68,18 @@ export default function RankingGame() {
     }
   }, [user, supabase]);
 
-  // --- CHANGE: The entire loading sequence is now unified in this one function ---
   const initializeGame = useCallback(async () => {
     setStatus(GameStatus.Loading);
     const startTime = Date.now();
     
-    // Reset board state, but keep streak state for now
     setMessage('');
     setPlayers([]);
     setCorrectOrder([]);
 
-    // STEP 1: Always fetch user streak data first
     await fetchUserStreak();
 
     let gameLoaded = false;
 
-    // STEP 2: Try to load the game board from the cache
     const cachedGameDataString = sessionStorage.getItem(GAME_SESSION_CACHE_KEY);
     if (cachedGameDataString) {
         try {
@@ -102,7 +98,6 @@ export default function RankingGame() {
         }
     }
 
-    // STEP 3: If not loaded from cache, fetch from the database
     if (!gameLoaded) {
         let rpcData: GameDataRow[] | null = null;
         let rpcError: PostgrestError | null = null;
@@ -141,13 +136,11 @@ export default function RankingGame() {
         }
     }
 
-    // STEP 4: Enforce minimum loading time after all data is ready
     const elapsedTime = Date.now() - startTime;
     if (elapsedTime < MIN_LOADING_TIME_MS) {
         await new Promise(res => setTimeout(res, MIN_LOADING_TIME_MS - elapsedTime));
     }
 
-    // STEP 5: All data is ready, now show the game board
     setStatus(GameStatus.Ranking);
 
   }, [supabase, fetchUserStreak]);
@@ -212,7 +205,9 @@ export default function RankingGame() {
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
 
   if (status === GameStatus.Loading || authIsLoading) {
-    return <div className="text-center p-10">Loading Game...</div>;
+    return <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
+      <div className="text-center p-10">Loading Game...</div>;
+    </div>
   }
   
   return (

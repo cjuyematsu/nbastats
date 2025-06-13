@@ -110,7 +110,7 @@ const PlayerTable = ({ data, title }: { data: PlayerData[], title: string }) => 
 
 
 const ValueChart = ({ data, title, barColor }: { data: PlayerData[], title: string, barColor: string }) => (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
         <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{title}</h3>
         <ResponsiveContainer width="100%" height={400}>
             <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
@@ -138,7 +138,7 @@ const ValueChart = ({ data, title, barColor }: { data: PlayerData[], title: stri
 
 export default function SalaryAnalysisPage() {
     return (
-        <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-gray-900 dark:text-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
                 <header className="mb-8">
                     <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
