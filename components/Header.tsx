@@ -63,7 +63,7 @@ export default function Header() {
                     alt="Site Logo"
                     width={40}
                     height={40}
-                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    className="h-9 w-9"
                     priority
                 />
                 <span className="ml-2 mr-5 text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
