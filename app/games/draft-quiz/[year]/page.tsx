@@ -158,7 +158,7 @@ export default function DraftQuizPage() {
           {draftPicks.map(pick => {
             const isGuessed = guessedIds.has(pick.compositeKey);
             return (
-              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-blue-800' : 'bg-gray-900'}`}>
+              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-sky-700' : 'bg-gray-700'}`}>
                 <div className="w-1/5 font-semibold text-gray-400">R{pick.Round} P{pick.Pick}</div>
                 <div className="w-4/5">
                   <div className="font-bold text-lg">{isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}</div>

@@ -192,7 +192,7 @@ export default function PlayerStatsPage() {
 
         {(isLoadingRegularStats || isLoadingPlayoffStats) && (
           <div className="text-center py-10">
-            <div className="inline-block w-12 h-12 border-4 border-t-blue-400 border-r-blue-400 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
+            <div className="inline-block w-12 h-12 border-4 border-t-sky-400 border-r-sky-400 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
             <p className="mt-2 text-lg text-slate-300">Loading {playerNameFromQuery}&apos;s career stats...</p>
           </div>
         )}
@@ -201,7 +201,7 @@ export default function PlayerStatsPage() {
           <div className="p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600 animate-fadeIn">
             {(displayFirstName || displayLastName) && (
               <div className="text-left sm:text-left">
-                <h2 className="text-[1.91rem] font-bold text-blue-400">
+                <h2 className="text-[1.91rem] font-bold text-sky-400">
                   {displayFirstName} {displayLastName}
                 </h2>
                 {(playerStartYear && playerEndYear) && (

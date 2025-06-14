@@ -59,7 +59,7 @@ export default function Header() {
       <div className="flex items-center flex-shrink-0">
             <div className="flex items-center">
                 <Image
-                    src="/logo2.png" // Assumes logo is in the /public folder
+                    src="/logo2.png" 
                     alt="Site Logo"
                     width={40}
                     height={40}
@@ -82,14 +82,14 @@ export default function Header() {
           ) : user ? (
             <button
               onClick={handleSignOut}
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-red-500 transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
             >
               Sign Out
             </button>
           ) : (
             <Link
               href="/signin"
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
             >
               Sign In
             </Link>

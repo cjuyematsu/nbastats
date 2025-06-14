@@ -178,7 +178,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
           <div className="flex-grow min-w-0">
             <Link 
               href={`/player/${player.personId}`}
-              className="text-xl font-semibold leading-tight hover:text-sky-300 cursor-pointer break-words"
+              className="text-xl font-bold leading-tight hover:text-sky-400 cursor-pointer break-words"
             >
               {`${player.firstName} ${player.lastName}`}
             </Link>
@@ -227,7 +227,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-sm font-mono">
           {statItems.map(item => (
             <div key={item.label} className="bg-slate-600/70 p-2 rounded shadow text-center">
-              <div className="text-xs text-sky-300/80 mb-0.5">{item.label}</div>
+              <div className="text-xs font-bold text-sky-400 mb-0.5">{item.label}</div>
               <div className="text-md font-semibold text-slate-100">{item.value}</div>
             </div>
           ))}
@@ -560,7 +560,7 @@ export default function Top100PlayersPage() {
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-400 mb-1 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
-        {!user && !authIsLoading && ( <p className="text-center text-sky-300 my-6"> <Link href="/signin" className="underline hover:text-sky-100">Sign in</Link> to vote on player rankings or nominate players! </p> )}
+        {!user && !authIsLoading && ( <p className="text-center text-sky-400 my-6 font-bold"> <Link href="/signin" className="underline hover:text-sky-300">Sign in</Link> to vote on player rankings or nominate players! </p> )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
           {players.map((player) => (
             <PlayerBox 
@@ -575,7 +575,7 @@ export default function Top100PlayersPage() {
       {user && (
           <div className="px-4 md:px-6 pb-8 mb-12"> 
             <div className="max-w-2xl mx-auto bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-xl">
-                <h2 className="text-xl font-semibold text-sky-300 mb-3 text-center">Nominate a Player for Top 100</h2>
+                <h2 className="text-xl font-semibold text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
                 <p className="text-sm text-slate-400 mb-4 text-center"> Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote. </p>
                 <div className="max-w-md mx-auto">
                   <input type="text" placeholder="Search player name to nominate..." value={nominationSearchTerm} onChange={handleNominationSearchChange} disabled={isNominating} className="w-full p-2.5 rounded bg-slate-600 text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />

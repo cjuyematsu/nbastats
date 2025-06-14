@@ -21,13 +21,13 @@ export default function HomePage() {
         <div className="mb-12 space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-4">
           <Link
             href="/search" 
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75"
+            className="inline-block w-full sm:w-auto px-8 py-3 bg-[rgba(49,151,175,255)] text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75"
           >
             Search Player Stats
           </Link>
           <Link
             href="/games/stat-over-under" 
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-teal-500 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-teal-600 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75"
+            className="inline-block w-full sm:w-auto px-8 py-3 bg-[rgb(0,191,98)] text-white text-lg font-semibold rounded-lg hover:bg-[rgb(0,200,110)] transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75"
           >
             Play Stat Over/Under
           </Link>

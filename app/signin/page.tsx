@@ -96,7 +96,7 @@ export default function SignInPage() {
         )}
         <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
             Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-sky-600 hover:text-sky-500 dark:hover:text-sky-400">
+          <Link href="/signup" className="font-medium text-sky-400 hover:text-sky-500 dark:hover:text-sky-400">
             Sign Up
           </Link>
         </p>

@@ -48,7 +48,7 @@ const PlayerCard = ({ playerNode }: { playerNode: PathNode }) => {
     <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
       <Link 
         href={`/player/${playerNode.id}`} 
-        className="text-xl text-center font-semibold leading-tight hover:text-sky-300 cursor-pointer"
+        className="text-xl text-center font-bold leading-tight hover:text-sky-400 cursor-pointer"
       >
         {playerNode.name}
       </Link>
@@ -61,16 +61,16 @@ const ConnectionDetailsCard = ({ linkDetail }: { linkDetail: LinkDetail }) => {
     <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-md p-4 md:p-6 text-slate-300 flex flex-col justify-center items-center text-center h-full">
       {linkDetail.startYearTogether && (
         <div className="mb-3">
-          <p className="text-xs text-sky-400/80 font-semibold">FIRST YEAR AS TEAMMATES</p>
-          <p className="text-lg text-sky-300 font-bold">{linkDetail.startYearTogether}</p>
+          <p className="text-xs text-sky-400 font-bold">FIRST YEAR AS TEAMMATES</p>
+          <p className="text-lg text-sky-400 font-bold">{linkDetail.startYearTogether}</p>
         </div>
       )}
       <div className="mb-2">
-        <p className="text-xs text-sky-400/80 font-semibold">SHARED TEAMS</p>
+        <p className="text-xs text-sky-400 font-bold">SHARED TEAMS</p>
         <p className="text-md">{linkDetail.sharedTeams}</p>
       </div>
       <div>
-        <p className="text-xs text-sky-400/80 font-semibold">RECORD TOGETHER</p>
+        <p className="text-xs text-sky-400 font-bold">RECORD TOGETHER</p>
         <p className="text-md">{linkDetail.sharedGamesRecord}</p>
       </div>
     </div>
@@ -233,7 +233,7 @@ function DegreesOfSeparationClientContent() {
         <h1 className="mt-4 text-4xl font-bold text-sky-400 sm:text-5xl md:text-6xl text-center mb-3">
           Connect Players Through Teammates
         </h1>
-        <h2 className="text-xl font-semibold text-slate-200 sm:text-2xl text-center mb-2">
+        <h2 className="text-xl font-bold text-slate-200 sm:text-2xl text-center mb-2">
           The max separation between any two players is nine degrees.
         </h2>
         <p className="text-lg text-slate-400 sm:text-xl text-center mb-8">
@@ -245,7 +245,7 @@ function DegreesOfSeparationClientContent() {
             <HeaderSearchBar onPlayerSelected={(player) => { setSelectedStartPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]);}} />
             {selectedStartPlayer && (
               <p className="text-sm text-slate-400 mt-2">
-                Selected: <Link href={`/player/${selectedStartPlayer.personId}`} className="font-semibold text-sky-400 hover:text-sky-300">{`${selectedStartPlayer.firstName} ${selectedStartPlayer.lastName}`}</Link>
+                Selected: <Link href={`/player/${selectedStartPlayer.personId}`} className="font-bold text-sky-400 hover:text-sky-300">{`${selectedStartPlayer.firstName} ${selectedStartPlayer.lastName}`}</Link>
               </p>
             )}
           </div>
@@ -254,13 +254,13 @@ function DegreesOfSeparationClientContent() {
             <HeaderSearchBar onPlayerSelected={(player) => { setSelectedEndPlayer(player); setError(null); setInfoMessage(null); setPath([]); setDegrees(null); setLinks([]);}} />
             {selectedEndPlayer && (
               <p className="text-sm text-slate-400 mt-2">
-                Selected: <Link href={`/player/${selectedEndPlayer.personId}`} className="font-semibold text-sky-400 hover:text-sky-300">{`${selectedEndPlayer.firstName} ${selectedEndPlayer.lastName}`}</Link>
+                Selected: <Link href={`/player/${selectedEndPlayer.personId}`} className="font-bold text-sky-400 hover:text-sky-300">{`${selectedEndPlayer.firstName} ${selectedEndPlayer.lastName}`}</Link>
               </p>
             )}
           </div>
         </div>
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-6">
-          <button onClick={handleFindConnection} disabled={isLoading || !selectedStartPlayer || !selectedEndPlayer} className="w-full sm:w-auto px-6 py-3 bg-sky-600 text-white rounded-md hover:bg-sky-700 disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors text-lg font-semibold">
+          <button onClick={handleFindConnection} disabled={isLoading || !selectedStartPlayer || !selectedEndPlayer} className="w-full sm:w-auto px-6 py-3 bg-sky-600 text-white rounded-md hover:bg-sky-700 disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors text-lg font-bold">
             {isLoading ? 'Searching...' : 'Find Connection'}
           </button>
           {(selectedStartPlayer || selectedEndPlayer || path.length > 0 || error || infoMessage) && (
@@ -271,18 +271,18 @@ function DegreesOfSeparationClientContent() {
         </div>
         {error && (
           <div className="my-6 p-4 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-center">
-            <p className="font-semibold">Error:</p> <p>{error}</p>
+            <p className="font-bold">Error:</p> <p>{error}</p>
           </div>
         )}
         {infoMessage && !error && (
-          <div className="my-6 p-4 bg-sky-900/30 border border-sky-700/50 rounded-md text-sky-200 text-center">
+          <div className="my-6 p-4 bg-sky-900/30 border border-sky-700/50 rounded-md text-sky-400 text-center">
             <p>{infoMessage}</p>
           </div>
         )}
         {path.length > 0 && degrees !== null && degrees >= 0 && !error && (
           <div className="mt-8">
             {!infoMessage && (
-                 <h2 className="text-2xl font-semibold mb-4 text-slate-100 text-center">
+                 <h2 className="text-2xl font-bold mb-4 text-slate-100 text-center">
                     Connected in <span className="text-sky-400">{degrees} {degrees === 1 ? "Degree" : "Degrees"}</span>
                  </h2>
             )}

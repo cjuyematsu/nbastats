@@ -104,7 +104,7 @@ function EraStatsDisplay({ allScores, era, eraName }: { allScores: StatHistoryRe
                 </div>
             </div>
             
-            <h4 className="font-semibold text-center text-slate-200 mb-3">Score Distribution (0-10)</h4>
+            <h4 className="font-bold text-center text-slate-200 mb-3">Score Distribution (0-10)</h4>
             <div className="space-y-2">
                 {stats.scoreDistribution.map((count, index) => (
                     <div key={index} className="flex items-center text-sm">
@@ -346,10 +346,10 @@ function StatOverUnderEraGameContent() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
             <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
-                <h2 className="text-2xl font-semibold text-red-400 mb-4">Error Loading Game</h2>
+                <h2 className="text-2xl font-bold text-sky-400 mb-4">Error Loading Game</h2>
                 <p className="text-slate-300 mb-6">{pageFetchError || "Could not load game data."}</p>
-                <button onClick={() => {if(gameEraFromParam) loadGameForEra(gameEraFromParam);}} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold shadow-md transition-transform hover:scale-105 mr-2">Try Again</button>
-                <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
+                <button onClick={() => {if(gameEraFromParam) loadGameForEra(gameEraFromParam);}} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 mr-2">Try Again</button>
+                <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
             </div>
         </div>
     );
@@ -358,9 +358,9 @@ function StatOverUnderEraGameContent() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
             <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
-                <h2 className="text-2xl font-semibold text-sky-400 mb-4">No Game Today</h2>
+                <h2 className="text-2xl font-bold text-sky-400 mb-4">No Game Today</h2>
                 <p className="text-slate-300 mb-6">No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
-                <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
+                <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
             </div>
         </div>
     );
@@ -384,7 +384,7 @@ function StatOverUnderEraGameContent() {
                   <button onClick={() => router.push(`/signup?fromGameResults=true&era=${gameEraFromParam}`)} className='w-full sm:w-auto underline hover:text-amber-200 text-amber-400 px-4 py-2 rounded-md focus:outline-none focus:ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-800 bg-slate-700 hover:bg-slate-600'>Sign Up</button>
                 </div>
               </div>)}
-            <button onClick={handlePlayDifferentEra} className="mt-8 inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold shadow-md transition-transform hover:scale-105">Play Different Era</button>
+            <button onClick={handlePlayDifferentEra} className="mt-8 inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">Play Different Era</button>
         </div>
       </div>
     );
@@ -398,29 +398,29 @@ function StatOverUnderEraGameContent() {
     <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-8 px-4">
         <div className="w-full max-w-lg">
-            <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className="text-sm text-sky-400 hover:text-sky-300 underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm">Select Different Era</button></div>
+            <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className="text-sm text-sky-400 hover:text-sky-300 underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm font-bold">Select Different Era</button></div>
             <h1 className="text-2xl md:text-3xl font-bold text-sky-400 text-center mb-1">{eraName}</h1>
             <p className="text-center text-slate-400 mb-1">Round {currentChallenge.round_number} of {challenges.length}</p>
-            <p className="text-center text-xl font-semibold text-white mb-6">Score: {score}</p>
+            <p className="text-center text-xl font-bold text-white mb-6">Score: {score}</p>
             <div className="bg-slate-700/80 p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border border-slate-600">
-                <p className="text-xl sm:text-2xl font-semibold text-sky-300">{currentChallenge.player_name}</p>
-                <p className="text-sm sm:text-base text-slate-400 mb-3">({currentChallenge.team_name}, {currentChallenge.season_year})</p>
+                <p className="text-xl sm:text-2xl font-bold text-sky-400">{currentChallenge.player_name}</p>
+                <p className="text-sm sm:text-base text-white-400 mb-3">{currentChallenge.team_name}, {currentChallenge.season_year}</p>
                 <p className="text-lg text-slate-200">Stat: <span className="font-medium text-amber-400">{currentChallenge.stat_category.replace(/_/g, ' ')}</span></p>
                 <p className="text-4xl sm:text-5xl font-bold text-white my-4">{currentChallenge.displayed_line_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}</p>
                 <p className="text-md text-slate-300">Is their actual {currentChallenge.stat_category.replace(/_/g, ' ')} for that season...</p>
             </div>
             { gameStatus === 'playing' && (
               <div className="flex justify-around mt-6 space-x-3 sm:space-x-4">
-                <button onClick={() => handleGuess('under')} aria-label="Guess Under" className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 text-lg flex flex-col items-center justify-center"><ArrowDownIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> UNDER</button>
-                <button onClick={() => handleGuess('over')}  aria-label="Guess Over" className="flex-1 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 text-lg flex flex-col items-center justify-center"><ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> OVER</button>
+                <button onClick={() => handleGuess('under')} aria-label="Guess Under" className="flex-1 px-6 py-4 bg-sky-600 border-sky-700 hover:bg-sky-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 text-lg flex flex-col items-center justify-center"><ArrowDownIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> UNDER</button>
+                <button onClick={() => handleGuess('over')}  aria-label="Guess Over" className="flex-1 px-6 py-4 bg-[rgba(0,191,98,255)] border-sky-700 hover:bg-green-400 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 text-lg flex flex-col items-center justify-center"><ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> OVER</button>
               </div>
             )}
             {gameStatus === 'round_feedback' && feedbackMessage && (
               <div className="mt-6 text-center">
-                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? 'bg-green-700/30 border border-green-600 text-green-300' : 'bg-red-700/30 border border-red-600 text-red-300'}`}>
-                  <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-semibold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-semibold">Incorrect.</strong>') }} />
+                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? 'bg-sky-700/30 border border-sky-600 text-sky-300' : 'bg-sky-700/30 border border-sky-600 text-sky-300'}`}>
+                  <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-bold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-bold">Incorrect.</strong>') }} />
                 </div>
-                <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
+                <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
               </div>
             )}
         </div>
