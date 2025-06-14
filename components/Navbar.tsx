@@ -102,7 +102,7 @@ const NavLink = ({ href, children, icon, showText }: { href: string; children: R
       href={href}
       className={`flex items-center py-2.5 rounded-md text-sm font-medium transition-colors group
                   ${isActive
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
+                    ? 'bg-sky-600 border-sky-700 text-blue-700 dark:sky-600 dark:text-blue-100'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
                   }
                   ${showText ? 'px-3 justify-start' : 'px-2 justify-center'}`}

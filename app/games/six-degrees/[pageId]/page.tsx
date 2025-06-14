@@ -312,13 +312,13 @@ function SixDegreesGameContent() {
                     
                 {priorPlayResult ? (
                      <div className="text-left p-4 bg-slate-700/50 rounded-lg">
-                        <h3 className="text-center text-xl font-semibold text-slate-200 mb-3">Today&apos;s Result</h3>
+                        <h3 className="text-center text-xl font-bold text-slate-200 mb-3">Today&apos;s Result</h3>
                         {priorPlayResult.is_successful ? (
-                            <p className="text-green-400 text-center font-semibold">
+                            <p className="text-green-400 text-center font-bold">
                                 Solved in {priorPlayResult.guess_count} {priorPlayResult.guess_count > 1 ? 'links' : 'link'}!
                             </p>
                         ) : (
-                            <p className="text-red-400 text-center font-semibold">
+                            <p className="text-red-400 text-center font-bold">
                                 You didn&apos;t solve it in {MAX_GUESSES} guesses.
                             </p>
                         )}
@@ -330,7 +330,7 @@ function SixDegreesGameContent() {
                     <p className="my-8">Your previous result could not be loaded.</p>
                 )}
     
-                <button onClick={() => router.push('/games/six-degrees')} className="mt-8 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
+                <button onClick={() => router.push('/games/six-degrees')} className="mt-8 px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold">
                     Back to Lobby
                 </button>
             </div>
@@ -383,14 +383,14 @@ function SixDegreesGameContent() {
             </div>
 
             <div className="h-7 my-4">
-                {feedbackMessage && <p className={`text-lg font-semibold ${feedbackMessage.startsWith('Correct') ? 'text-green-400' : 'text-red-400'}`}>{feedbackMessage}</p>}
+                {feedbackMessage && <p className={`text-lg font-bold ${feedbackMessage.startsWith('Correct') ? 'text-green-400' : 'text-red-400'}`}>{feedbackMessage}</p>}
             </div>
 
             {gameStatus === 'playing' && (
                 <div className="mt-6">
                     <button
                         onClick={() => router.back()}
-                        className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold"
+                        className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold"
                     >
                         Back
                     </button>
@@ -404,7 +404,7 @@ function SixDegreesGameContent() {
                      </h2>
                      {gameStatus === 'won' && <p className="mt-2">Your Path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
                      {gameStatus === 'lost' && <p className="mt-2">A possible solution was: {puzzle.solution_path_names.join(' → ')}</p>}
-                      <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-semibold">
+                      <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-bold">
                           Back
                       </button>
                  </div>

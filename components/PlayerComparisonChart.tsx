@@ -148,7 +148,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={() => { if (searchTerm.length >= 2 && suggestions.length > 0 && !selectedPlayer) setIsSuggestionsVisible(true); }}
-          className="w-full p-2 border border-slate-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-100 bg-slate-600 placeholder-slate-400"
+          className="w-full p-2 border border-slate-500 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-slate-100 bg-slate-600 placeholder-slate-400"
         />
         {selectedPlayer && (
           <button
@@ -165,7 +165,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
       {isSuggestionsVisible && suggestions.length > 0 && !selectedPlayer && (
         <ul className="absolute z-20 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((p) => (
-            <li key={p.personId} onClick={() => handleSelectSuggestion(p)} className="p-2 hover:bg-blue-600 cursor-pointer text-sm text-slate-200">
+            <li key={p.personId} onClick={() => handleSelectSuggestion(p)} className="p-2 hover:bg-sky-700 cursor-pointer text-sm text-slate-200">
               {p.firstName} {p.lastName} ({p.startYear}-{p.endYear})
             </li>
           ))}
@@ -438,7 +438,7 @@ export default function PlayerComparisonChart() {
                   id="stat-select"
                   value={selectedStat}
                   onChange={(e) => setSelectedStat(e.target.value)}
-                  className="w-full p-2.5 border border-slate-500 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-600 text-sm"
+                  className="w-full p-2.5 border border-slate-500 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-slate-100 bg-slate-600 text-sm"
                 >
                 {availableStats.map((stat) => (<option key={stat.value} value={stat.value}>{stat.label}</option>))}
                 </select>
@@ -446,8 +446,8 @@ export default function PlayerComparisonChart() {
             <div>
                 <label className="block text-lg font-semibold mb-1.5 text-slate-100">Season Type:</label>
                 <div className="flex rounded-lg shadow-sm">
-                    <button type="button" onClick={() => setSeasonType('regular')} className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-400 ${seasonType === 'regular' ? 'bg-blue-600 text-white border border-blue-600' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Regular Season</button>
-                    <button type="button" onClick={() => setSeasonType('playoffs')} className={`flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-400 ${seasonType === 'playoffs' ? 'bg-blue-600 text-white border border-blue-600' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Playoffs</button>
+                    <button type="button" onClick={() => setSeasonType('regular')} className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${seasonType === 'regular' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Regular Season</button>
+                    <button type="button" onClick={() => setSeasonType('playoffs')} className={`flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${seasonType === 'playoffs' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Playoffs</button>
                 </div>
             </div>
             </div>
@@ -455,7 +455,7 @@ export default function PlayerComparisonChart() {
       <div className="mt-6 h-96 md:h-[550px] bg-slate-700 p-3 rounded-xl shadow-inner border border-slate-600">
         {isLoadingChart && (
             <div className="flex flex-col justify-center items-center h-full">
-                <div className="w-12 h-12 border-4 border-t-blue-500 border-r-blue-500 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-t-sky-600 border-r-sky-700 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
                 <p className="mt-4 text-lg text-slate-300">Loading Chart Data...</p>
             </div>
         )}

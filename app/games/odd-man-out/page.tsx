@@ -225,7 +225,7 @@ export default function OddManOutGame() {
             <p className="text-2xl font-bold mb-4">{message}</p>
             <button
               onClick={handleNextRound}
-              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-500 transition-colors text-xl"
+              className="bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
             >
               Next Round
             </button>

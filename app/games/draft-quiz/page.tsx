@@ -97,13 +97,13 @@ export default function DraftQuizLobby() {
             <Link
               key={item.year}
               href={`/games/draft-quiz/${item.year}`}
-              className={`block p-4 bg-slate-700 rounded-lg hover:bg-sky-700 transition-colors shadow-lg ${!user ? 'pb-6' : ''}`}
+              className={`block p-4 bg-slate-700 rounded-lg hover:bg-sky-600 transition-colors shadow-lg ${!user ? 'pb-6' : ''}`}
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-2xl text-white">{item.year}</span>
                 
                 {user && item.total_count > 0 && (
-                  <span className="text-sm font-medium bg-gray-800 text-sky-300 px-2 py-1 rounded">
+                  <span className="text-sm font-medium bg-gray-800 text-sky-400 px-2 py-1 rounded">
                     {item.correct_count} / {item.total_count}
                   </span>
                 )}

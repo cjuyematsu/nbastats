@@ -68,7 +68,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTimeIso }) => {
 
   return (
     <div className="text-center my-4 p-3 bg-slate-700/50 rounded-lg shadow">
-      <p className="text-slate-300 text-sm">Player&apos;s will be rearranged based on votes in</p>
+      <p className="text-slate-300 text-sm">Players will be rearranged based on votes in</p>
       <p className="text-sky-400 font-mono text-lg font-semibold">
         {timeLeft}
       </p>

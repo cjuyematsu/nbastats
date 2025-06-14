@@ -33,7 +33,7 @@ export default function SelectEraPage() { // Renamed for clarity
             <button
               key={eraOption.id}
               onClick={() => handleSelectEra(eraOption.id)}
-              className="w-full px-6 py-4 bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75 transition-transform hover:scale-105"
+              className="w-full px-6 py-4 bg-sky-600 border-sky-700 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75 transition-transform hover:scale-105"
             >
               {eraOption.name}
             </button>

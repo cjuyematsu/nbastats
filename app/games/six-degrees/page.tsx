@@ -172,7 +172,7 @@ export default function SixDegreesLobby() {
                     </button>
                     <button
                         onClick={handlePlayRandom}
-                        className="w-full px-8 py-4 bg-teal-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-transform hover:scale-105"
+                        className="w-full px-8 py-4 bg-[rgb(60,192,103)] text-white text-lg font-semibold rounded-lg shadow-md hover:bg-green-400 transition-transform hover:scale-105"
                     >
                         Play Random Game
                     </button>

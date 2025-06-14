@@ -91,11 +91,11 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         onFocus={() => searchTerm.length >= 2 && suggestions.length > 0 && setIsSuggestionsVisible(true)}
-        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm" 
+        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm" 
       />
       {isLoadingSuggestions && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div> 
+          <div className="w-4 h-4 border-t-2 border-b-2 border-sky-700 rounded-full animate-spin"></div> 
         </div>
       )}
       {isSuggestionsVisible && suggestions.length > 0 && (
@@ -104,7 +104,7 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
             <li
               key={`${player.personId}-${player.firstName}-${player.lastName}-${player.startYear}-${player.endYear}`}
               onClick={() => handleSelectPlayer(player)}
-              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-700 dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" 
+              className="p-2 hover:bg-sky-600 dark:hover:bg-sky-600 dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" 
             >
               <span className="font-medium text-gray-800 dark:text-gray-200">{player.firstName} {player.lastName}</span>
               {(player.startYear && player.endYear) && (
