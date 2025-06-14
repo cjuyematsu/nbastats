@@ -6,6 +6,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { Database } from '@/types/supabase';
+import Image from 'next/image'; 
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -17,6 +18,7 @@ const ArrowDownIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5l-7.5 7.5-7.5-7.5" />
   </svg>
 );
+
 type GameChallenge = Database['public']['Functions']['get_stat_ou_challenges_for_date']['Returns'][number] & { game_era?: string };
 interface UserRoundAnswer {
   round_number: number;
@@ -42,6 +44,18 @@ const AVAILABLE_ERAS = [
     { id: '1990s',  name: '1990s (1991-2000)' },
     { id: '1980s',  name: '1980s (1980-1990)' },
 ];
+
+const getTeamLogoUrl = (teamName: string | null): string => {
+  if (!teamName) {
+    return '/nba-logo.png'; 
+  }
+  if (teamName.toLowerCase().includes('trail blazers')) {
+    return '/trailblazers.png';
+  }
+  const nameParts = teamName.split(' ');
+  const logoName = nameParts[nameParts.length - 1].toLowerCase();
+  return `/${logoName}.png`;
+};
 
 function EraStatsDisplay({ allScores, era, eraName }: { allScores: StatHistoryRecord[], era: string, eraName: string }) {
     const stats = useMemo(() => {
@@ -123,7 +137,6 @@ function EraStatsDisplay({ allScores, era, eraName }: { allScores: StatHistoryRe
         </div>
     );
 }
-
 
 function StatOverUnderEraGameContent() {
   const { user, isLoading: authIsLoading } = useAuth();
@@ -339,6 +352,7 @@ function StatOverUnderEraGameContent() {
   };
   const eraName = AVAILABLE_ERAS.find(e=>e.id===gameEraFromParam)?.name || gameEraFromParam || 'Selected Era';
 
+  // --- Render logic (no changes in loading/error/completed states) ---
   if (gameStatus === 'initial_loading' || (gameStatus === 'fetching_challenges')) {
     return <div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl"><p className="text-center p-10 text-slate-300 text-xl">Loading {eraName} Game...</p></div>;
   }
@@ -402,13 +416,26 @@ function StatOverUnderEraGameContent() {
             <h1 className="text-2xl md:text-3xl font-bold text-sky-400 text-center mb-1">{eraName}</h1>
             <p className="text-center text-slate-400 mb-1">Round {currentChallenge.round_number} of {challenges.length}</p>
             <p className="text-center text-xl font-bold text-white mb-6">Score: {score}</p>
-            <div className="bg-slate-700/80 p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border border-slate-600">
-                <p className="text-xl sm:text-2xl font-bold text-sky-400">{currentChallenge.player_name}</p>
-                <p className="text-sm sm:text-base text-white-400 mb-3">{currentChallenge.team_name}, {currentChallenge.season_year}</p>
-                <p className="text-lg text-slate-200">Stat: <span className="font-medium text-amber-400">{currentChallenge.stat_category.replace(/_/g, ' ')}</span></p>
-                <p className="text-4xl sm:text-5xl font-bold text-white my-4">{currentChallenge.displayed_line_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}</p>
-                <p className="text-md text-slate-300">Is their actual {currentChallenge.stat_category.replace(/_/g, ' ')} for that season...</p>
+
+            <div className="relative bg-slate-700/80 p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border border-slate-600 overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Image
+                        fill
+                        src={getTeamLogoUrl(currentChallenge.team_name)}
+                        alt={currentChallenge.team_name || 'Team Logo'}
+                        className="object-contain opacity-[0.15]"
+                        onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
+                    />
+                </div>
+                <div className="relative z-10">
+                    <p className="text-xl sm:text-2xl font-bold text-sky-400">{currentChallenge.player_name}</p>
+                    <p className="text-sm sm:text-base text-white-400 mb-3">{currentChallenge.team_name}, {currentChallenge.season_year}</p>
+                    <p className="text-lg text-slate-200">Stat: <span className="font-medium text-amber-400">{currentChallenge.stat_category.replace(/_/g, ' ')}</span></p>
+                    <p className="text-4xl sm:text-5xl font-bold text-white my-4">{currentChallenge.displayed_line_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}</p>
+                    <p className="text-md text-slate-300">Is their actual {currentChallenge.stat_category.replace(/_/g, ' ')} for that season...</p>
+                </div>
             </div>
+
             { gameStatus === 'playing' && (
               <div className="flex justify-around mt-6 space-x-3 sm:space-x-4">
                 <button onClick={() => handleGuess('under')} aria-label="Guess Under" className="flex-1 px-6 py-4 bg-sky-600 border-sky-700 hover:bg-sky-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 text-lg flex flex-col items-center justify-center"><ArrowDownIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> UNDER</button>
@@ -417,7 +444,7 @@ function StatOverUnderEraGameContent() {
             )}
             {gameStatus === 'round_feedback' && feedbackMessage && (
               <div className="mt-6 text-center">
-                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? 'bg-sky-700/30 border border-sky-600 text-sky-300' : 'bg-sky-700/30 border border-sky-600 text-sky-300'}`}>
+                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? 'bg-green-700/30 border border-green-600 text-green-300' : 'bg-red-700/30 border border-red-600 text-red-300'}`}>
                   <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-bold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-bold">Incorrect.</strong>') }} />
                 </div>
                 <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
