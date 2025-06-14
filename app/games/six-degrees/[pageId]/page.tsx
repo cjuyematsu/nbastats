@@ -1,4 +1,3 @@
-// app/games/six-degrees/[pageId]/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -143,6 +142,8 @@ function SixDegreesGameContent() {
     const router = useRouter();
     const gameId = params.pageId as string;
     const { user, isLoading: authIsLoading } = useAuth();
+    
+    const SESSION_STORAGE_KEY = `sixDegreesGameState_${gameId}`;
 
     const [puzzle, setPuzzle] = useState<GamePuzzle | null>(null);
     const [adjacencyList, setAdjacencyList] = useState<AdjacencyList | null>(null);
@@ -154,6 +155,13 @@ function SixDegreesGameContent() {
     const [feedbackMessage, setFeedbackMessage] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [priorPlayResult, setPriorPlayResult] = useState<DailyScore | null>(null);
+    
+    useEffect(() => {
+        if (gameStatus === 'playing' && puzzle) {
+            const gameStateToSave = { puzzle, path, guessHistory, feedbackMessage };
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(gameStateToSave));
+        }
+    }, [path, guessHistory, feedbackMessage, puzzle, gameStatus, SESSION_STORAGE_KEY]);
 
     const resetGameState = useCallback(() => {
         setPath([]);
@@ -161,7 +169,6 @@ function SixDegreesGameContent() {
         setFeedbackMessage('');
         setPuzzle(null);
         setPriorPlayResult(null);
-        setGameStatus('loading');
     }, []);
 
     const saveDailyResult = useCallback(async (isSuccess: boolean, finalPath: Guess[]) => {
@@ -187,7 +194,6 @@ function SixDegreesGameContent() {
                 const response = await fetch('/adjacency_list.json');
                 if (!response.ok) throw new Error("Failed to fetch adjacency list");
                 setAdjacencyList(await response.json());
-                console.log("Adjacency list loaded.");
             } catch {
                 setGameStatus('error');
                 setErrorMsg("Could not load game engine data.");
@@ -201,35 +207,50 @@ function SixDegreesGameContent() {
             if (!adjacencyList || authIsLoading) {
                 return;
             }
-    
-            resetGameState();
+            
             setGameStatus('loading');
             
+            if (gameId === 'daily' && user) {
+                const { data: priorPlay, error: priorPlayError } = await supabase
+                    .from('six_degrees_scores')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('game_date', new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'}))
+                    .single();
+                
+                if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
+                
+                if (priorPlay) {
+                    setPriorPlayResult(priorPlay as DailyScore);
+                    setGameStatus('already_played');
+                    sessionStorage.removeItem(SESSION_STORAGE_KEY); 
+                    return; 
+                }
+            }
+            
+            const savedStateJSON = sessionStorage.getItem(SESSION_STORAGE_KEY);
+            if (savedStateJSON) {
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    if (savedState.puzzle && savedState.path) {
+                        setPuzzle(savedState.puzzle);
+                        setPath(savedState.path);
+                        setGuessHistory(savedState.guessHistory);
+                        setFeedbackMessage(savedState.feedbackMessage || '');
+                        setGameStatus('playing');
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error restoring game state:", e);
+                    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+                }
+            }
+
+            resetGameState();
             try {
                 let gameData: GamePuzzle | null = null;
     
                 if (gameId === 'daily') {
-                    console.log("[DEBUG] Daily game logic started.");
-    
-                    if (user) {
-                        const { data: priorPlay, error: priorPlayError } = await supabase
-                            .from('six_degrees_scores')
-                            .select('*')
-                            .eq('user_id', user.id)
-                            .eq('game_date', new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'}))
-                            .single();
-                        
-                        if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
-                        
-                        if (priorPlay) {
-                            console.log("[DEBUG] User has already played today.");
-                            setPriorPlayResult(priorPlay as DailyScore);
-                            setGameStatus('already_played');
-                            return; 
-                        }
-                    }
-                    
-                    console.log("[DEBUG] Fetching daily puzzle from DB table for today (PST)...");
                     const { data, error } = await supabase
                         .from('daily_connection_games')
                         .select('*')
@@ -241,7 +262,6 @@ function SixDegreesGameContent() {
                     if (!gameData) throw new Error("No daily game found for today. Please check back tomorrow.");
                 
                 } else { 
-                    console.log("[DEBUG] Random game logic started.");
                     const { data, error } = await supabase.rpc('generate_connection_game', { is_daily: false }).single();
                     if (error) throw error;
                     gameData = data;
@@ -261,7 +281,7 @@ function SixDegreesGameContent() {
         };
     
         initializeGame();
-    }, [gameId, adjacencyList, user, authIsLoading, resetGameState, router]);
+    }, [gameId, adjacencyList, user, authIsLoading, resetGameState, SESSION_STORAGE_KEY]);
 
     const handleGuess = (guessedPlayer: Guess) => {
         if (gameStatus !== 'playing' || !puzzle || !adjacencyList) return;
@@ -281,12 +301,14 @@ function SixDegreesGameContent() {
                 setGameStatus('won');
                 setFeedbackMessage(`Success! You found a path in ${newPath.length - 1} link(s).`);
                 saveDailyResult(true, newPath);
+                sessionStorage.removeItem(SESSION_STORAGE_KEY);
             } else {
                 setFeedbackMessage(`Correct! Now find a teammate of ${guessedPlayer.name}.`);
                 if (newGuessHistory.length >= MAX_GUESSES) {
                     setGameStatus('lost');
                     setFeedbackMessage('You ran out of guesses!');
                     saveDailyResult(false, newGuessHistory);
+                    sessionStorage.removeItem(SESSION_STORAGE_KEY);
                 }
             }
         } else {
@@ -294,6 +316,7 @@ function SixDegreesGameContent() {
             if (newGuessHistory.length >= MAX_GUESSES) {
                 setGameStatus('lost');
                 saveDailyResult(false, newGuessHistory);
+                sessionStorage.removeItem(SESSION_STORAGE_KEY);
             }
         }
     };
@@ -307,7 +330,7 @@ function SixDegreesGameContent() {
 
     if (gameStatus === 'already_played') {
         return (
-             <div className="w-full bg-gray-800 rounded-lg shadow-2xl p-4 text-center text-white">
+             <div className="w-full bg-gray-800 rounded-lg shadow-2xl p-4 text-center text-white max-w-lg mx-auto">
                 <h1 className="text-3xl font-bold text-sky-400 mb-6">Daily Challenge Complete</h1>
                     
                 {priorPlayResult ? (
