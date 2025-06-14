@@ -62,6 +62,7 @@ interface TopPlayer {
   fieldGoalPercentage: number | null;
   threePointPercentage: number | null;
   freeThrowPercentage: number | null;
+  trueShootingPercentage: number | null; 
   weightedProminence: number | null; 
   upvotes: number;            
   downvotes: number;          
@@ -106,7 +107,7 @@ const VotingButton: React.FC<VotingButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`p-1.5 rounded-md transition-colors text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? activeClass : inactiveClass}`}
+      className={`flex items-center p-1.5 rounded-md transition-colors text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? activeClass : inactiveClass}`}
     >
       {children}
     </button>
@@ -139,16 +140,17 @@ interface PlayerBoxProps {
 }
 
 const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled }) => {
-  const statItems = [
-    { label: "GP", value: player.gamesPlayed ?? 'N/A' },
+  const stats = [
     { label: "PTS", value: player.pointsPerGame?.toFixed(1) ?? 'N/A' },
     { label: "REB", value: player.reboundsPerGame?.toFixed(1) ?? 'N/A' },
     { label: "AST", value: player.assistsPerGame?.toFixed(1) ?? 'N/A' },
     { label: "STL", value: player.stealsPerGame?.toFixed(1) ?? 'N/A' },
     { label: "BLK", value: player.blocksPerGame?.toFixed(1) ?? 'N/A' },
-    { label: "FG%", value: player.fieldGoalPercentage !== null && player.fieldGoalPercentage !== undefined ? (player.fieldGoalPercentage * 100)?.toFixed(1) + '%' : 'N/A' },
-    { label: "3P%", value: player.threePointPercentage !== null && player.threePointPercentage !== undefined ? (player.threePointPercentage * 100)?.toFixed(1) + '%' : 'N/A' },
-    { label: "FT%", value: player.freeThrowPercentage !== null && player.freeThrowPercentage !== undefined ? (player.freeThrowPercentage * 100)?.toFixed(1) + '%' : 'N/A' },
+    { label: "TS%", value: player.trueShootingPercentage !== null ? (player.trueShootingPercentage * 100)?.toFixed(1) : 'N/A' },
+    { label: "FG%", value: player.fieldGoalPercentage !== null ? (player.fieldGoalPercentage * 100)?.toFixed(1) : 'N/A' },
+    { label: "3P%", value: player.threePointPercentage !== null ? (player.threePointPercentage * 100)?.toFixed(1) : 'N/A' },
+    { label: "FT%", value: player.freeThrowPercentage !== null ? (player.freeThrowPercentage * 100)?.toFixed(1) : 'N/A' },
+    { label: "GP", value: player.gamesPlayed ?? 'N/A' },
   ];
 
   const handleVoteClick = (voteTypeClicked: number) => {
@@ -157,46 +159,44 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   };
 
   return (
-    <div className="bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 text-slate-200 flex flex-col transition-all hover:shadow-sky-500/30 hover:border-sky-500/50">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center flex-grow min-w-0">
-          
-          <Image
-            width="500"
-            height="500"
-            src={getTeamLogoUrl(player.playerteamName)} 
-            alt={`${player.playerteamName} logo`}
-            className="w-10 h-10 sm:w-12 sm:h-12 object-contain mr-3 flex-shrink-0"
-            onError={(e) => { 
-              e.currentTarget.onerror = null; 
-              e.currentTarget.src = '/nba-logo.png';
-            }}
-          />
-
-          <span className="text-3xl font-bold text-sky-400 mr-3 sm:mr-4 w-10 sm:w-12 text-right flex-shrink-0">{player.rankNumber}.</span>
-          
-          <div className="flex-grow min-w-0">
-            <Link 
+    <div className="relative bg-slate-800 border border-slate-700 rounded-lg shadow-xl flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/20">
+      
+      <Image
+        width="1000"
+        height="500"
+        src={getTeamLogoUrl(player.playerteamName)}
+        alt={`${player.playerteamName} logo`}
+        className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.1] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
+      />
+      
+      <div className="relative z-10 flex w-3/5 flex-col justify-between p-4">
+        <div>
+          <div className="flex items-center mb-1">
+            <div className="flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-sky-500 text-white font-bold text-sm flex-shrink-0">
+              {player.rankNumber}
+            </div>
+            <Link
               href={`/player/${player.personId}`}
-              className="text-xl font-bold leading-tight hover:text-sky-400 cursor-pointer break-words"
+              className="text-2xl font-bold leading-tight text-slate-100 hover:text-sky-400 transition-colors"
             >
               {`${player.firstName} ${player.lastName}`}
             </Link>
-            <p className="text-sm text-slate-400">{player.playerteamName}</p>
           </div>
+          <p className="text-sm text-slate-400 pl-11">{player.playerteamName}</p>
         </div>
-        
-        <div className="flex flex-col space-y-1 items-center ml-2 flex-shrink-0"> 
-            <VotingButton
+
+        <div className="flex items-center space-x-2 mt-4">
+           <VotingButton
               onClick={() => handleVoteClick(1)}
               isActive={player.currentUserVote === 1}
               disabled={isVotingDisabled}
               ariaLabel={`Upvote ${player.firstName} ${player.lastName}`}
               activeClass="bg-green-500 text-white hover:bg-green-600"
-              inactiveClass="bg-slate-600 hover:bg-slate-500 text-green-300 hover:text-green-100"
+              inactiveClass="bg-slate-700 hover:bg-slate-600 text-green-300 hover:text-green-100"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-              <span className="text-xs ml-1">{player.upvotes}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+              <span className="font-semibold text-xs ml-1.5">{player.upvotes}</span>
             </VotingButton>
             <VotingButton
               onClick={() => handleVoteClick(2)} 
@@ -204,10 +204,10 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               disabled={isVotingDisabled}
               ariaLabel={`Confirm spot for ${player.firstName} ${player.lastName}`}
               activeClass="bg-sky-500 text-white hover:bg-sky-600"
-              inactiveClass="bg-slate-600 hover:bg-slate-500 text-sky-300 hover:text-sky-100"
+              inactiveClass="bg-slate-700 hover:bg-slate-600 text-sky-300 hover:text-sky-100"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-              <span className="text-xs ml-1">{player.sameSpotVotes}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <span className="font-semibold text-xs ml-1.5">{player.sameSpotVotes}</span>
             </VotingButton>
             <VotingButton
               onClick={() => handleVoteClick(-1)}
@@ -215,29 +215,33 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               disabled={isVotingDisabled}
               ariaLabel={`Downvote ${player.firstName} ${player.lastName}`}
               activeClass="bg-red-500 text-white hover:bg-red-600"
-              inactiveClass="bg-slate-600 hover:bg-slate-500 text-red-300 hover:text-red-100"
+              inactiveClass="bg-slate-700 hover:bg-slate-600 text-red-300 hover:text-red-100"
             >
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-               <span className="text-xs ml-1">{player.downvotes}</span>
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+               <span className="font-semibold text-xs ml-1.5">{player.downvotes}</span>
             </VotingButton>
         </div>
       </div>
-      
-      <div className="mt-auto pt-3 border-t border-slate-500/50">
-        <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-sm font-mono">
-          {statItems.map(item => (
-            <div key={item.label} className="bg-slate-600/70 p-2 rounded shadow text-center">
-              <div className="text-xs font-bold text-sky-400 mb-0.5">{item.label}</div>
-              <div className="text-md font-semibold text-slate-100">{item.value}</div>
-            </div>
-          ))}
+
+      <div className="relative z-10 w-2/5 border-l border-slate-700 p-4">
+        <div className="grid grid-cols-2 grid-rows-5 gap-x-4 gap-y-2 h-full">
+            {stats.map(stat => (
+                <div key={stat.label} className="flex flex-col">
+                    <span className="text-xs text-slate-400">{stat.label}</span>
+                    <span className="text-lg font-bold text-slate-100">
+                        {stat.value}
+                        {stat.label.includes('%') && stat.value !== 'N/A' ? <span className="text-xs text-slate-400">%</span> : ''}
+                    </span>
+                </div>
+            ))}
         </div>
       </div>
+
     </div>
   );
 };
 
-// --- Main Page Component and Hooks (no changes) ---
+// --- Main Page Component and Hooks ---
 export default function Top100PlayersPage() {
   const { user, isLoading: authIsLoading, session } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>([]);
@@ -251,7 +255,6 @@ export default function Top100PlayersPage() {
   const [isNominating, setIsNominating] = useState(false); 
   const [nominationMessage, setNominationMessage] = useState<string | null>(null);
   const [isSubmittingVoteForPlayer, setIsSubmittingVoteForPlayer] = useState<Record<number, boolean>>({});
-
 
   const fetchOfficialWeeklyRankingWithCache = useCallback(async (
     currentNextRearrangementTime: string | null
@@ -315,7 +318,7 @@ export default function Top100PlayersPage() {
     });
     return voteCountsMap;
   }, []);
-
+  
   const loadPlayerDataInternal = useCallback(async (currentNextRankTimeForCache: string | null) => {
     setFetchError(null); 
     try {
@@ -334,9 +337,16 @@ export default function Top100PlayersPage() {
       const currentUserVotesMap = new Map<number, number | null>();
       if (currentUserVotesResult?.error) console.warn("Error fetching current user votes:", currentUserVotesResult.error.message);
       currentUserVotesResult?.data?.forEach((v: CurrentWeekPlayerVoteCountsRow) => currentUserVotesMap.set(v.player_id, v.vote_type));
+      
       const combinedPlayersData: TopPlayer[] = rpcData.map(p => {
         const gamesPlayed = p.G ?? 0;
         const liveCounts = liveVoteCountsMap.get(p.personId) || { upvotes: 0, downvotes: 0, sameSpotVotes: 0 };
+        const points = p.PTS_total ?? 0;
+        const fga = p.FGA_total ?? 0;
+        const fta = p.FTA_total ?? 0;
+        const trueShootingAttempts = fga + 0.44 * fta;
+        const trueShootingPercentage = trueShootingAttempts > 0 ? points / (2 * trueShootingAttempts) : null;
+
         return {
           rankNumber: p.rankNumber, personId: p.personId, firstName: p.firstName ?? 'N/A', lastName: p.lastName ?? 'N/A',
           playerteamName: p.playerteamName ?? 'N/A', gamesPlayed: gamesPlayed,
@@ -348,6 +358,7 @@ export default function Top100PlayersPage() {
           fieldGoalPercentage: p.FGA_total != null && p.FGA_total > 0 && p.FGM_total != null ? p.FGM_total / p.FGA_total : null,
           threePointPercentage: p.FG3A_total != null && p.FG3A_total > 0 && p.FG3M_total != null ? p.FG3M_total / p.FG3A_total : null,
           freeThrowPercentage: p.FTA_total != null && p.FTA_total > 0 && p.FTM_total != null ? p.FTM_total / p.FTA_total : null,
+          trueShootingPercentage: trueShootingPercentage, // Assign calculated value
           weightedProminence: p.statsBasedProminence ?? p.Prominence_rs ?? null,
           upvotes: liveCounts.upvotes, downvotes: liveCounts.downvotes, sameSpotVotes: liveCounts.sameSpotVotes,
           finalMovementScoreAtRanking: p.weeklyMovementScore ?? 0,
@@ -374,7 +385,6 @@ export default function Top100PlayersPage() {
         setLastRearrangementTimeISO(lastSunday.toISOString());
     }
   }, [nextRearrangementTime]); 
-
 
   useEffect(() => {
     if (!authIsLoading && lastRearrangementTimeISO && nextRearrangementTime) {
@@ -404,7 +414,6 @@ export default function Top100PlayersPage() {
         }
     }
   }, [authIsLoading, lastRearrangementTimeISO, nextRearrangementTime, loadPlayerDataInternal]); 
-
 
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
     if (!user || !session) { alert("Please sign in to vote."); return; }
@@ -459,7 +468,7 @@ export default function Top100PlayersPage() {
     }
   };
   
- function debounce<Args extends unknown[], Ret>(
+  function debounce<Args extends unknown[], Ret>(
     func: (...args: Args) => Ret,
     waitFor: number
   ) {
