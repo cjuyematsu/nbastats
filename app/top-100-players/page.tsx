@@ -214,7 +214,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               isActive={player.currentUserVote === -1}
               disabled={isVotingDisabled}
               ariaLabel={`Downvote ${player.firstName} ${player.lastName}`}
-              activeClass="bg-red-500 text-white hover:bg-red-600"
+              activeClass="bg-red-400 text-white hover:bg-red-500"
               inactiveClass="bg-slate-700 hover:bg-slate-600 text-red-300 hover:text-red-100"
             >
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
@@ -227,8 +227,8 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         <div className="grid grid-cols-2 grid-rows-5 gap-x-4 gap-y-2 h-full">
             {stats.map(stat => (
                 <div key={stat.label} className="flex flex-col">
-                    <span className="text-xs text-slate-400">{stat.label}</span>
-                    <span className="text-lg font-bold text-slate-100">
+                    <span className="text-xs text-sky-400">{stat.label}</span>
+                    <span className="text-lg font-bold text-sky-200">
                         {stat.value}
                         {stat.label.includes('%') && stat.value !== 'N/A' ? <span className="text-xs text-slate-400">%</span> : ''}
                     </span>
