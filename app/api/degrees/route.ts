@@ -1,6 +1,9 @@
 // app/api/degrees/route.ts
+
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 interface Player {
     id: number;
@@ -9,7 +12,7 @@ interface Player {
 
 interface LinkDetailApi {
   sourcePlayerId: number;
-  sourcePlayerName: string;
+  sourcePlayerName:string;
   targetPlayerId: number;
   targetPlayerName: string;
   sharedTeams: string;
@@ -29,18 +32,22 @@ let graphDataLoaded = false;
 
 async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; playerMap: Record<string, string> }> {
     if (graphDataLoaded && adjList && playerMap) {
-        return { adjList: adjList!, playerMap: playerMap! };
+        return { adjList, playerMap };
     }
-    console.log("Attempting to load graph data from JSON files...");
+    console.log("Attempting to load graph data from filesystem...");
     try {
-        const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-        const adjResponse = await fetch(`${baseUrl}/adjacency_list.json`);
-        if (!adjResponse.ok) throw new Error(`Failed to fetch adjacency_list.json: ${adjResponse.status} ${adjResponse.statusText}`);
-        const localAdjList = await adjResponse.json() as Record<string, number[]>;
+        const projectRoot = process.cwd();
 
-        const mapResponse = await fetch(`${baseUrl}/player_map.json`);
-        if (!mapResponse.ok) throw new Error(`Failed to fetch player_map.json: ${mapResponse.status} ${mapResponse.statusText}`);
-        const localPlayerMap = await mapResponse.json() as Record<string, string>;
+        const adjListPath = path.join(projectRoot, 'adjacency_list.json');
+        const playerMapPath = path.join(projectRoot, 'player_map.json');
+
+        const [adjFileContents, mapFileContents] = await Promise.all([
+            fs.readFile(adjListPath, 'utf8'),
+            fs.readFile(playerMapPath, 'utf8')
+        ]);
+
+        const localAdjList = JSON.parse(adjFileContents);
+        const localPlayerMap = JSON.parse(mapFileContents);
 
         if (typeof localAdjList !== 'object' || localAdjList === null ) {
              throw new Error("Adjacency list data is not in the expected object format or is null.");
@@ -52,12 +59,19 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
         adjList = localAdjList;
         playerMap = localPlayerMap;
         graphDataLoaded = true;
-        console.log("Graph data from JSON loaded and cached successfully.");
-        return { adjList, playerMap };
+        console.log("Graph data from filesystem loaded and cached successfully.");
+
+        return { adjList: localAdjList, playerMap: localPlayerMap };
+
     } catch (error) {
-        console.error("Error loading graph data from JSON in loadGraphData:", error);
+        console.error("Error loading graph data from filesystem in loadGraphData:", error);
         adjList = null; playerMap = null; graphDataLoaded = false;
-        if (error instanceof Error) throw new Error(`Failed to load graph data: ${error.message}`);
+        if (error instanceof Error) {
+             if ('code' in error && error.code === 'ENOENT') {
+                throw new Error(`Failed to load graph data: A required file was not found. Make sure adjacency_list.json and player_map.json are in the project root.`);
+             }
+             throw new Error(`Failed to load graph data: ${error.message}`);
+        }
         throw new Error(`Failed to load graph data: ${String(error)}`);
     }
 }
