@@ -166,7 +166,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         height="500"
         src={getTeamLogoUrl(player.playerteamName)}
         alt={`${player.playerteamName} logo`}
-        className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.1] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.05] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
       />
       
