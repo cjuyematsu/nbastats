@@ -67,7 +67,7 @@ export default function Header() {
                     priority
                 />
                 <span className="ml-2 mr-5 text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                    stats-leader
+                    hoops data
                 </span>
             </div>
         </div>
