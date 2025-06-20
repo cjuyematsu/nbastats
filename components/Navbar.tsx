@@ -195,10 +195,10 @@ export default function Navbar() {
   let navElementClasses = "flex flex-col pointer-events-auto ";
   if (isMdScreen) {
     navElementStyle = { width: `${navWidth}px`, transition: 'width 0.2s ease-in-out' };
-    navElementClasses += "relative h-full rounded-lg bg-white dark:bg-gray-800 overflow-hidden";
+    navElementClasses += "relative h-full rounded-lg bg-gray-800 overflow-hidden";
   } else {
     navElementStyle = { width: `${DEFAULT_NAV_WIDTH}px` };
-    navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-white dark:bg-gray-800 shadow-xl border-r dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
+    navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-gray-800 shadow-xl border-r dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
   }
 
   const ToggleButtonIcon = isMdScreen

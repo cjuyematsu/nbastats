@@ -38,7 +38,7 @@ export default function SignInPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 bg-slate-100 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-slate-800 rounded-xl shadow-xl">
+      <div className="w-full max-w-md p-8 space-y-6 bg-slate-800 rounded-xl shadow-xl">
         <h1 className="text-3xl font-bold text-center text-slate-900 dark:text-white">
           Sign In to Your Account
         </h1>
