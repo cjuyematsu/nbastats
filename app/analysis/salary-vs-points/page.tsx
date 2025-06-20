@@ -83,7 +83,7 @@ const starPlayers = [
 const PlayerTable = ({ data, title }: { data: PlayerData[], title: string }) => (
     <div className="overflow-x-auto">
         <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{title}</h3>
-        <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+        <table className="min-w-full bg-gray-800 rounded-lg shadow">
             <thead>
                 <tr className="w-full bg-gray-100 dark:bg-gray-700 text-left text-gray-600 dark:text-gray-300 uppercase text-sm leading-normal">
                     <th className="py-3 px-6">Player</th>
@@ -110,7 +110,7 @@ const PlayerTable = ({ data, title }: { data: PlayerData[], title: string }) => 
 
 
 const ValueChart = ({ data, title, barColor }: { data: PlayerData[], title: string, barColor: string }) => (
-    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
+    <div className="p-4 bg-gray-900 rounded-lg shadow">
         <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{title}</h3>
         <ResponsiveContainer width="100%" height={400}>
             <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>

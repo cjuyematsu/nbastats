@@ -44,8 +44,8 @@ export default function Header() {
 
   const headerClasses = `fixed z-40 transition-all duration-200 ease-in-out
     ${isMobile 
-      ? 'bg-white dark:bg-gray-800 shadow-sm' 
-      : 'bg-white dark:bg-gray-800 rounded-lg' 
+      ? 'bg-gray-800 shadow-sm' 
+      : 'bg-gray-800 rounded-lg' 
     }`;
   
   const contentPaddingLeft = isMobile ? 'pl-[64px]' : 'pl-4'; 
