@@ -1,9 +1,10 @@
+//app/games/six-degrees/page.tsx
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -15,7 +16,7 @@ type ScoreHistoryRecord = {
 
 const MIN_LOADING_TIME_MS = 400;
 
-function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
+function StatsDisplay({ scores, isDarkMode }: { scores: ScoreHistoryRecord[]; isDarkMode: boolean }) {
     const stats = useMemo(() => {
         if (!scores || scores.length === 0) {
             return { played: 0, winPercentage: 0, currentStreak: 0, maxStreak: 0, guessDistribution: [0, 0, 0, 0, 0, 0] };
@@ -53,33 +54,41 @@ function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
 
     const maxDistributionCount = Math.max(...stats.guessDistribution, 1);
 
+    const containerClasses = isDarkMode 
+      ? "mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full"
+      : "mt-8 p-6 bg-white/60 rounded-lg border border-sky-200 w-full backdrop-blur-sm";
+    const headerTextClasses = isDarkMode ? "text-slate-100" : "text-gray-800";
+    const subHeaderTextClasses = isDarkMode ? "text-slate-200" : "text-gray-700";
+    const mutedTextClasses = isDarkMode ? "text-slate-400" : "text-gray-500";
+    const barBgClasses = isDarkMode ? "bg-slate-700" : "bg-sky-100";
+
     return (
-        <div className="mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full">
-            <h3 className="font-bold text-xl text-slate-100 mb-4 text-center">Your Statistics</h3>
+        <div className={containerClasses}>
+            <h3 className={`font-bold text-xl mb-4 text-center ${headerTextClasses}`}>Your Statistics</h3>
             <div className="flex justify-around text-center mb-6">
                 <div>
                     <p className="text-3xl font-bold">{stats.played}</p>
-                    <p className="text-xs text-slate-400">Played</p>
+                    <p className={`text-xs ${mutedTextClasses}`}>Played</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.winPercentage}</p>
-                    <p className="text-xs text-slate-400">Win %</p>
+                    <p className={`text-xs ${mutedTextClasses}`}>Win %</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.currentStreak}</p>
-                    <p className="text-xs text-slate-400">Current Streak</p>
+                    <p className={`text-xs ${mutedTextClasses}`}>Current Streak</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.maxStreak}</p>
-                    <p className="text-xs text-slate-400">Max Streak</p>
+                    <p className={`text-xs ${mutedTextClasses}`}>Max Streak</p>
                 </div>
             </div>
-            <h4 className="font-semibold text-center text-slate-200 mb-3">Guess Distribution</h4>
+            <h4 className={`font-semibold text-center mb-3 ${subHeaderTextClasses}`}>Guess Distribution</h4>
             <div className="space-y-2">
                 {stats.guessDistribution.map((count, index) => (
                     <div key={index} className="flex items-center text-sm">
                         <div className="w-4 font-bold">{index + 1}</div>
-                        <div className="flex-grow bg-slate-700 rounded-sm mx-2">
+                        <div className={`flex-grow rounded-sm mx-2 ${barBgClasses}`}>
                             <div 
                                 className="bg-sky-500 text-right px-2 py-0.5 rounded-sm text-white font-bold"
                                 style={{ width: count > 0 ? `${Math.max(8, (count / maxDistributionCount) * 100)}%` : '0%' }}
@@ -97,9 +106,19 @@ function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
 
 export default function SixDegreesLobby() {
     const router = useRouter();
-    const { user, isLoading: authIsLoading } = useAuth();
+    const { user, isLoading: authIsLoading, supabase } = useAuth();
     const [scoreHistory, setScoreHistory] = useState<ScoreHistoryRecord[]>([]);
     const [isLoadingPage, setIsLoadingPage] = useState(true);
+    
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        setIsDarkMode(mediaQuery.matches);
+        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -150,29 +169,39 @@ export default function SixDegreesLobby() {
         router.push(`/games/six-degrees/${randomGameId}`);
     };
 
+    const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-white text-gray-800";
+    const loadingTextClasses = isDarkMode ? "text-slate-300" : "text-gray-600";
+    const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
+    const mutedTextClasses = isDarkMode ? "text-slate-300" : "text-slate-600";
+    const linkClasses = isDarkMode ? "underline hover:text-sky-400" : "underline hover:text-sky-600";
+    const randomButtonClasses = isDarkMode 
+      ? "bg-[rgb(60,192,103)] hover:bg-green-400" 
+      : "bg-green-500 hover:bg-green-600";
+
+
     if (isLoadingPage) {
         return (
-            <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
-                <p className="text-xl text-slate-300">Loading Game...</p>
+            <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+                <p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100 py-12 px-4">
+        <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
             <div className="text-center w-full max-w-md">
-                <h1 className="text-4xl font-bold text-sky-400 mb-4">Six Degrees of NBA</h1>
-                <p className="text-lg text-slate-300 mb-10">Connect two NBA players through a chain of former teammates.</p>
+                <h1 className={`text-4xl font-bold mb-4 ${highlightColor}`}>Six Degrees of NBA</h1>
+                <p className={`text-lg mb-10 ${mutedTextClasses}`}>Connect two NBA players through a chain of former teammates.</p>
                 <div className="space-y-4">
                     <button
                         onClick={() => router.push('/games/six-degrees/daily')}
-                        className="w-full px-8 py-4 bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-transform hover:scale-105"
+                        className="w-full px-8 py-4 bg-sky-500 dark:bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md dark:hover:bg-sky-700 hover:bg-sky-600 transition-transform hover:scale-105"
                     >
                         Play Daily Challenge
                     </button>
                     <button
                         onClick={handlePlayRandom}
-                        className="w-full px-8 py-4 bg-[rgb(60,192,103)] text-white text-lg font-semibold rounded-lg shadow-md hover:bg-green-400 transition-transform hover:scale-105"
+                        className={`w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-md transition-transform hover:scale-105 ${randomButtonClasses}`}
                     >
                         Play Random Game
                     </button>
@@ -180,10 +209,10 @@ export default function SixDegreesLobby() {
                 
                 <div className="mt-8">
                     {user ? (
-                        <StatsDisplay scores={scoreHistory} />
+                        <StatsDisplay scores={scoreHistory} isDarkMode={isDarkMode} />
                     ) : (
-                        <p className="mt-8 text-slate-400 text-sm">
-                            <Link href="/signin" className="underline hover:text-sky-400">Sign in</Link> to save your daily stats and track your progress!
+                        <p className={`mt-8 text-sm ${mutedTextClasses}`}>
+                            <Link href="/signin" className={linkClasses}>Sign in</Link> to save your daily stats and track your progress!
                         </p>
                     )}
                 </div>

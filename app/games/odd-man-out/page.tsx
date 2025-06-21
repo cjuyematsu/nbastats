@@ -1,4 +1,5 @@
 //app/games/odd-man-out/page.tsx
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -36,6 +37,16 @@ export default function OddManOutGame() {
   const [maxStreak, setMaxStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalIncorrect, setTotalIncorrect] = useState(0);
+
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const fetchUserStreak = useCallback(async () => {
     if (!user) {
@@ -163,29 +174,45 @@ export default function OddManOutGame() {
   const totalGames = totalCorrect + totalIncorrect;
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
   
+  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-gray-50 text-gray-800";
+  const loadingTextClasses = isDarkMode ? "text-slate-100" : "text-gray-700";
+  const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
+  const streakTextClasses = isDarkMode ? "text-yellow-400" : "text-amber-500";
+  
+  const cardDefaultClasses = isDarkMode 
+    ? "bg-sky-600 hover:bg-sky-700 text-white" 
+    : "bg-sky-500 border border-gray-300 hover:bg-sky-600 text-white";
+  const cardCorrectClasses = "bg-green-500 text-white scale-105";
+  const cardIncorrectClasses = "bg-red-500 text-white";
+  const cardFadedClasses = isDarkMode ? "bg-gray-700 text-white opacity-60" : "bg-gray-200 text-gray-800 opacity-60";
+
+
   if (status === GameStatus.Loading || authIsLoading) {
-    return <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
-    <div className="text-center p-10">Loading New Round...</div></div>
+    return (
+      <div className={`w-full rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen ${mainContainerClasses}`}>
+        <div className={`text-center p-10 ${loadingTextClasses}`}>Loading New Round...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-800 rounded-lg shadow-2xl p-4 text-white text-center flex flex-col">
+    <div className={`w-full min-h-screen rounded-lg shadow-2xl p-4 text-center flex flex-col ${mainContainerClasses}`}>
       
       <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
 
         <div>
-            <h1 className="text-3xl font-bold mb-2">Odd Man Out</h1>
+            <h1 className="text-3xl font-bold mb-2 text-sky-600">Odd Man Out</h1>
             <p className="text-lg mb-2">Three of these players played for the same program prior to being drafted. Pick the odd one out... </p>
             
             <div className="text-center p-3 mb-4">
-            <div className="font-bold text-xl text-yellow-400 flex justify-center space-x-6">
+            <div className={`font-bold text-xl flex justify-center space-x-6 ${streakTextClasses}`}>
                 <p>Current Streak: {currentStreak}</p>
                 {user && <p>Max Streak: {maxStreak}</p>}
             </div>
             {user && totalGames > 0 && (
-                <div className="text-sm mt-2 text-gray-400 flex justify-center space-x-4">
-                <span>W-L: {totalCorrect}-{totalIncorrect}</span>
-                <span>Win %: {winPercentage.toFixed(1)}%</span>
+                <div className={`text-sm mt-2 flex justify-center space-x-4 ${mutedTextClasses}`}>
+                  <span>W-L: {totalCorrect}-{totalIncorrect}</span>
+                  <span>Win %: {winPercentage.toFixed(1)}%</span>
                 </div>
             )}
             </div>
@@ -197,12 +224,14 @@ export default function OddManOutGame() {
               const playerName = `${player.FirstName} ${player.LastName}`;
               const isOddManOut = playerName === gameData.oddManOutName;
               const isGuessed = playerName === userGuessName;
-              let cardClass = 'bg-sky-700 hover:bg-sky-600';
+              
+              let cardClass = cardDefaultClasses;
               if (status === GameStatus.Answered) {
-                if (isGuessed && !isOddManOut) { cardClass = 'bg-red-600'; } 
-                else if (isOddManOut) { cardClass = 'bg-green-600 scale-105'; } 
-                else { cardClass = 'bg-gray-700 opacity-60'; }
+                if (isGuessed && !isOddManOut) { cardClass = cardIncorrectClasses; } 
+                else if (isOddManOut) { cardClass = cardCorrectClasses; } 
+                else { cardClass = cardFadedClasses; }
               }
+
               return (
                 <button
                   key={playerName + index}
@@ -225,7 +254,7 @@ export default function OddManOutGame() {
             <p className="text-2xl font-bold mb-4">{message}</p>
             <button
               onClick={handleNextRound}
-              className="bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
+              className="bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
             >
               Next Round
             </button>

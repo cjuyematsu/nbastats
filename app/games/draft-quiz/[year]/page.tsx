@@ -1,4 +1,5 @@
 //app/games/draft-quiz/[year]/page.tsx
+
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -32,6 +33,16 @@ export default function DraftQuizPage() {
   const [guessedIds, setGuessedIds] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const guessedIdsRef = useRef(guessedIds);
   useEffect(() => {
@@ -94,7 +105,7 @@ export default function DraftQuizPage() {
       setIsLoading(false);
     }
     fetchData();
-  }, [year, user, supabase]);
+  }, [year, user, supabase, isAuthLoading]);
 
   const handleGuessSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -121,18 +132,34 @@ export default function DraftQuizPage() {
     setInputValue('');
   };
 
+  const mainContainerClasses = isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-800";
+  const headerClasses = isDarkMode ? "bg-gray-800" : "bg-white border-b border-gray-200";
+  const pickYearButtonClasses = isDarkMode 
+    ? "text-white bg-gray-700 hover:bg-gray-600" 
+    : "text-gray-700 bg-gray-200 hover:bg-gray-300";
+  const inputClasses = isDarkMode
+    ? "bg-gray-700 border-gray-600 text-white"
+    : "bg-white border-gray-300 text-gray-900";
+  const gridContainerClasses = isDarkMode ? "bg-gray-800" : "bg-white";
+
+  const pickCardDefaultClasses = isDarkMode ? "bg-gray-700" : "bg-gray-100";
+  const pickCardGuessedClasses = isDarkMode ? "bg-sky-600 text-white" : "bg-sky-500 text-white";
+  const pickNumberClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
+  const teamNameClasses = isDarkMode ? "text-gray-300" : "text-gray-600";
+  const loadingText = isDarkMode ? "text-white" : "text-gray-800";
+
   if (isLoading) {
-    return <div className="text-center p-10">Loading Quiz...</div>;
+    return <div className={`text-center p-10 ${loadingText}`}>Loading Quiz...</div>;
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
+    <div className={`flex flex-col h-screen ${mainContainerClasses}`}>
       
-      <div className="bg-gray-800 rounded-lg shadow-2xl p-4 w-full">
+      <div className={`rounded-lg shadow-2xl p-4 w-full ${headerClasses}`}>
         <div className="relative flex justify-center items-center mb-2">
           <button
             onClick={() => router.push('/games/draft-quiz')}
-            className="absolute left-0 text-white bg-gray-700 hover:bg-gray-600 font-medium rounded-lg text-sm px-4 py-2 transition-colors"
+            className={`absolute left-0 font-medium rounded-lg text-sm px-4 py-2 transition-colors ${pickYearButtonClasses}`}
           >
             Pick Year
           </button>
@@ -146,23 +173,28 @@ export default function DraftQuizPage() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Enter player name..."
-            className="w-full p-3 text-lg bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputClasses}`}
             autoCapitalize="off"
             autoCorrect="off"
           />
         </form>
       </div>
 
-      <div className="mt-3 bg-gray-800 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 w-full">
+      <div className={`mt-3 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 w-full ${gridContainerClasses}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {draftPicks.map(pick => {
             const isGuessed = guessedIds.has(pick.compositeKey);
             return (
-              <div key={pick.compositeKey} className={`flex items-center p-3 rounded-md ${isGuessed ? 'bg-sky-700' : 'bg-gray-700'}`}>
-                <div className="w-1/5 font-semibold text-gray-400">R{pick.Round} P{pick.Pick}</div>
+              <div 
+                key={pick.compositeKey} 
+                className={`flex items-center p-3 rounded-md transition-colors duration-300 ${isGuessed ? pickCardGuessedClasses : pickCardDefaultClasses}`}
+              >
+                <div className={`w-1/5 font-semibold ${isGuessed ? '' : pickNumberClasses}`}>R{pick.Round} P{pick.Pick}</div>
                 <div className="w-4/5">
-                  <div className="font-bold text-lg">{isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}</div>
-                  <div className="text-sm text-gray-300 flex justify-between">
+                  <div className={`font-bold text-lg ${isGuessed ? '' : 'text-transparent'}`}>
+                    {isGuessed ? `${pick.FirstName || ''} ${pick.LastName || ''}`.trim() : '???'}
+                  </div>
+                  <div className={`text-sm flex justify-between ${isGuessed ? '' : teamNameClasses}`}>
                     <span>{pick['NBA Team'] || ''}</span>
                     <span className="truncate text-right">{pick['School/Club Team'] || ''}</span>
                   </div>

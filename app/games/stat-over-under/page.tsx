@@ -1,10 +1,10 @@
 // app/games/stat-over-under/page.tsx
+
 'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
 
-// Define eras here or import from a shared constants file
 const AVAILABLE_ERAS = [
     { id: 'modern', name: '2011-2025' },
     { id: '2000s',  name: '2001-2010' },
@@ -12,7 +12,7 @@ const AVAILABLE_ERAS = [
     { id: '1980s',  name: '1980-1990' },
 ];
 
-export default function SelectEraPage() { // Renamed for clarity
+export default function SelectEraPage() { 
   const router = useRouter();
 
   const handleSelectEra = (eraId: string) => {
@@ -20,12 +20,12 @@ export default function SelectEraPage() { // Renamed for clarity
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
       <div className="text-center w-full max-w-md sm:max-w-lg">
-        <h1 className="text-3xl sm:text-4xl font-bold text-sky-400 mb-4">
+        <h1 className="text-3xl sm:text-4xl font-bold text-sky-500 dark:text-sky-400 mb-4">
           Daily Stat Over/Under
         </h1>
-        <p className="text-lg text-slate-300 mb-10">
+        <p className="text-lg text-slate-500 dark:text-slate-300 mb-10">
           Test your NBA knowledge! Select an era to begin.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
