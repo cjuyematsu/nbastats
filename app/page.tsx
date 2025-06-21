@@ -10,8 +10,8 @@ export default function HomePage() {
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl pt-8">
             <span className="block text-sky-600 dark:text-sky-400">NBA Statistics Hub</span>
           </h1>
-          <h2>
-            <span className="block text-white dark:text-slate-300 mt-1 sm:mt-2">
+          <h2 className="text-slate-600">
+            <span className="block dark:text-slate-300 mt-1 sm:mt-2">
                 Explore NBA Stats Through Games, Tools, and Articles
             </span>
           </h2>
