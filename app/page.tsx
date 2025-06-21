@@ -1,62 +1,110 @@
 //app/page.tsx
 
-import Link from 'next/link'; 
+import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0"> 
-      <main className="text-center max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0">
+      <main className="text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="mb-10 md:mb-16">
-          
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl pt-8">
-            <span className="block text-sky-600 dark:text-sky-400">NBA Player Stats Hub</span>
-            <span className="block text-slate-600 dark:text-slate-300 mt-1 sm:mt-2">
-              Dive Deep into Player Performance
-            </span>
+            <span className="block text-sky-600 dark:text-sky-400">NBA Statistics Hub</span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            Explore comprehensive career statistics, play engaging stat-based games, and compare your favorite NBA players.
-          </p>
+          <h2>
+            <span className="block text-white dark:text-slate-300 mt-1 sm:mt-2">
+                Explore NBA Stats Through Games, Tools, and Articles
+            </span>
+          </h2>
+          
         </header>
 
-        <div className="mb-12 space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-4">
-          <Link
-            href="/search" 
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-          >
-            Search Player Stats
-          </Link>
-          <Link
-            href="/games/stat-over-under" 
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-teal-500 text-white text-lg font-semibold rounded-lg hover:bg-teal-600 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-          >
-            Play Stat Over/Under
-          </Link>
-        </div>
-
-        <section className="mb-12 text-left sm:text-center max-w-2xl mx-auto">
-          {/* UPDATED: Text colors */}
-          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">About This Platform</h2>
-          <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-            Welcome! This is where you can write a little about your NBA stats, games, and features website.
-          </p>
-        </section>
-        
-        <section className="grid md:grid-cols-2 gap-8 mb-16 text-left">
-          {/* UPDATED: Card styles */}
-          <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Comprehensive Stats</h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">Access detailed career totals and per-game averages for a vast database of NBA players.</p>
+        <section className="mb-12 text-left max-w-2xl mx-auto">
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Player Statistics</h2>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Player Profiles</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                View complete career statistics for any NBA player, including regular season and playoff averages and totals.
+              </p>
+            </div>
+            <Link href="/compare" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Compare Players</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Side-by-side comparison of up to five players performances at the same age across different statistical categories.
+              </p>
+            </Link>
+            <Link href="/top-100-players" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Top 100 Players</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Explore our rankings of the top 100 players in NBA history with detailed statistics.
+              </p>
+            </Link>
+            <Link href="/degrees-of-separation" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Teammate Connections</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Discover how players are connected through shared teammates across different eras.
+              </p>
+            </Link>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Engaging Games</h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">Test your NBA knowledge with fun, stat-based games like our daily Over/Under challenge.</p>
+        </section>
+
+        <section className="mb-12 text-left max-w-2xl mx-auto">
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Statistical Analysis</h2>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <Link href="/analysis/salary-vs-points" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Salary vs. Performance</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Analyze the relationship between player salaries and their on-court production.
+              </p>
+            </Link>
+            <Link href="/analysis/growth-of-nba" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">NBA Growth Trends</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Explore how the NBA has evolved over time through statistical trends.
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        <section className="mb-12 text-left max-w-2xl mx-auto">
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Interactive Games</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Link href="/games/stat-over-under" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Stat Over/Under</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Guess whether a player&apos;s stats are over or under the given line.
+              </p>
+            </Link>
+            <Link href="/games/draft-quiz" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Draft Quiz</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Test your knowledge of NBA draft history by filling in missing picks.
+              </p>
+            </Link>
+            <Link href="/games/ranking-game" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Guess the Ranking</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Try to order players correctly based on their statistical rankings.
+              </p>
+            </Link>
+            <Link href="/games/odd-man-out" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Odd Man Out</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Identify which player doesn&apos;t belong based on statistical patterns.
+              </p>
+            </Link>
+            <Link href="/games/six-degrees" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Six Degrees</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Find connections between players through shared teammates.
+              </p>
+            </Link>
           </div>
         </section>
 
         <footer className="text-center pt-8 border-t border-gray-200 dark:border-slate-700">
           <p className="text-sm text-slate-500 dark:text-slate-500 pb-6">
-            NBA Stats & Games Platform &copy; {new Date().getFullYear()}
+            Hoops Data &copy; {new Date().getFullYear()}
           </p>
         </footer>
       </main>
