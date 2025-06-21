@@ -1,4 +1,5 @@
-// components/Header.tsx
+//components/Header.tsx
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -44,8 +45,8 @@ export default function Header() {
 
   const headerClasses = `fixed z-40 transition-all duration-200 ease-in-out
     ${isMobile 
-      ? 'bg-gray-800 shadow-sm' 
-      : 'bg-gray-800 rounded-lg' 
+      ? 'bg-white dark:bg-gray-800 shadow-sm dark:border-b dark:border-gray-700' 
+      : 'bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700' 
     }`;
   
   const contentPaddingLeft = isMobile ? 'pl-[64px]' : 'pl-4'; 
@@ -56,20 +57,20 @@ export default function Header() {
       className={headerClasses}
     >
       <div className={`flex items-center justify-between h-[var(--header-height)] ${contentPaddingLeft} pr-4`}>
-      <div className="flex items-center flex-shrink-0">
-            <div className="flex items-center">
-                <Image
-                    src="/logo2.png" 
-                    alt="Site Logo"
-                    width={40}
-                    height={40}
-                    className="h-9 w-9"
-                    priority
-                />
-                <span className="ml-2 mr-5 text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                    hoops data
-                </span>
-            </div>
+        <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center">
+            <Image
+              src="/logo2.png" 
+              alt="Site Logo"
+              width={40}
+              height={40}
+              className="h-9 w-9"
+              priority
+            />
+            <span className="ml-2 mr-5 text-xl font-bold tracking-tight text-gray-600 dark:text-slate-100">
+              hoops data
+            </span>
+          </div>
         </div>
 
         <div className="flex-grow min-w-0"> 
@@ -82,14 +83,14 @@ export default function Header() {
           ) : user ? (
             <button
               onClick={handleSignOut}
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-500 dark:bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
             >
               Sign Out
             </button>
           ) : (
             <Link
               href="/signin"
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-500 dark:bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
             >
               Sign In
             </Link>

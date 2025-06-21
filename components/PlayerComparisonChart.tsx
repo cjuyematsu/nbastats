@@ -1,4 +1,5 @@
 // components/PlayerComparisonChart.tsx
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -39,6 +40,7 @@ interface PlayerSearchInputProps {
   selectedPlayer: SelectedPlayerForComparison | null;
   onPlayerSelect: (player: SelectedPlayerForComparison | null, index: number) => void;
   onRemovePlayer: (index: number) => void;
+  isDarkMode: boolean;
 }
 
 interface SelectedPlayerData {
@@ -66,7 +68,7 @@ function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] 
   );
 }
 
-const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPlayer, onPlayerSelect, onRemovePlayer }) => {
+const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPlayer, onPlayerSelect, onRemovePlayer, isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
@@ -139,6 +141,18 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
     }
   };
 
+  const inputClasses = isDarkMode 
+    ? "w-full p-2 border border-slate-500 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-slate-100 bg-slate-600 placeholder-slate-400"
+    : "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-gray-800 bg-white placeholder-gray-400";
+  
+  const suggestionsListClasses = isDarkMode
+    ? "absolute z-20 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto"
+    : "absolute z-20 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto";
+
+  const suggestionItemClasses = isDarkMode
+    ? "p-2 hover:bg-sky-600 cursor-pointer text-sm text-slate-200"
+    : "p-2 hover:bg-sky-500 cursor-pointer text-sm text-gray-700";
+
   return (
     <div ref={searchContainerRef} className="relative mb-2">
       <div className="flex items-center">
@@ -148,12 +162,12 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={() => { if (searchTerm.length >= 2 && suggestions.length > 0 && !selectedPlayer) setIsSuggestionsVisible(true); }}
-          className="w-full p-2 border border-slate-500 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-slate-100 bg-slate-600 placeholder-slate-400"
+          className={inputClasses}
         />
         {selectedPlayer && (
           <button
             onClick={() => onRemovePlayer(index)}
-            className="ml-2 p-2 text-red-400 hover:text-red-300 focus:outline-none"
+            className="ml-2 p-2 text-red-500 hover:text-red-700 focus:outline-none"
             title="Remove player"
             aria-label={`Remove ${selectedPlayer.firstName} ${selectedPlayer.lastName}`}
           >
@@ -161,18 +175,18 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
           </button>
         )}
       </div>
-      {isLoading && <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-xs text-slate-400">Loading...</div>}
+      {isLoading && <div className={`absolute right-10 top-1/2 transform -translate-y-1/2 text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Loading...</div>}
       {isSuggestionsVisible && suggestions.length > 0 && !selectedPlayer && (
-        <ul className="absolute z-20 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+        <ul className={suggestionsListClasses}>
           {suggestions.map((p) => (
-            <li key={p.personId} onClick={() => handleSelectSuggestion(p)} className="p-2 hover:bg-sky-700 cursor-pointer text-sm text-slate-200">
+            <li key={p.personId} onClick={() => handleSelectSuggestion(p)} className={suggestionItemClasses}>
               {p.firstName} {p.lastName} ({p.startYear}-{p.endYear})
             </li>
           ))}
         </ul>
       )}
       {isSuggestionsVisible && searchTerm.length >= 2 && suggestions.length === 0 && !isLoading && !selectedPlayer && (
-        <div className="absolute z-10 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg p-2 text-sm text-slate-400">
+        <div className={`${suggestionsListClasses} p-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
           No players found matching &quot;{searchTerm}&quot;.
         </div>
       )}
@@ -181,20 +195,20 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
 };
 
 const availableStats = [
-  { value: 'PTS_per_g', label: 'Points Per Game (PPG)' },
-  { value: 'AST_per_g', label: 'Assists Per Game (APG)' },
-  { value: 'TRB_per_g', label: 'Rebounds Per Game (RPG)' },
-  { value: 'STL_per_g', label: 'Steals Per Game (SPG)' },
-  { value: 'BLK_per_g', label: 'Blocks Per Game (BPG)' },
-  { value: 'FG_PCT', label: 'Field Goal % (FG%)' },
-  { value: 'FG3_PCT', label: '3-Point % (3P%)' },
-  { value: 'FT_PCT', label: 'Free Throw % (FT%)' },
-  { value: 'eFG_PCT', label: 'Effective FG % (eFG%)' },
-  { value: 'TS_PCT', label: 'True Shooting % (TS%)' },
-  { value: 'MP_per_g', label: 'Minutes Per Game (MPG)' },
-  { value: 'PTS_total', label: 'Total Points (Season)' },
-  { value: 'AST_total', label: 'Total Assists (Season)' },
-  { value: 'TRB_total', label: 'Total Rebounds (Season)' },
+    { value: 'PTS_per_g', label: 'Points Per Game (PPG)' },
+    { value: 'AST_per_g', label: 'Assists Per Game (APG)' },
+    { value: 'TRB_per_g', label: 'Rebounds Per Game (RPG)' },
+    { value: 'STL_per_g', label: 'Steals Per Game (SPG)' },
+    { value: 'BLK_per_g', label: 'Blocks Per Game (BPG)' },
+    { value: 'FG_PCT', label: 'Field Goal % (FG%)' },
+    { value: 'FG3_PCT', label: '3-Point % (3P%)' },
+    { value: 'FT_PCT', label: 'Free Throw % (FT%)' },
+    { value: 'eFG_PCT', label: 'Effective FG % (eFG%)' },
+    { value: 'TS_PCT', label: 'True Shooting % (TS%)' },
+    { value: 'MP_per_g', label: 'Minutes Per Game (MPG)' },
+    { value: 'PTS_total', label: 'Total Points (Season)' },
+    { value: 'AST_total', label: 'Total Assists (Season)' },
+    { value: 'TRB_total', label: 'Total Rebounds (Season)' },
 ];
 
 export default function PlayerComparisonChart() {
@@ -204,6 +218,18 @@ export default function PlayerComparisonChart() {
   const [chartData, setChartData] = useState<ChartData<'line', CustomChartPoint[]> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(true); 
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(prefersDark);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
 
   const handlePlayerSelect = (player: SelectedPlayerForComparison | null, index: number) => {
     setSelectedPlayers(prev => {
@@ -279,7 +305,7 @@ export default function PlayerComparisonChart() {
             label: `${player.firstName || ''} ${player.lastName || ''}`.trim(),
             data: playerCareerDataPoints,
             borderColor: playerLineColor,
-            backgroundColor: playerLineColor + '33',
+            backgroundColor: playerLineColor + '33', 
             tension: 0.1,
             fill: false,
             pointRadius: 0,
@@ -331,12 +357,12 @@ export default function PlayerComparisonChart() {
     }
   }, [selectedPlayers, selectedStat, seasonType, fetchChartDataForAllPlayers]);
 
-  const chartTextColor = '#D1D5DB';
-  const chartGridColor = 'rgba(71, 85, 105, 0.5)';
-  const chartTooltipBgColor = 'rgba(30, 41, 59, 0.9)';
-  const chartTooltipTitleColor = '#F9FAFB';
-  const chartTooltipBodyColor = '#E5E7EB';
-  const chartTooltipBorderColor = '#4B5563';
+  const chartTextColor = isDarkMode ? '#D1D5DB' : '#374151';
+  const chartGridColor = isDarkMode ? 'rgba(71, 85, 105, 0.5)' : 'rgba(209, 213, 219, 0.5)'; 
+  const chartTooltipBgColor = isDarkMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+  const chartTooltipTitleColor = isDarkMode ? '#F9FAFB' : '#1F2937';
+  const chartTooltipBodyColor = isDarkMode ? '#E5E7EB' : '#4B5563';
+  const chartTooltipBorderColor = isDarkMode ? '#4B5563' : '#D1D5DB';
 
   const dynamicChartOptions = React.useMemo(() => {
     const currentLabels = chartData?.labels as string[] | undefined;
@@ -411,12 +437,35 @@ export default function PlayerComparisonChart() {
     return options;
   }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]); 
 
+  const mainContainerClasses = isDarkMode 
+    ? "w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100" 
+    : "w-full bg-white rounded-lg shadow-2xl text-gray-800";
+  const sectionClasses = isDarkMode
+    ? "p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600"
+    : "p-5 bg-gray-50 rounded-xl shadow-lg border border-gray-200";
+  const chartContainerClasses = isDarkMode
+    ? "mt-6 h-96 md:h-[550px] bg-slate-700 p-3 rounded-xl shadow-inner border border-slate-600"
+    : "mt-6 h-96 md:h-[550px] bg-gray-50 p-3 rounded-xl shadow-inner border border-gray-200";
+  const selectClasses = isDarkMode
+    ? "w-full p-2.5 border border-sky-500 rounded-lg shadow-sm focus:ring-sky-500 0 text-slate-100 bg-slate-600 text-sm"
+    : "w-full p-2.5 border border-sky-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-gray-800 bg-white text-sm";
+  const buttonGroupRegularClasses = `flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+    seasonType === 'regular' 
+      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' 
+      : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
+  }`;
+  const buttonGroupPlayoffsClasses = `flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+    seasonType === 'playoffs' 
+      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' 
+      : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
+  }`;
+
   return (
-    <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
+    <div className={mainContainerClasses}>
       <div className="p-4 md:px-4 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
-            <div className="lg:col-span-2 p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600">
-                <h3 className="text-xl font-semibold mb-3 text-slate-100">
+            <div className={`lg:col-span-2 ${sectionClasses}`}>
+                <h3 className={`text-xl font-semibold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>
                 Select Up to {MAX_PLAYERS} Players ({selectedPlayers.filter(p => p !== null).length} / {MAX_PLAYERS})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
@@ -427,41 +476,42 @@ export default function PlayerComparisonChart() {
                         selectedPlayer={selectedPlayers[index]}
                         onPlayerSelect={handlePlayerSelect}
                         onRemovePlayer={handleRemovePlayer}
+                        isDarkMode={isDarkMode}
                         />
                     ))}
                 </div>
             </div>
-            <div className="p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600 space-y-5">
+            <div className={`${sectionClasses} space-y-5`}>
             <div>
-                <label htmlFor="stat-select" className="block text-lg font-semibold mb-1.5 text-slate-100">Statistic:</label>
+                <label htmlFor="stat-select" className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Statistic:</label>
                 <select
                   id="stat-select"
                   value={selectedStat}
                   onChange={(e) => setSelectedStat(e.target.value)}
-                  className="w-full p-2.5 border border-slate-500 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-slate-100 bg-slate-600 text-sm"
+                  className={selectClasses}
                 >
                 {availableStats.map((stat) => (<option key={stat.value} value={stat.value}>{stat.label}</option>))}
                 </select>
             </div>
             <div>
-                <label className="block text-lg font-semibold mb-1.5 text-slate-100">Season Type:</label>
+                <label className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Season Type:</label>
                 <div className="flex rounded-lg shadow-sm">
-                    <button type="button" onClick={() => setSeasonType('regular')} className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${seasonType === 'regular' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Regular Season</button>
-                    <button type="button" onClick={() => setSeasonType('playoffs')} className={`flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${seasonType === 'playoffs' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500'}`}>Playoffs</button>
+                    <button type="button" onClick={() => setSeasonType('regular')} className={buttonGroupRegularClasses}>Regular Season</button>
+                    <button type="button" onClick={() => setSeasonType('playoffs')} className={buttonGroupPlayoffsClasses}>Playoffs</button>
                 </div>
             </div>
             </div>
       </div>
-      <div className="mt-6 h-96 md:h-[550px] bg-slate-700 p-3 rounded-xl shadow-inner border border-slate-600">
+      <div className={chartContainerClasses}>
         {isLoadingChart && (
             <div className="flex flex-col justify-center items-center h-full">
                 <div className="w-12 h-12 border-4 border-t-sky-600 border-r-sky-700 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
-                <p className="mt-4 text-lg text-slate-300">Loading Chart Data...</p>
+                <p className={`mt-4 text-lg ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>Loading Chart Data...</p>
             </div>
         )}
         {!isLoadingChart && error && (
           <div className="flex justify-center items-center h-full">
-            <p className="text-center text-red-400 p-4 bg-red-900 bg-opacity-40 rounded-md border border-red-700">{error}</p>
+            <p className="text-center text-red-500 p-4 bg-red-100 rounded-md border border-red-300">{error}</p>
           </div>
         )}
         {!isLoadingChart && !error && chartData && chartData.datasets.length > 0 && (
@@ -469,7 +519,7 @@ export default function PlayerComparisonChart() {
         )}
         {!isLoadingChart && !error && (!chartData || chartData.datasets.length === 0) && (
              <div className="flex justify-center items-center h-full">
-                <p className="text-lg text-slate-400 text-center px-4">
+                <p className={`text-lg ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} text-center px-4`}>
                     {selectedPlayers.some(p => p !== null) ? `No ${seasonType} data to display for current selections.` : "Select players and a statistic to view the chart."}
                 </p>
             </div>

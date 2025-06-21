@@ -1,4 +1,5 @@
 // app/games/stat-over-under/[era]/page.tsx
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
@@ -6,7 +7,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { Database } from '@/types/supabase';
-import Image from 'next/image'; 
+import Image from 'next/image';
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -57,73 +58,74 @@ const getTeamLogoUrl = (teamName: string | null): string => {
   return `/${logoName}.png`;
 };
 
-function EraStatsDisplay({ allScores, era, eraName }: { allScores: StatHistoryRecord[], era: string, eraName: string }) {
+function EraStatsDisplay({ allScores, era, eraName, isDarkMode }: { allScores: StatHistoryRecord[], era: string, eraName: string, isDarkMode: boolean }) {
     const stats = useMemo(() => {
         const eraScores = allScores.filter(s => s.game_era.toLowerCase().trim() === era.toLowerCase().trim());
 
         if (eraScores.length === 0) {
             return {
-                played: 0,
-                totalPoints: 0,
-                totalPotential: 0,
-                correctPercent: 0,
+                played: 0, totalPoints: 0, totalPotential: 0, correctPercent: 0,
                 scoreDistribution: Array(11).fill(0),
             };
         }
-
         const played = eraScores.length;
         const totalPoints = eraScores.reduce((acc, s) => acc + (s.points || 0), 0);
         const totalPotential = eraScores.reduce((acc, s) => acc + (s.potential_points || 10), 0);
         const correctPercent = totalPotential > 0 ? Math.round((totalPoints / totalPotential) * 100) : 0;
-
         const scoreDistribution = Array(11).fill(0);
         eraScores.forEach(score => {
             if (score.points >= 0 && score.points <= 10) {
                 scoreDistribution[score.points]++;
             }
         });
-
         return { played, totalPoints, totalPotential, correctPercent, scoreDistribution };
     }, [allScores, era]);
 
     const maxDistributionCount = Math.max(...stats.scoreDistribution, 1);
 
+    const containerClasses = isDarkMode 
+      ? "mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full"
+      : "mt-8 p-6 bg-white/50 rounded-lg border border-gray-200 w-full";
+    const mutedText = isDarkMode ? "text-slate-400" : "text-gray-500";
+    const headerText = isDarkMode ? "text-slate-100" : "text-gray-800";
+    const barBg = isDarkMode ? "bg-slate-700" : "bg-gray-200";
+
     if (stats.played === 0) {
         return (
-            <div className="mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full text-center">
-                <p className="text-slate-400">No stats yet for the {eraName}. Play a game to see your history!</p>
+            <div className={`${containerClasses} text-center`}>
+                <p className={mutedText}>No stats yet for the {eraName}. Play a game to see your history!</p>
             </div>
         );
     }
     
     return (
-        <div className="mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full">
-            <h3 className="font-bold text-xl text-slate-100 mb-4 text-center">Your {eraName} Statistics</h3>
+        <div className={containerClasses}>
+            <h3 className={`font-bold text-xl mb-4 text-center ${headerText}`}>Your {eraName} Statistics</h3>
             <div className="flex justify-around text-center mb-6">
                 <div>
                     <p className="text-3xl font-bold">{stats.played}</p>
-                    <p className="text-xs text-slate-400">Played</p>
+                    <p className={`text-xs ${mutedText}`}>Played</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.correctPercent}<span className="text-xl">%</span></p>
-                    <p className="text-xs text-slate-400">Correct</p>
+                    <p className={`text-xs ${mutedText}`}>Correct</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.totalPoints}</p>
-                    <p className="text-xs text-slate-400">Total Score</p>
+                    <p className={`text-xs ${mutedText}`}>Total Score</p>
                 </div>
                 <div>
                     <p className="text-3xl font-bold">{stats.totalPotential}</p>
-                    <p className="text-xs text-slate-400">Possible</p>
+                    <p className={`text-xs ${mutedText}`}>Possible</p>
                 </div>
             </div>
             
-            <h4 className="font-bold text-center text-slate-200 mb-3">Score Distribution (0-10)</h4>
+            <h4 className={`font-bold text-center mb-3 ${headerText}`}>Score Distribution (0-10)</h4>
             <div className="space-y-2">
                 {stats.scoreDistribution.map((count, index) => (
                     <div key={index} className="flex items-center text-sm">
                         <div className="w-6 font-bold text-right pr-2">{index}</div>
-                        <div className="flex-grow bg-slate-700 rounded-sm">
+                        <div className={`flex-grow rounded-sm ${barBg}`}>
                             <div 
                                 className="bg-sky-500 text-right px-2 py-0.5 rounded-sm text-white font-bold"
                                 style={{ width: count > 0 ? `${Math.max(8, (count / maxDistributionCount) * 100)}%` : '0%' }}
@@ -156,6 +158,16 @@ function StatOverUnderEraGameContent() {
   const [pageFetchError, setPageFetchError] = useState<string | null>(null);
   const [statsHistory, setStatsHistory] = useState<StatHistoryRecord[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const fetchChallenges = useCallback(async (dateISO: string, era: string): Promise<GameChallenge[]> => {
     try {
@@ -297,7 +309,7 @@ function StatOverUnderEraGameContent() {
     } else {
       loadGameForEra(gameEraFromParam);
     }
-  }, [user, authIsLoading, gameEraFromParam, action]);
+  }, [user, authIsLoading, gameEraFromParam, action, loadGameForEra, router, saveGameResult]);
 
   const handleGuess = useCallback(async (guess: 'over' | 'under') => {
     if (gameStatus !== 'playing' || currentRoundIndex >= challenges.length) return;
@@ -352,28 +364,42 @@ function StatOverUnderEraGameContent() {
   };
   const eraName = AVAILABLE_ERAS.find(e=>e.id===gameEraFromParam)?.name || gameEraFromParam || 'Selected Era';
 
-  // --- Render logic (no changes in loading/error/completed states) ---
+  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-gray-50 text-gray-800";
+  const mainBg = isDarkMode ? "bg-gray-800" : "bg-gray-50";
+  const mutedText = isDarkMode ? "text-slate-300" : "text-gray-600";
+  const strongText = isDarkMode ? "text-white" : "text-black";
+  const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
+  const highlightHover = isDarkMode ? "hover:text-sky-300" : "hover:text-sky-500";
+  const cardBg = isDarkMode ? "bg-slate-800/70" : "bg-white/70";
+  const gameCardBg = isDarkMode ? "bg-slate-700/80 border-slate-600" : "bg-white/80 border-gray-200";
+  const buttonSecondary = isDarkMode ? "bg-gray-600 hover:bg-gray-700" : "bg-gray-200 hover:bg-gray-300";
+  const correctBg = isDarkMode ? "bg-green-700/30 border-green-600 text-green-300" : "bg-green-100 border-green-200 text-green-800";
+  const incorrectBg = isDarkMode ? "bg-red-700/30 border-red-600 text-red-300" : "bg-red-100 border-red-200 text-red-700";
+  const amberText = isDarkMode ? "text-amber-400" : "text-amber-600";
+  const amberButtonBg = isDarkMode ? "bg-slate-700 hover:bg-slate-600" : "bg-amber-50 hover:bg-amber-100";
+  const amberRing = isDarkMode ? "ring-offset-slate-800" : "ring-offset-white";
+
   if (gameStatus === 'initial_loading' || (gameStatus === 'fetching_challenges')) {
-    return <div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl"><p className="text-center p-10 text-slate-300 text-xl">Loading {eraName} Game...</p></div>;
+    return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}><p className={`text-center p-10 text-xl ${mutedText}`}>Loading {eraName} Game...</p></div>;
   }
   if (gameStatus === 'error_loading') { 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
-            <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
-                <h2 className="text-2xl font-bold text-sky-400 mb-4">Error Loading Game</h2>
-                <p className="text-slate-300 mb-6">{pageFetchError || "Could not load game data."}</p>
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+            <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
+                <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>Error Loading Game</h2>
+                <p className={`mb-6 ${mutedText}`}>{pageFetchError || "Could not load game data."}</p>
                 <button onClick={() => {if(gameEraFromParam) loadGameForEra(gameEraFromParam);}} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 mr-2">Try Again</button>
-                <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
+                <button onClick={handlePlayDifferentEra} className={`px-6 py-2 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block ${buttonSecondary}`}>Select Different Era</button>
             </div>
         </div>
     );
   }
   if (gameStatus === 'no_game_today') { 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-12 px-4">
-            <div className="text-center max-w-md p-6 bg-slate-800/70 rounded-xl shadow-2xl">
-                <h2 className="text-2xl font-bold text-sky-400 mb-4">No Game Today</h2>
-                <p className="text-slate-300 mb-6">No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+            <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
+                <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>No Game Today</h2>
+                <p className={`mb-6 ${mutedText}`}>No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
                 <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
             </div>
         </div>
@@ -383,41 +409,41 @@ function StatOverUnderEraGameContent() {
     const isCompleted = gameStatus === 'completed';
     const potentialPoints = isCompleted ? challenges.length : 10;
     return (
-      <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 min-h-screen flex items-center justify-center py-12 px-4">
-        <div className="max-w-lg w-full mx-auto p-6 sm:p-8 bg-slate-800/70 rounded-xl shadow-2xl text-center backdrop-blur-md">
-            <h1 className="text-3xl font-bold text-sky-400 mb-2">{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
-            <h2 className="text-xl font-medium text-slate-300 mb-2">{eraName} - {todayDateISO}</h2>
-            <p className="text-xl text-slate-300 mb-6">Your score: <span className="font-bold text-white">{score} / {potentialPoints}</span></p>
-            {isLoadingStats ? ( <p className="text-slate-400">Loading your stats...</p> ) : 
-             user ? ( <EraStatsDisplay allScores={statsHistory} era={gameEraFromParam} eraName={eraName} /> ) : 
+      <div className={`w-full rounded-lg shadow-2xl min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses}`}>
+        <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md ${cardBg}`}>
+            <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
+            <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
+            <p className={`text-xl mb-6 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
+            {isLoadingStats ? ( <p className={mutedText}>Loading your stats...</p> ) : 
+             user ? ( <EraStatsDisplay allScores={statsHistory} era={gameEraFromParam} eraName={eraName} isDarkMode={isDarkMode}/> ) : 
              !isCompleted ? null :
              (<div className="my-6">
-                <p className="text-amber-400 mb-3">Want to save scores?</p>
+                <p className={`${amberText} mb-3`}>Want to save scores?</p>
                 <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-3">
-                  <button onClick={() => router.push(`/signin?fromGameResults=true&era=${gameEraFromParam}`)} className='w-full sm:w-auto underline hover:text-amber-200 text-amber-400 px-4 py-2 rounded-md focus:outline-none focus:ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-800 bg-slate-700 hover:bg-slate-600'>Sign In</button>
-                  <button onClick={() => router.push(`/signup?fromGameResults=true&era=${gameEraFromParam}`)} className='w-full sm:w-auto underline hover:text-amber-200 text-amber-400 px-4 py-2 rounded-md focus:outline-none focus:ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-800 bg-slate-700 hover:bg-slate-600'>Sign Up</button>
+                  <button onClick={() => router.push(`/signin?fromGameResults=true&era=${gameEraFromParam}`)} className={`w-full sm:w-auto underline hover:text-amber-200 px-4 py-2 rounded-md focus:outline-none focus:ring-2 ring-amber-400 ring-offset-2 ${amberRing} ${amberButtonBg} ${amberText}`}>Sign In</button>
+                  <button onClick={() => router.push(`/signup?fromGameResults=true&era=${gameEraFromParam}`)} className={`w-full sm:w-auto underline hover:text-amber-200 px-4 py-2 rounded-md focus:outline-none focus:ring-2 ring-amber-400 ring-offset-2 ${amberRing} ${amberButtonBg} ${amberText}`}>Sign Up</button>
                 </div>
               </div>)}
-            <button onClick={handlePlayDifferentEra} className="mt-8 inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">Play Different Era</button>
+            <button onClick={handlePlayDifferentEra} className={`mt-8 inline-block px-6 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105 ${buttonSecondary} ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Play Different Era</button>
         </div>
       </div>
     );
   }
   const currentChallenge = challenges[currentRoundIndex];
   if (!currentChallenge) {
-      return <div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl">
-        <p className="text-center p-10 text-slate-300 text-xl">Loading round...</p></div>;
+      return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainBg}`}>
+        <p className={`text-center p-10 text-xl ${mutedText}`}>Loading round...</p></div>;
   }
   return (
-    <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100">
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl text-slate-100 py-8 px-4">
+    <div className={`w-full rounded-lg shadow-2xl ${mainContainerClasses}`}>
+      <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-8 px-4 ${mainBg}`}>
         <div className="w-full max-w-lg">
-            <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className="text-sm text-sky-400 hover:text-sky-300 underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm font-bold">Select Different Era</button></div>
-            <h1 className="text-2xl md:text-3xl font-bold text-sky-400 text-center mb-1">{eraName}</h1>
-            <p className="text-center text-slate-400 mb-1">Round {currentChallenge.round_number} of {challenges.length}</p>
-            <p className="text-center text-xl font-bold text-white mb-6">Score: {score}</p>
+            <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className={`text-sm underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm font-bold ${highlightColor} ${highlightHover}`}>Select Different Era</button></div>
+            <h1 className={`text-2xl md:text-3xl font-bold text-center mb-1 ${highlightColor}`}>{eraName}</h1>
+            <p className={`text-center mb-1 ${mutedText}`}>Round {currentChallenge.round_number} of {challenges.length}</p>
+            <p className={`text-center text-xl font-bold mb-6 ${strongText}`}>Score: {score}</p>
 
-            <div className="relative bg-slate-700/80 p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border border-slate-600 overflow-hidden">
+            <div className={`relative p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border overflow-hidden ${gameCardBg}`}>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <Image
                         fill
@@ -428,23 +454,23 @@ function StatOverUnderEraGameContent() {
                     />
                 </div>
                 <div className="relative z-10">
-                    <p className="text-xl sm:text-2xl font-bold text-sky-400">{currentChallenge.player_name}</p>
-                    <p className="text-sm sm:text-base text-white-400 mb-3">{currentChallenge.team_name}, {currentChallenge.season_year}</p>
-                    <p className="text-lg text-slate-200">Stat: <span className="font-medium text-amber-400">{currentChallenge.stat_category.replace(/_/g, ' ')}</span></p>
-                    <p className="text-4xl sm:text-5xl font-bold text-white my-4">{currentChallenge.displayed_line_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}</p>
-                    <p className="text-md text-slate-300">Is their actual {currentChallenge.stat_category.replace(/_/g, ' ')} for that season...</p>
+                    <p className={`text-xl sm:text-2xl font-bold ${highlightColor}`}>{currentChallenge.player_name}</p>
+                    <p className={`text-sm sm:text-base mb-3 ${mutedText}`}>{currentChallenge.team_name}, {currentChallenge.season_year}</p>
+                    <p className={`text-lg ${mutedText}`}>Stat: <span className={`font-medium ${amberText}`}>{currentChallenge.stat_category.replace(/_/g, ' ')}</span></p>
+                    <p className={`text-4xl sm:text-5xl font-bold my-4 ${strongText}`}>{currentChallenge.displayed_line_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}</p>
+                    <p className={`text-md ${mutedText}`}>Is their actual {currentChallenge.stat_category.replace(/_/g, ' ')} for that season...</p>
                 </div>
             </div>
 
             { gameStatus === 'playing' && (
               <div className="flex justify-around mt-6 space-x-3 sm:space-x-4">
                 <button onClick={() => handleGuess('under')} aria-label="Guess Under" className="flex-1 px-6 py-4 bg-sky-600 border-sky-700 hover:bg-sky-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 text-lg flex flex-col items-center justify-center"><ArrowDownIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> UNDER</button>
-                <button onClick={() => handleGuess('over')}  aria-label="Guess Over" className="flex-1 px-6 py-4 bg-[rgba(0,191,98,255)] border-sky-700 hover:bg-green-400 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 text-lg flex flex-col items-center justify-center"><ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> OVER</button>
+                <button onClick={() => handleGuess('over')}  aria-label="Guess Over" className="flex-1 px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 text-lg flex flex-col items-center justify-center"><ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> OVER</button>
               </div>
             )}
             {gameStatus === 'round_feedback' && feedbackMessage && (
               <div className="mt-6 text-center">
-                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? 'bg-green-700/30 border border-green-600 text-green-300' : 'bg-red-700/30 border border-red-600 text-red-300'}`}>
+                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? correctBg : incorrectBg}`}>
                   <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-bold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-bold">Incorrect.</strong>') }} />
                 </div>
                 <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
@@ -458,8 +484,28 @@ function StatOverUnderEraGameContent() {
 
 export default function StatOverUnderGamePageLoader() {
     return (
-        <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-gray-800 rounded-lg shadow-2xl"><p className="text-center p-10 text-slate-300 text-xl">Loading Game Data...</p></div>}>
+        <Suspense fallback={<StatOverUnderGamePageFallback />}>
             <StatOverUnderEraGameContent />
         </Suspense>
+    );
+}
+
+function StatOverUnderGamePageFallback() {
+    const [isDarkMode, setIsDarkMode] = useState(true);
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        setIsDarkMode(mediaQuery.matches);
+        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
+    const mainContainerClasses = isDarkMode ? "bg-gray-800" : "bg-gray-50";
+    const mutedText = isDarkMode ? "text-slate-300" : "text-gray-600";
+    
+    return (
+        <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+            <p className={`text-center p-10 text-xl ${mutedText}`}>Loading Game Data...</p>
+        </div>
     );
 }

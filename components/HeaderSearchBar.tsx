@@ -1,4 +1,5 @@
-// src/components/HeaderSearchBar.tsx (or your preferred path)
+//components/HeaderSearchBar.tsx
+
 'use client';
 
 import { supabase } from '@/lib/supabaseClient'; 
@@ -54,7 +55,7 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
         setIsLoadingSuggestions(false);
       }
     }, 350),
-    [supabase]
+    [] 
   );
 
   useEffect(() => {
@@ -91,31 +92,35 @@ export default function HeaderSearchBar({ onPlayerSelected }: HeaderSearchBarPro
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         onFocus={() => searchTerm.length >= 2 && suggestions.length > 0 && setIsSuggestionsVisible(true)}
-        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow text-gray-900 dark:text-gray-100 bg-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm" 
+        className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm" 
       />
       {isLoadingSuggestions && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="w-4 h-4 border-t-2 border-b-2 border-sky-700 rounded-full animate-spin"></div> 
+          <div className="w-4 h-4 border-t-2 border-b-2 border-sky-600 dark:border-sky-500 rounded-full animate-spin"></div> 
         </div>
       )}
       {isSuggestionsVisible && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+        <ul className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((player) => (
             <li
               key={`${player.personId}-${player.firstName}-${player.lastName}-${player.startYear}-${player.endYear}`}
               onClick={() => handleSelectPlayer(player)}
-              className="p-2 hover:bg-sky-600 dark:hover:bg-sky-600 dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" 
+              className="p-2 group hover:bg-sky-500 dark:hover:bg-sky-600 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 text-sm" 
             >
-              <span className="font-medium text-gray-800 dark:text-gray-200">{player.firstName} {player.lastName}</span>
+              <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-white dark:group-hover:text-white">
+                {player.firstName} {player.lastName}
+              </span>
               {(player.startYear && player.endYear) && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({player.startYear}–{player.endYear})</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 group-hover:text-sky-100 dark:group-hover:text-gray-300">
+                  ({player.startYear}–{player.endYear})
+                </span>
               )}
             </li>
           ))}
         </ul>
       )}
       {isSuggestionsVisible && !isLoadingSuggestions && suggestions.length === 0 && searchTerm.length >= 2 && !error && (
-        <div className="absolute z-50 w-full bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md mt-1 shadow-lg p-2 text-gray-700 dark:text-gray-300 text-sm">
+        <div className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md mt-1 shadow-lg p-2 text-gray-600 dark:text-gray-300 text-sm">
           No players found for &quot;{searchTerm}&quot;.
         </div>
       )}

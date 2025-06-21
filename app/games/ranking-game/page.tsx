@@ -1,4 +1,5 @@
 //app/games/ranking-game/page.tsx
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -46,6 +47,16 @@ export default function RankingGame() {
   const [maxStreak, setMaxStreak] = useState<number>(0);
   const [totalCorrect, setTotalCorrect] = useState<number>(0);
   const [totalIncorrect, setTotalIncorrect] = useState<number>(0);
+
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const fetchUserStreak = useCallback(async () => {
     if (!user) {
@@ -203,26 +214,45 @@ export default function RankingGame() {
   
   const totalGames = totalCorrect + totalIncorrect;
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
+  
+  const mainBgClasses = isDarkMode ? "bg-gray-800" : "bg-gray-50";
+  const mainTextClasses = isDarkMode ? "text-white" : "text-gray-800";
+  const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
+  const loadingTextClasses = isDarkMode ? "text-slate-100" : "text-gray-700";
+  const statsContainerClasses = isDarkMode ? "bg-gray-700/50" : "bg-white/80 border border-gray-200";
+
+  const cardIncorrectClasses = isDarkMode ? "bg-gray-900" : "bg-white border border-gray-300";
+  const cardCorrectClasses = "bg-green-600 text-white";
+  const cardCloseClasses = isDarkMode ? "bg-yellow-600 text-white" : "bg-yellow-400 text-white";
+
+  const guessingButtonClasses = isDarkMode 
+    ? "bg-sky-700 hover:bg-sky-600" 
+    : "bg-sky-500 hover:bg-sky-600 text-white";
+  
+  const finishedCardClasses = isDarkMode ? "bg-gray-900" : "bg-white border border-gray-200";
+  const playAgainButtonClasses = "bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 dark:hover:bg-sky-700 transition-colors";
 
   if (status === GameStatus.Loading || authIsLoading) {
-    return <div className="w-full bg-gray-800 rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen text-slate-100">
-      <div className="text-center p-10">Loading Game...</div>
-    </div>
+    return (
+      <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl ${mainBgClasses}`}>
+        <div className={`text-center p-10 ${loadingTextClasses}`}>Loading Game...</div>
+      </div>
+    );
   }
   
   return (
-    <div className="bg-gray-800 rounded-lg shadow-2xl">
-    <div className="container mx-auto p-4 text-white max-w-2xl">
+    <div className={`min-h-screen rounded-lg shadow-2xl ${mainBgClasses}`}>
+    <div className={`container mx-auto p-4 max-w-2xl ${mainTextClasses}`}>
       <h1 className="text-3xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h1>
       <h2 className="text-sm font-bold text-center mb-2">Green means the player is in the correct ranking and yellow means they are one away</h2>
-      <div className="text-center mb-4 p-3 bg-gray-700/50 rounded-lg">
+      <div className={`text-center mb-4 p-3 rounded-lg ${statsContainerClasses}`}>
         {correctOrder.length > 0 && <p className="text-lg">{correctOrder[0].SeasonYear} Regular Season</p>}
         <div className="flex justify-center space-x-6">
             <p>Current Streak: {currentStreak}</p>
             {user && <p>Max Streak: {maxStreak}</p>}
         </div>
         {user && totalGames > 0 && (
-          <div className="text-sm mt-2 text-gray-400 flex justify-center space-x-4">
+          <div className={`text-sm mt-2 flex justify-center space-x-4 ${mutedTextClasses}`}>
             <span>W-L: {totalCorrect}-{totalIncorrect}</span>
             <span>Win %: {winPercentage.toFixed(1)}%</span>
           </div>
@@ -240,15 +270,17 @@ export default function RankingGame() {
                       const correctIndex = correctOrder.findIndex(p => p.personId === player.personId);
                       const isCorrect = index === correctIndex;
                       const isClose = Math.abs(index - correctIndex) === 1;
-                      let bgColor = 'bg-gray-900';
-                      if (isCorrect) bgColor = 'bg-green-700';
-                      else if (isClose) bgColor = 'bg-yellow-600';
+                      
+                      let itemClasses = cardIncorrectClasses;
+                      if (isCorrect) itemClasses = cardCorrectClasses;
+                      else if (isClose) itemClasses = cardCloseClasses;
+
                       return (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`p-4 rounded-lg flex items-center justify-between transition-colors ${bgColor}`}
+                          className={`p-4 rounded-lg flex items-center justify-between transition-colors duration-300 ${itemClasses}`}
                         >
                           <span className="text-2xl font-bold mr-4">{index + 1}</span>
                           <span className="text-xl">{player.firstName} {player.lastName}</span>
@@ -272,7 +304,7 @@ export default function RankingGame() {
               <button
                 key={option}
                 onClick={() => handleGuess(option)}
-                className="p-4 bg-sky-700 rounded-lg text-lg font-semibold hover:bg-sky-600 transition-colors"
+                className={`p-4 rounded-lg text-lg font-semibold transition-colors ${guessingButtonClasses}`}
               >
                 {option}
               </button>
@@ -287,7 +319,7 @@ export default function RankingGame() {
           {correctOrder.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {correctOrder.map((player, index) => (
-                      <div key={player.personId} className="p-3 bg-gray-900 rounded-lg">
+                      <div key={player.personId} className={`p-3 rounded-lg ${finishedCardClasses}`}>
                           <p className="font-bold text-lg">{index + 1}. {player.firstName} {player.lastName}</p>
                           <p className="text-md">{player.statValue.toFixed(2)} {categoryName}</p>
                       </div>
@@ -296,7 +328,7 @@ export default function RankingGame() {
           )}
           <button
             onClick={handlePlayAgain}
-            className="mt-6 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-500 transition-colors"
+            className={`mt-6 ${playAgainButtonClasses}`}
           >
             Play Again
           </button>

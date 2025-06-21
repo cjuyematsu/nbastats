@@ -1,4 +1,5 @@
-// app/top-100-players/page.tsx
+//app/top-100-players/page.tsx
+
 'use client'; 
 
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
@@ -107,7 +108,7 @@ const VotingButton: React.FC<VotingButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`flex items-center p-1.5 rounded-md transition-colors text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? activeClass : inactiveClass}`}
+      className={`flex items-center p-1.5 rounded-md transition-colors text-xs focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? activeClass : inactiveClass}`}
     >
       {children}
     </button>
@@ -122,12 +123,8 @@ interface AggregatedVotesData {
 }
 
 const getTeamLogoUrl = (teamName: string | null): string => {
-  if (!teamName) {
-    return '/nba-logo.png'; 
-  }
-  if (teamName.toLowerCase().includes('trail blazers')) {
-    return '/trailblazers.png';
-  }
+  if (!teamName) return '/nba-logo.png'; 
+  if (teamName.toLowerCase().includes('trail blazers')) return '/trailblazers.png';
   const nameParts = teamName.split(' ');
   const logoName = nameParts[nameParts.length - 1].toLowerCase();
   return `/${logoName}.png`;
@@ -159,14 +156,13 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   };
 
   return (
-    <div className="relative bg-slate-800 border border-slate-700 rounded-lg shadow-xl flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/20">
-      
+    <div className="relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10">
       <Image
         width="1000"
         height="500"
         src={getTeamLogoUrl(player.playerteamName)}
         alt={`${player.playerteamName} logo`}
-        className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.09] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.12] dark:opacity-[0.09] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
       />
       
@@ -178,12 +174,12 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
             </div>
             <Link
               href={`/player/${player.personId}`}
-              className="text-2xl font-bold leading-tight text-slate-100 hover:text-sky-400 transition-colors"
+              className="text-2xl font-bold leading-tight text-slate-800 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
             >
               {`${player.firstName} ${player.lastName}`}
             </Link>
           </div>
-          <p className="text-sm text-slate-400 pl-11">{player.playerteamName}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 pl-11">{player.playerteamName}</p>
         </div>
 
         <div className="flex items-center space-x-2 mt-4">
@@ -193,7 +189,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               disabled={isVotingDisabled}
               ariaLabel={`Upvote ${player.firstName} ${player.lastName}`}
               activeClass="bg-green-500 text-white hover:bg-green-600"
-              inactiveClass="bg-slate-700 hover:bg-slate-600 text-green-300 hover:text-green-100"
+              inactiveClass="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-green-600 dark:text-green-300 hover:text-green-700 dark:hover:text-green-100"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
               <span className="font-semibold text-xs ml-1.5">{player.upvotes}</span>
@@ -204,7 +200,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               disabled={isVotingDisabled}
               ariaLabel={`Confirm spot for ${player.firstName} ${player.lastName}`}
               activeClass="bg-sky-500 text-white hover:bg-sky-600"
-              inactiveClass="bg-slate-700 hover:bg-slate-600 text-sky-300 hover:text-sky-100"
+              inactiveClass="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-sky-600 dark:text-sky-300 hover:text-sky-700 dark:hover:text-sky-100"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
               <span className="font-semibold text-xs ml-1.5">{player.sameSpotVotes}</span>
@@ -214,8 +210,8 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               isActive={player.currentUserVote === -1}
               disabled={isVotingDisabled}
               ariaLabel={`Downvote ${player.firstName} ${player.lastName}`}
-              activeClass="bg-red-400 text-white hover:bg-red-500"
-              inactiveClass="bg-slate-700 hover:bg-slate-600 text-red-300 hover:text-red-100"
+              activeClass="bg-red-500 text-white hover:bg-red-600"
+              inactiveClass="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-red-500 dark:text-red-300 hover:text-red-600 dark:hover:text-red-100"
             >
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                <span className="font-semibold text-xs ml-1.5">{player.downvotes}</span>
@@ -223,25 +219,23 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         </div>
       </div>
 
-      <div className="relative z-10 w-2/5 border-l border-slate-700 p-4">
+      <div className="relative z-10 w-2/5 border-l border-gray-200 dark:border-slate-700 p-4">
         <div className="grid grid-cols-2 grid-rows-5 gap-x-4 gap-y-2 h-full">
             {stats.map(stat => (
                 <div key={stat.label} className="flex flex-col">
-                    <span className="text-xs text-sky-400">{stat.label}</span>
-                    <span className="text-lg font-bold text-sky-200">
+                    <span className="text-xs text-sky-600 dark:text-sky-400">{stat.label}</span>
+                    <span className="text-lg font-bold text-slate-700 dark:text-sky-200">
                         {stat.value}
-                        {stat.label.includes('%') && stat.value !== 'N/A' ? <span className="text-xs text-slate-400">%</span> : ''}
+                        {stat.label.includes('%') && stat.value !== 'N/A' ? <span className="text-xs text-slate-500 dark:text-slate-400">%</span> : ''}
                     </span>
                 </div>
             ))}
         </div>
       </div>
-
     </div>
   );
 };
 
-// --- Main Page Component and Hooks ---
 export default function Top100PlayersPage() {
   const { user, isLoading: authIsLoading, session } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>([]);
@@ -249,7 +243,6 @@ export default function Top100PlayersPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
   const [lastRearrangementTimeISO, setLastRearrangementTimeISO] = useState<string | null>(null);
-
   const [nominationSearchTerm, setNominationSearchTerm] = useState('');
   const [nominationSuggestions, setNominationSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isNominating, setIsNominating] = useState(false); 
@@ -358,7 +351,7 @@ export default function Top100PlayersPage() {
           fieldGoalPercentage: p.FGA_total != null && p.FGA_total > 0 && p.FGM_total != null ? p.FGM_total / p.FGA_total : null,
           threePointPercentage: p.FG3A_total != null && p.FG3A_total > 0 && p.FG3M_total != null ? p.FG3M_total / p.FG3A_total : null,
           freeThrowPercentage: p.FTA_total != null && p.FTA_total > 0 && p.FTM_total != null ? p.FTM_total / p.FTA_total : null,
-          trueShootingPercentage: trueShootingPercentage, // Assign calculated value
+          trueShootingPercentage: trueShootingPercentage, 
           weightedProminence: p.statsBasedProminence ?? p.Prominence_rs ?? null,
           upvotes: liveCounts.upvotes, downvotes: liveCounts.downvotes, sameSpotVotes: liveCounts.sameSpotVotes,
           finalMovementScoreAtRanking: p.weeklyMovementScore ?? 0,
@@ -549,27 +542,43 @@ export default function Top100PlayersPage() {
     }
   };
 
+
   const pageTitle = "Top 100 Players";
   const pageSubtitle = "Give your opinion on how players should be moved";
 
+  const LoadingErrorDisplay = ({ children }: { children: React.ReactNode }) => (
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 p-4 md:p-6 text-center flex-grow">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-sky-600 dark:text-sky-400">{pageTitle}</h1>
+      <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 sm:mb-8">{pageSubtitle}</p>
+      {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
+      <div className="py-10">{children}</div>
+    </div>
+  );
+
   if (authIsLoading || (isLoadingPlayers && players.length === 0 && !fetchError)) { 
-    return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6 text-center"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-slate-300 py-10 text-xl">Loading players...</p> </div> );
+    return <LoadingErrorDisplay><p className="text-xl">Loading players...</p></LoadingErrorDisplay>;
   }
   if (fetchError) {
-     return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-center text-red-300 mt-4">Error: {fetchError}</p> </div> );
+     return <LoadingErrorDisplay><p className="text-center text-red-600 dark:text-red-400 mt-4">Error: {fetchError}</p></LoadingErrorDisplay>;
   }
   if (!isLoadingPlayers && players.length === 0) { 
-    return ( <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 p-4 md:p-6"> <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1> <p className="text-lg text-slate-400 mb-6 sm:mb-8 text-center">{pageSubtitle}</p> {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />} <p className="text-center text-slate-300 py-10">No player data is currently available for this week&apos;s ranking.</p> <p className="text-center text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p> 
-</div> );
+    return <LoadingErrorDisplay>
+      <p className="text-slate-700 dark:text-slate-300">No player data is currently available for this week&apos;s ranking.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p>
+    </LoadingErrorDisplay>;
   }
 
   return (
-    <div className="w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100 flex flex-col flex-grow min-h-0"> 
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0"> 
       <div className="p-4 md:py-6"> 
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-400">{pageTitle}</h1>
-        <p className="text-lg text-slate-400 mb-1 text-center">{pageSubtitle}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-600 dark:text-sky-400">{pageTitle}</h1>
+        <p className="text-lg text-slate-500 dark:text-slate-400 mb-1 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
-        {!user && !authIsLoading && ( <p className="text-center text-sky-400 my-6 font-bold"> <Link href="/signin" className="underline hover:text-sky-300">Sign in</Link> to vote on player rankings or nominate players! </p> )}
+        {!user && !authIsLoading && (
+          <p className="text-center text-sky-600 dark:text-sky-400 my-6 font-semibold">
+            <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to vote on player rankings or nominate players!
+          </p>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
           {players.map((player) => (
             <PlayerBox 
@@ -582,20 +591,22 @@ export default function Top100PlayersPage() {
         </div>
       </div>
       {user && (
-          <div className="px-4 md:px-6 pb-8 mb-12"> 
-            <div className="max-w-2xl mx-auto bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-xl">
-                <h2 className="text-xl font-semibold text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
-                <p className="text-sm text-slate-400 mb-4 text-center"> Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote. </p>
-                <div className="max-w-md mx-auto">
-                  <input type="text" placeholder="Search player name to nominate..." value={nominationSearchTerm} onChange={handleNominationSearchChange} disabled={isNominating} className="w-full p-2.5 rounded bg-slate-600 text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
+          <div className="px-4 md:px-6 pb-8"> 
+            <div className="max-w-2xl mx-auto bg-gray-100 dark:bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 dark:border-transparent">
+                <h2 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center"> Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote. </p>
+                <div className="max-w-md mx-auto relative">
+                  <input type="text" placeholder="Search player name to nominate..." value={nominationSearchTerm} onChange={handleNominationSearchChange} disabled={isNominating} className="w-full p-2.5 rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 border border-gray-300 dark:border-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
                   {nominationSuggestions.length > 0 && (
-                    <ul className="mt-2 bg-slate-700 rounded shadow-lg max-h-60 overflow-y-auto border border-slate-600">
+                    <ul className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200 dark:border-slate-600">
                       {nominationSuggestions.map((playerSugg) => (
-                        <li key={playerSugg.personId} className={`p-2.5 hover:bg-sky-600 cursor-pointer border-b border-slate-600 last:border-b-0 ${isNominating || isSubmittingVoteForPlayer[playerSugg.personId] ? 'opacity-50 cursor-not-allowed' : ''}`} onClick={() => !(isNominating || isSubmittingVoteForPlayer[playerSugg.personId]) && handleNominatePlayer(playerSugg)} > {playerSugg.firstName} {playerSugg.lastName} </li>
+                        <li key={playerSugg.personId} className={`p-2.5 hover:bg-sky-500 dark:hover:bg-sky-600 hover:text-white dark:hover:text-white cursor-pointer border-b border-gray-200 dark:border-slate-600 last:border-b-0 ${isNominating || isSubmittingVoteForPlayer[playerSugg.personId] ? 'opacity-50 cursor-not-allowed' : ''}`} onClick={() => !(isNominating || isSubmittingVoteForPlayer[playerSugg.personId]) && handleNominatePlayer(playerSugg)} >
+                          {playerSugg.firstName} {playerSugg.lastName}
+                        </li>
                       ))}
                     </ul>
                   )}
-                  {nominationMessage && ( <p className={`mt-3 text-sm text-center ${ nominationMessage.includes('Error:') || nominationMessage.includes('Failed') || nominationMessage.includes('already in') || nominationMessage.includes('already been upvoted') ? 'text-red-400' : 'text-green-400'}`}>{nominationMessage}</p> )}
+                  {nominationMessage && ( <p className={`mt-3 text-sm text-center ${ nominationMessage.includes('Error:') || nominationMessage.includes('Failed') || nominationMessage.includes('already in') || nominationMessage.includes('already been upvoted') ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{nominationMessage}</p> )}
                 </div>
             </div>
           </div>

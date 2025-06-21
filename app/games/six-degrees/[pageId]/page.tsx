@@ -1,3 +1,5 @@
+//app/six-degrees/[pageId]/page.tsx
+
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -37,6 +39,7 @@ type PlayerSuggestion = {
   };
 
 type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error' | 'already_played';
+
 function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor: number) {
   let timeout: ReturnType<typeof setTimeout> | null = null;
   const debounced = (...args: Args) => {
@@ -49,11 +52,13 @@ function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor
 function PlayerInput({ 
   onSelect, 
   placeholder, 
-  disabled 
+  disabled,
+  isDarkMode
 }: { 
   onSelect: (player: Guess) => void;
   placeholder: string;
   disabled: boolean;
+  isDarkMode: boolean;
 }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<{id: number, name: string}[]>([]);
@@ -101,6 +106,21 @@ function PlayerInput({
         setIsOpen(false);
     };
 
+    const inputClasses = isDarkMode
+        ? "bg-slate-700 text-white placeholder-gray-400 disabled:bg-slate-800 disabled:text-gray-500"
+        : "bg-white text-gray-800 placeholder-gray-500 border border-sky-300 disabled:bg-gray-100 disabled:text-gray-400";
+
+    const dropdownClasses = isDarkMode 
+        ? "bg-slate-600 text-white"
+        : "bg-white text-gray-800 border border-sky-200";
+    
+    const dropdownItemClasses = isDarkMode
+        ? "text-white hover:bg-sky-700"
+        : "text-gray-800 hover:bg-sky-100";
+    
+    const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
+
+
     return (
         <div className="relative w-full">
             <input 
@@ -111,25 +131,25 @@ function PlayerInput({
                 onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="bg-slate-700 p-3 rounded w-full text-center text-white placeholder-gray-400 disabled:bg-slate-800 disabled:text-gray-500 disabled:cursor-not-allowed text-lg"
+                className={`p-3 rounded w-full text-center disabled:cursor-not-allowed text-lg ${inputClasses}`}
                 autoComplete="off"
             />
             {isOpen && (
-                <ul className="absolute z-10 w-full bg-slate-600 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                <ul className={`absolute z-10 w-full rounded-md shadow-lg max-h-48 overflow-y-auto mt-1 ${dropdownClasses}`}>
                     {isSearching ? (
-                         <li className="px-3 py-2 text-sm text-gray-400">Searching...</li>
+                         <li className={`px-3 py-2 text-sm ${mutedTextClasses}`}>Searching...</li>
                     ) : results.length > 0 ? (
                         results.map(player => (
                             <li 
                                 key={player.id} 
                                 onMouseDown={() => handleSelect(player)}
-                                className="px-3 py-2 text-sm text-white hover:bg-sky-700 cursor-pointer"
+                                className={`px-3 py-2 text-sm cursor-pointer ${dropdownItemClasses}`}
                             >
                                 {player.name}
                             </li>
                         ))
                     ) : query.length > 2 ? (
-                        <li className="px-3 py-2 text-sm text-gray-400">No players found.</li>
+                        <li className={`px-3 py-2 text-sm ${mutedTextClasses}`}>No players found.</li>
                     ) : null}
                 </ul>
             )}
@@ -155,6 +175,15 @@ function SixDegreesGameContent() {
     const [feedbackMessage, setFeedbackMessage] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [priorPlayResult, setPriorPlayResult] = useState<DailyScore | null>(null);
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        setIsDarkMode(mediaQuery.matches);
+        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
     
     useEffect(() => {
         if (gameStatus === 'playing' && puzzle) {
@@ -321,31 +350,50 @@ function SixDegreesGameContent() {
         }
     };
     
+    const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800";
+    const loadingTextClasses = isDarkMode ? "text-slate-300" : "text-gray-600";
+    const errorTextClasses = isDarkMode ? "text-red-400" : "text-red-600";
+    const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
+    const playerCardClasses = isDarkMode ? "bg-slate-800" : "bg-white/60 backdrop-blur-sm border border-sky-200";
+    const arrowColor = isDarkMode ? "text-green-400" : "text-green-500";
+    const mutedArrowColor = isDarkMode ? "text-gray-400" : "text-gray-500";
+    const backButtonClasses = isDarkMode ? "bg-sky-600 hover:bg-sky-700" : "bg-sky-500 hover:bg-sky-600";
+
+    const alreadyPlayedContainer = isDarkMode
+        ? "bg-gray-800 text-white"
+        : "bg-white text-gray-800";
+    const alreadyPlayedCard = isDarkMode 
+        ? "bg-slate-700/50"
+        : "bg-white/60 backdrop-blur-sm border border-sky-200";
+    const alreadyPlayedHeaderText = isDarkMode ? "text-slate-200" : "text-gray-800";
+    const alreadyPlayedMutedText = isDarkMode ? "text-slate-400" : "text-gray-500";
+
+
     if (gameStatus === 'loading' || authIsLoading) {
-        return <div className="flex justify-center items-center min-h-screen text-slate-300"><p className="text-xl">Loading Game...</p></div>;
+        return <div className={`flex justify-center items-center min-h-screen ${mainContainerClasses}`}><p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p></div>;
     }
     if (gameStatus === 'error') {
-        return <div className="flex justify-center items-center min-h-screen text-red-400"><p>Error: {errorMsg}</p></div>;
+        return <div className={`flex justify-center items-center min-h-screen ${errorTextClasses}`}><p>Error: {errorMsg}</p></div>;
     }
 
     if (gameStatus === 'already_played') {
         return (
-             <div className="w-full bg-gray-800 rounded-lg shadow-2xl p-4 text-center text-white max-w-lg mx-auto">
-                <h1 className="text-3xl font-bold text-sky-400 mb-6">Daily Challenge Complete</h1>
+             <div className={`w-full rounded-lg shadow-2xl p-4 text-center max-w-lg mx-auto ${alreadyPlayedContainer}`}>
+                <h1 className={`text-3xl font-bold ${highlightColor} mb-6`}>Daily Challenge Complete</h1>
                     
                 {priorPlayResult ? (
-                     <div className="text-left p-4 bg-slate-700/50 rounded-lg">
-                        <h3 className="text-center text-xl font-bold text-slate-200 mb-3">Today&apos;s Result</h3>
+                     <div className={`text-left p-4 rounded-lg ${alreadyPlayedCard}`}>
+                        <h3 className={`text-center text-xl font-bold ${alreadyPlayedHeaderText} mb-3`}>Today&apos;s Result</h3>
                         {priorPlayResult.is_successful ? (
-                            <p className="text-green-400 text-center font-bold">
+                            <p className="text-green-500 text-center font-bold">
                                 Solved in {priorPlayResult.guess_count} {priorPlayResult.guess_count > 1 ? 'links' : 'link'}!
                             </p>
                         ) : (
-                            <p className="text-red-400 text-center font-bold">
+                            <p className="text-red-500 text-center font-bold">
                                 You didn&apos;t solve it in {MAX_GUESSES} guesses.
                             </p>
                         )}
-                         <p className="text-xs text-slate-400 mt-2 text-center">
+                         <p className={`text-xs ${alreadyPlayedMutedText} mt-2 text-center`}>
                            Solution: {priorPlayResult.solution_path_names?.join(' → ')}
                         </p>
                     </div>
@@ -353,7 +401,7 @@ function SixDegreesGameContent() {
                     <p className="my-8">Your previous result could not be loaded.</p>
                 )}
     
-                <button onClick={() => router.push('/games/six-degrees')} className="mt-8 px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-semibold">
+                <button onClick={() => router.push('/games/six-degrees')} className={`mt-8 px-6 py-2 rounded-lg text-white font-semibold ${backButtonClasses}`}>
                     Back to Lobby
                 </button>
             </div>
@@ -361,59 +409,60 @@ function SixDegreesGameContent() {
     }
 
     if (!puzzle) {
-        return <div className="flex justify-center items-center min-h-screen text-slate-300"><p>Could not load puzzle data.</p></div>;
+        return <div className={`flex justify-center items-center min-h-screen ${loadingTextClasses}`}><p>Could not load puzzle data.</p></div>;
     }
 
     const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
 
     return (
-        <div className="w-full min-h-screen bg-gray-800 rounded-lg shadow-2xl">
-        <div className="container mx-auto p-4 text-center max-w-lg text-white">
+        <div className={`w-full min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+        <div className="container mx-auto p-4 text-center max-w-lg">
             <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
-            <p className="mb-4">Connect <span className="font-bold text-sky-400">{puzzle.player_a_name}</span> to <span className="font-bold text-sky-400">{puzzle.player_b_name}</span>.</p>
-            <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? 'text-red-500' : 'text-sky-400'}>{MAX_GUESSES - guessHistory.length}</span></p>
+            <p className="mb-4">Connect <span className={`font-bold ${highlightColor}`}>{puzzle.player_a_name}</span> to <span className={`font-bold ${highlightColor}`}>{puzzle.player_b_name}</span>.</p>
+            <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? (isDarkMode ? 'text-red-500' : 'text-red-600') : highlightColor}>{MAX_GUESSES - guessHistory.length}</span></p>
 
             <div className="space-y-4 mb-6">
                 {path.map((player, index) => (
                      <div key={`${player.id}-${index}`} className="flex flex-col items-center">
-                        <div className="w-full p-4 bg-slate-800 rounded-lg shadow-lg">
-                            <p className="text-sm text-sky-400">{index === 0 ? 'Start Player' : `Link #${index}`}</p>
+                        <div className={`w-full p-4 rounded-lg shadow-lg ${playerCardClasses}`}>
+                            <p className={`text-sm ${highlightColor}`}>{index === 0 ? 'Start Player' : `Link #${index}`}</p>
                             <p className="text-2xl font-bold">{player.name}</p>
                         </div>
                         {gameStatus === 'playing' && index < path.length - 1 && (
-                            <span className="text-2xl text-green-400 transform rotate-90 leading-none -my-1.5">→</span>
+                            <span className={`text-2xl transform rotate-90 leading-none -my-1.5 ${arrowColor}`}>→</span>
                         )}
                     </div>
                 ))}
                 
                 {gameStatus === 'playing' && nextPlayerToGuessFor && (
                     <div className="flex flex-col items-center">
-                         <span className="text-2xl text-gray-400 transform rotate-90 leading-none -my-1.5">→</span>
+                         <span className={`text-2xl transform rotate-90 leading-none -my-1.5 ${mutedArrowColor}`}>→</span>
                          <div className="w-full">
                             <PlayerInput 
                                 placeholder={`Find a teammate of ${nextPlayerToGuessFor.name}...`}
                                 onSelect={handleGuess}
                                 disabled={false}
+                                isDarkMode={isDarkMode}
                             />
                          </div>
                     </div>
                 )}
                 
-                <div className="p-4 bg-slate-800 rounded-lg shadow-lg mt-4">
-                    <p className="text-sm text-sky-400">End Player</p>
+                <div className={`p-4 rounded-lg shadow-lg mt-4 ${playerCardClasses}`}>
+                    <p className={`text-sm ${highlightColor}`}>End Player</p>
                     <p className="text-2xl font-bold">{puzzle.player_b_name}</p>
                 </div>
             </div>
 
             <div className="h-7 my-4">
-                {feedbackMessage && <p className={`text-lg font-bold ${feedbackMessage.startsWith('Correct') ? 'text-green-400' : 'text-red-400'}`}>{feedbackMessage}</p>}
+                {feedbackMessage && <p className={`text-lg font-bold ${feedbackMessage.startsWith('Correct') ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')}`}>{feedbackMessage}</p>}
             </div>
 
             {gameStatus === 'playing' && (
                 <div className="mt-6">
                     <button
                         onClick={() => router.back()}
-                        className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold"
+                        className={`px-6 py-2 rounded-lg text-white font-bold ${backButtonClasses}`}
                     >
                         Back
                     </button>
@@ -421,13 +470,13 @@ function SixDegreesGameContent() {
             )}
 
              {(gameStatus === 'won' || gameStatus === 'lost') && (
-                 <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? 'bg-green-900/50 border border-green-500' : 'bg-red-900/50 border border-red-500'}`}>
-                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-300' : 'text-red-300'}`}>
+                 <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? (isDarkMode ? 'bg-green-900/50 border border-green-500' : 'bg-green-100 border border-green-400') : (isDarkMode ? 'bg-red-900/50 border border-red-500' : 'bg-red-100 border border-red-400')}`}>
+                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? (isDarkMode ? 'text-green-300' : 'text-green-800') : (isDarkMode ? 'text-red-300' : 'text-red-800')}`}>
                          {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
                      </h2>
                      {gameStatus === 'won' && <p className="mt-2">Your Path: {[...path, { id: puzzle.player_b_id, name: puzzle.player_b_name }].map(p => p.name).join(' → ')}</p>}
                      {gameStatus === 'lost' && <p className="mt-2">A possible solution was: {puzzle.solution_path_names.join(' → ')}</p>}
-                      <button onClick={() => router.push('/games/six-degrees')} className="mt-4 px-6 py-2 bg-sky-600 rounded-lg text-white font-bold">
+                      <button onClick={() => router.push('/games/six-degrees')} className={`mt-4 px-6 py-2 rounded-lg text-white font-bold ${backButtonClasses}`}>
                           Back
                       </button>
                  </div>
@@ -439,7 +488,7 @@ function SixDegreesGameContent() {
 
 export default function SixDegreesGameLoader() {
     return (
-        <Suspense fallback={<div className="flex justify-center items-center min-h-screen text-white"><p className="text-xl">Loading Game...</p></div>}>
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white"><p className="text-xl">Loading Game...</p></div>}>
             <SixDegreesGameContent />
         </Suspense>
     );
