@@ -1,6 +1,13 @@
 //app/page.tsx
 
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'NBA Stats, Player Comparisons & Trivia | Hoops Data',
+  description: 'Your ultimate hub for NBA stats. Use our free NBA player comparison tool, explore all-time rankings, and test your knowledge with fun trivia games.',
+};
+
 
 export default function HomePage() {
   return (
@@ -8,11 +15,11 @@ export default function HomePage() {
       <main className="text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="mb-10 md:mb-16">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl pt-8">
-            <span className="block text-sky-600 dark:text-sky-400">NBA Statistics Hub</span>
+            <span className="block text-sky-600 dark:text-sky-400">The Ultimate Hub for NBA Stats</span>
           </h1>
           <h2 className="text-slate-600">
             <span className="block dark:text-slate-300 mt-1 sm:mt-2">
-                Explore NBA Stats Through Games, Tools, and Articles
+                Explore NBA Player Stats, NBA Player Comparisons, and NBA Trivia
             </span>
           </h2>
           
@@ -30,13 +37,13 @@ export default function HomePage() {
             <Link href="/compare" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Compare Players</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Side-by-side comparison of up to five players performances at the same age across different statistical categories.
+                Compare player stats side-by-side. Settle debates on who is the better player based on hard data.
               </p>
             </Link>
             <Link href="/top-100-players" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Top 100 Players</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Explore our rankings of the top 100 players in NBA history with detailed statistics.
+                Explore our rankings of the top 100 players of 2025 and vote to change rankings.
               </p>
             </Link>
             <Link href="/degrees-of-separation" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
