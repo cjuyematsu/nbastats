@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
@@ -219,6 +220,48 @@ export default function PlayerComparisonChart() {
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true); 
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const playersQuery = searchParams.get('players');
+    if (playersQuery) {
+      const playerNames = playersQuery.split(',').slice(0, MAX_PLAYERS);
+      
+      const fetchInitialPlayers = async () => {
+        setIsLoadingChart(true); 
+        const newSelectedPlayers = Array(MAX_PLAYERS).fill(null);
+        let playersFound = 0;
+
+        for (let i = 0; i < playerNames.length; i++) {
+          const name = playerNames[i].trim();
+          if (name) {
+            try {
+              const { data, error: rpcError } = await supabase.rpc('get_player_suggestions', { search_term: name });
+
+              if (rpcError) throw rpcError;
+
+              if (data && data.length > 0) {
+                newSelectedPlayers[i] = data[0] as SelectedPlayerForComparison;
+                playersFound++;
+              }
+            } catch (e) {
+              console.error(`Error fetching initial player data for "${name}":`, e);
+            }
+          }
+        }
+        
+        if (playersFound > 0) {
+          setSelectedPlayers(newSelectedPlayers);
+        } else {
+            setIsLoadingChart(false);
+        }
+      };
+
+      fetchInitialPlayers();
+    }
+  }, [searchParams]); 
+
 
   useEffect(() => {
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
