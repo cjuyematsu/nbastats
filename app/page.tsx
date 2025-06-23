@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'NBA Stats, Player Comparisons & Trivia | Hoops Data',
-  description: 'Your ultimate hub for NBA stats. Use our free NBA player comparison tool, explore all-time rankings, and test your knowledge with fun trivia games.',
+  description: 'Your ultimate hub for NBA stats. Use our free NBA player comparison tool, explore NBA player rankings, and test your knowledge with fun trivia games.',
 };
 
 
