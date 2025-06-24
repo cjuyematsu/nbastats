@@ -53,7 +53,6 @@ export default function DraftQuizPage() {
     const idsToSave = Array.from(guessedIdsRef.current);
     
     if (user && session && idsToSave.length > 0) {
-      console.log(`Saving ${idsToSave.length} guessed IDs...`);
       
       await fetch('/api/quiz/save', {
         method: 'POST',

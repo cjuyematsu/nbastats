@@ -54,7 +54,6 @@ export default function DraftQuizLobby() {
 
   useEffect(() => {
     const handleFocus = () => {
-      console.log('Lobby focused, refetching score data...');
       getLobbyData();
     };
 
