@@ -1,5 +1,3 @@
-// app/games/stat-over-under/[era]/page.tsx
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
@@ -160,6 +158,9 @@ function StatOverUnderEraGameContent() {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isLogoVisible, setIsLogoVisible] = useState(false);
+  // --- NEW ---: State to control the feedback section's animation
+  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -168,6 +169,16 @@ function StatOverUnderEraGameContent() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
+
+  useEffect(() => {
+    if (gameStatus === 'playing') {
+      const timer = setTimeout(() => {
+        setIsLogoVisible(true);
+      }, 100); 
+      return () => clearTimeout(timer);
+    }
+  }, [currentRoundIndex, gameStatus]);
+
 
   const fetchChallenges = useCallback(async (dateISO: string, era: string): Promise<GameChallenge[]> => {
     try {
@@ -346,17 +357,25 @@ function StatOverUnderEraGameContent() {
         }
     } else {
         setGameStatus('round_feedback');
+        // --- MODIFIED ---: Make the feedback section visible when it appears
+        setIsFeedbackVisible(true);
     }
   }, [gameStatus, currentRoundIndex, challenges, score, userAnswers, user, saveGameResult, gameEraFromParam, todayDateISO]);
   
   const handleNextRound = useCallback(() => {
-    setFeedbackMessage(null);
-    if (currentRoundIndex < challenges.length - 1) {
-      setCurrentRoundIndex(prev => prev + 1);
-      setGameStatus('playing');
-    } else {
-      setGameStatus('completed'); 
-    }
+    // --- MODIFIED ---: Start both fade-out animations immediately for instant feedback
+    setIsLogoVisible(false);
+    setIsFeedbackVisible(false);
+
+    setTimeout(() => {
+      setFeedbackMessage(null);
+      if (currentRoundIndex < challenges.length - 1) {
+        setCurrentRoundIndex(prev => prev + 1);
+        setGameStatus('playing');
+      } else {
+        setGameStatus('completed'); 
+      }
+    }, 500);
   }, [currentRoundIndex, challenges.length]);
   
   const handlePlayDifferentEra = () => {
@@ -374,7 +393,7 @@ function StatOverUnderEraGameContent() {
   const gameCardBg = isDarkMode ? "bg-slate-700/80 border-slate-600" : "bg-white/80 border-gray-200";
   const buttonSecondary = isDarkMode ? "bg-gray-600 hover:bg-gray-700" : "bg-gray-200 hover:bg-gray-300";
   const correctBg = isDarkMode ? "bg-green-700/30 border-green-600 text-green-300" : "bg-green-100 border-green-200 text-green-800";
-  const incorrectBg = isDarkMode ? "bg-red-700/30 border-red-600 text-red-300" : "bg-red-100 border-red-200 text-red-700";
+  const incorrectBg = isDarkMode ? "bg-red-700/30 border-red-600 text-red-300" : "bg-red-100 border-red-200 text-red-800";
   const amberText = isDarkMode ? "text-amber-400" : "text-amber-600";
   const amberButtonBg = isDarkMode ? "bg-slate-700 hover:bg-slate-600" : "bg-amber-50 hover:bg-amber-100";
   const amberRing = isDarkMode ? "ring-offset-slate-800" : "ring-offset-white";
@@ -449,7 +468,7 @@ function StatOverUnderEraGameContent() {
                         fill
                         src={getTeamLogoUrl(currentChallenge.team_name)}
                         alt={currentChallenge.team_name || 'Team Logo'}
-                        className="object-contain opacity-[0.15]"
+                        className={`object-contain transform transition-all duration-500 ease-in-out ${isLogoVisible ? 'opacity-[0.15] scale-100' : 'opacity-0 scale-95'}`}
                         onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
                     />
                 </div>
@@ -468,12 +487,16 @@ function StatOverUnderEraGameContent() {
                 <button onClick={() => handleGuess('over')}  aria-label="Guess Over" className="flex-1 px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 text-lg flex flex-col items-center justify-center"><ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 mb-1" /> OVER</button>
               </div>
             )}
+            
+            {/* --- MODIFIED ---: This whole block is now wrapped in a div that controls its animation */}
             {gameStatus === 'round_feedback' && feedbackMessage && (
-              <div className="mt-6 text-center">
-                <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? correctBg : incorrectBg}`}>
-                  <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-bold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-bold">Incorrect.</strong>') }} />
+              <div className={`transition-opacity duration-300 ease-in-out ${isFeedbackVisible ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="mt-6 text-center">
+                  <div className={`text-lg p-4 rounded-md shadow-md mb-4 ${userAnswers.length > 0 && userAnswers[userAnswers.length -1]?.is_correct ? correctBg : incorrectBg}`}>
+                    <p dangerouslySetInnerHTML={{ __html: feedbackMessage.replace(/Correct!/g, '<strong class="font-bold">Correct!</strong>').replace(/Incorrect./g, '<strong class="font-bold">Incorrect.</strong>') }} />
+                  </div>
+                  <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
                 </div>
-                <button onClick={handleNextRound} className="mt-4 px-8 py-3 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105">{currentRoundIndex < challenges.length - 1 ? 'Next Round' : 'Show Final Results'}</button>
               </div>
             )}
         </div>
