@@ -96,7 +96,6 @@ export default function RankingGame() {
         try {
             const cachedGame = JSON.parse(cachedGameDataString);
             if (cachedGame.players && cachedGame.correctOrder) {
-                console.log("Loading game board from session cache.");
                 setPlayers(cachedGame.players);
                 setCorrectOrder(cachedGame.correctOrder);
                 setCategoryName(cachedGame.categoryName);

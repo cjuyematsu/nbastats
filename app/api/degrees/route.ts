@@ -34,7 +34,6 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
     if (graphDataLoaded && adjList && playerMap) {
         return { adjList, playerMap };
     }
-    console.log("Attempting to load graph data from filesystem...");
     try {
         const projectRoot = process.cwd();
 
@@ -59,7 +58,6 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
         adjList = localAdjList;
         playerMap = localPlayerMap;
         graphDataLoaded = true;
-        console.log("Graph data from filesystem loaded and cached successfully.");
 
         return { adjList: localAdjList, playerMap: localPlayerMap };
 
