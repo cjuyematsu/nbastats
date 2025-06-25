@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   description: 'Search and compare NBA player statistics',
 };
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "HoopsData", 
+  "url": "https://www.hoopsdata.net", 
+  "logo": "https://www.hoopsdata.net/logo.svg" 
+};
+
 const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256;
 const PAGE_INSET_PADDING_PX = 12;
 const NAVBAR_HEADER_GAP_PX = 12;
@@ -27,6 +35,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+      <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/logo.png" /> 
+
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             --header-height: 64px; 
