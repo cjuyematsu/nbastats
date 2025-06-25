@@ -23,6 +23,7 @@ enum GameStatus {
 }
 
 const GAME_SESSION_CACHE_KEY = 'oddManOutGameSession_v1';
+const GUEST_STREAK_CACHE_KEY = 'oddManOutGuestStreak_v1';
 const MIN_LOADING_TIME_MS = 400;
 
 export default function OddManOutGame() {
@@ -49,31 +50,45 @@ export default function OddManOutGame() {
   }, []);
 
   const fetchUserStreak = useCallback(async () => {
-    if (!user) {
-        setCurrentStreak(0);
-        setMaxStreak(0);
-        setTotalCorrect(0);
-        setTotalIncorrect(0);
-        return;
-    }
-    const { data } = await supabase
-      .from('odd_man_out_streaks')
-      .select('current_streak, max_streak, total_correct, total_incorrect')
-      .eq('user_id', user.id)
-      .single();
-      
-    if (data) {
-      const { data: dataWithActive } = await supabase
+    if (user) {
+      const { data } = await supabase
         .from('odd_man_out_streaks')
         .select('current_streak, max_streak, is_active, total_correct, total_incorrect')
         .eq('user_id', user.id)
         .single();
-
-      if (dataWithActive) {
-          setCurrentStreak(dataWithActive.is_active ? dataWithActive.current_streak : 0);
-          setMaxStreak(dataWithActive.max_streak);
-          setTotalCorrect(dataWithActive.total_correct);
-          setTotalIncorrect(dataWithActive.total_incorrect);
+        
+      if (data) {
+        setCurrentStreak(data.is_active ? data.current_streak : 0);
+        setMaxStreak(data.max_streak);
+        setTotalCorrect(data.total_correct);
+        setTotalIncorrect(data.total_incorrect);
+      } else {
+        setCurrentStreak(0);
+        setMaxStreak(0);
+        setTotalCorrect(0);
+        setTotalIncorrect(0);
+      }
+    } else {
+      const cachedStreakData = sessionStorage.getItem(GUEST_STREAK_CACHE_KEY);
+      if (cachedStreakData) {
+        try {
+          const { current_streak, max_streak, total_correct, total_incorrect } = JSON.parse(cachedStreakData);
+          setCurrentStreak(current_streak || 0);
+          setMaxStreak(max_streak || 0);
+          setTotalCorrect(total_correct || 0);
+          setTotalIncorrect(total_incorrect || 0);
+        } catch {
+          sessionStorage.removeItem(GUEST_STREAK_CACHE_KEY);
+          setCurrentStreak(0);
+          setMaxStreak(0);
+          setTotalCorrect(0);
+          setTotalIncorrect(0);
+        }
+      } else {
+        setCurrentStreak(0);
+        setMaxStreak(0);
+        setTotalCorrect(0);
+        setTotalIncorrect(0);
       }
     }
   }, [user, supabase]);
@@ -96,8 +111,8 @@ export default function OddManOutGame() {
                 setGameData(cachedData);
                 gameLoadedFromCache = true;
             }
-        } catch (e) {
-            console.error("Clearing corrupted game cache.", e);
+        } catch {
+            console.error("Clearing corrupted game cache.");
             sessionStorage.removeItem(GAME_SESSION_CACHE_KEY);
         }
     }
@@ -147,26 +162,46 @@ export default function OddManOutGame() {
       const newStreak = currentStreak + 1;
       const newMax = Math.max(maxStreak, newStreak);
       const newCorrect = totalCorrect + 1;
+      
       setCurrentStreak(newStreak);
       setMaxStreak(newMax);
       setTotalCorrect(newCorrect);
       setMessage(`Correct! The connection was ${gameData.connectionName}.`);
+
       if (user) {
         await supabase.from('odd_man_out_streaks').upsert({
           user_id: user.id, current_streak: newStreak, max_streak: newMax, is_active: true,
           total_correct: newCorrect, total_incorrect: totalIncorrect, updated_at: new Date().toISOString()
         });
+      } else {
+        const guestStreakData = {
+          current_streak: newStreak,
+          max_streak: newMax,
+          total_correct: newCorrect,
+          total_incorrect: totalIncorrect
+        };
+        sessionStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
       }
     } else {
       const newIncorrect = totalIncorrect + 1;
+      
       setCurrentStreak(0);
       setTotalIncorrect(newIncorrect);
       setMessage(`The connection was ${gameData.connectionName}.`);
+
       if (user) {
         await supabase.from('odd_man_out_streaks').upsert({
-          user_id: user.id, current_streak: 0, is_active: false,
+          user_id: user.id, current_streak: 0, is_active: false, max_streak: maxStreak,
           total_correct: totalCorrect, total_incorrect: newIncorrect, updated_at: new Date().toISOString()
         });
+      } else {
+        const guestStreakData = {
+          current_streak: 0,
+          max_streak: maxStreak,
+          total_correct: totalCorrect,
+          total_incorrect: newIncorrect
+        };
+        sessionStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
       }
     }
   };
