@@ -1,4 +1,4 @@
-export const draftData = [
+[
     {
       "personId": 2544,
       "Round": 1,
@@ -1540,10 +1540,21 @@ export const draftData = [
       "yearsactive": "2005-2017"
     },
     {
-      "personId": 77141,
+      "personId": 698,
       "Round": 2,
       "Pick": 29,
       "playerrank": 1,
+      "firstName": "Eddie",
+      "lastName": "Johnson",
+      "careerpoints": 19182,
+      "pointspergame": "15.96",
+      "yearsactive": "1982-1999"
+    },
+    {
+      "personId": 77141,
+      "Round": 2,
+      "Pick": 29,
+      "playerrank": 2,
       "firstName": "Dennis",
       "lastName": "Johnson",
       "careerpoints": 15551,
@@ -1554,7 +1565,7 @@ export const draftData = [
       "personId": 271,
       "Round": 2,
       "Pick": 29,
-      "playerrank": 2,
+      "playerrank": 3,
       "firstName": "Johnny",
       "lastName": "Newman",
       "careerpoints": 12740,
@@ -1565,23 +1576,12 @@ export const draftData = [
       "personId": 1381,
       "Round": 2,
       "Pick": 29,
-      "playerrank": 3,
+      "playerrank": 4,
       "firstName": "John",
       "lastName": "Long",
       "careerpoints": 12127,
       "pointspergame": "13.58",
       "yearsactive": "1979-1997"
-    },
-    {
-      "personId": 77144,
-      "Round": 2,
-      "Pick": 29,
-      "playerrank": 4,
-      "firstName": "Eddie",
-      "lastName": "Johnson",
-      "careerpoints": 10137,
-      "pointspergame": "15.04",
-      "yearsactive": "1978-1987"
     },
     {
       "personId": 78199,
