@@ -1,4 +1,4 @@
-[
+export const draftData = [
     {
       "personId": 2544,
       "Round": 1,
