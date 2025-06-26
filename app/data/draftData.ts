@@ -198,26 +198,26 @@ export const draftData = [
       "yearsactive": "1999-2014"
     },
     {
-      "personId": 779,
+      "personId": 600013,
       "Round": 1,
       "Pick": 4,
       "playerrank": 4,
+      "firstName": "Rick",
+      "lastName": "Barry",
+      "careerpoints": 18395,
+      "pointspergame": "23.17",
+      "yearsactive": "1966-1980"
+    },
+    {
+      "personId": 779,
+      "Round": 1,
+      "Pick": 4,
+      "playerrank": 5,
       "firstName": "Glen",
       "lastName": "Rice",
       "careerpoints": 18336,
       "pointspergame": "18.34",
       "yearsactive": "1990-2004"
-    },
-    {
-      "personId": 77074,
-      "Round": 1,
-      "Pick": 4,
-      "playerrank": 5,
-      "firstName": "Lou",
-      "lastName": "Hudson",
-      "careerpoints": 17939,
-      "pointspergame": "20.18",
-      "yearsactive": "1967-1979"
     },
     {
       "personId": 708,
@@ -517,10 +517,21 @@ export const draftData = [
       "yearsactive": "2002-2022"
     },
     {
-      "personId": 1891,
+      "personId": 76832,
       "Round": 1,
       "Pick": 10,
       "playerrank": 3,
+      "firstName": "Gail",
+      "lastName": "Goodrich",
+      "careerpoints": 19181,
+      "pointspergame": "18.62",
+      "yearsactive": "1966-1979"
+    },
+    {
+      "personId": 1891,
+      "Round": 1,
+      "Pick": 10,
+      "playerrank": 4,
       "firstName": "Jason",
       "lastName": "Terry",
       "careerpoints": 18881,
@@ -531,23 +542,12 @@ export const draftData = [
       "personId": 202331,
       "Round": 1,
       "Pick": 10,
-      "playerrank": 4,
+      "playerrank": 5,
       "firstName": "Paul",
       "lastName": "George",
       "careerpoints": 18697,
       "pointspergame": "20.59",
       "yearsactive": "2011-2025"
-    },
-    {
-      "personId": 201572,
-      "Round": 1,
-      "Pick": 10,
-      "playerrank": 5,
-      "firstName": "Brook",
-      "lastName": "Lopez",
-      "careerpoints": 17517,
-      "pointspergame": "15.85",
-      "yearsactive": "2009-2025"
     },
     {
       "personId": 397,
