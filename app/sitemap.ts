@@ -42,6 +42,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         changeFrequency: 'monthly',
         priority: 0.7,
       },
+      {
+        url: `${baseUrl}/analysis/draft-points`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      },
     {
       url: `${baseUrl}/games/stat-over-under`,
       lastModified: new Date(),
