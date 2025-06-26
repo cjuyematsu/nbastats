@@ -11,10 +11,21 @@ export const draftData = [
       "yearsactive": "2004-2025"
     },
     {
-      "personId": 76375,
+      "personId": 76003,
       "Round": 1,
       "Pick": 1,
       "playerrank": 2,
+      "firstName": "Kareem",
+      "lastName": "Abdul-Jabbar",
+      "careerpoints": 38387,
+      "pointspergame": "24.61",
+      "yearsactive": "1970-1989"
+    },
+    {
+      "personId": 76375,
+      "Round": 1,
+      "Pick": 1,
+      "playerrank": 3,
       "firstName": "Wilt",
       "lastName": "Chamberlain",
       "careerpoints": 31417,
@@ -25,7 +36,7 @@ export const draftData = [
       "personId": 406,
       "Round": 1,
       "Pick": 1,
-      "playerrank": 3,
+      "playerrank": 4,
       "firstName": "Shaquille",
       "lastName": "O'Neal",
       "careerpoints": 28596,
@@ -36,23 +47,12 @@ export const draftData = [
       "personId": 76979,
       "Round": 1,
       "Pick": 1,
-      "playerrank": 4,
+      "playerrank": 5,
       "firstName": "Elvin",
       "lastName": "Hayes",
       "careerpoints": 27311,
       "pointspergame": "20.96",
       "yearsactive": "1969-1984"
-    },
-    {
-      "personId": 600015,
-      "Round": 1,
-      "Pick": 1,
-      "playerrank": 5,
-      "firstName": "Oscar",
-      "lastName": "Robertson",
-      "careerpoints": 26712,
-      "pointspergame": "25.68",
-      "yearsactive": "1961-1974"
     },
     {
       "personId": 201142,
