@@ -1,4 +1,4 @@
-[
+export const draftData = [
     {
       "personId": 2544,
       "Round": 1,
@@ -3288,4 +3288,4 @@
       "pointspergame": "7.82",
       "yearsactive": "2022-2022"
     }
-  ]
+]
