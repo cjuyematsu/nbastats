@@ -1,3 +1,5 @@
+//games/stat-over-under/[era]/page.tsx
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
@@ -46,7 +48,7 @@ const AVAILABLE_ERAS = [
 
 const getTeamLogoUrl = (teamName: string | null): string => {
   if (!teamName) {
-    return '/nba-logo.png'; 
+    return '/nba-logo.png';
   }
   if (teamName.toLowerCase().includes('trail blazers')) {
     return '/trailblazers.png';
@@ -81,7 +83,7 @@ function EraStatsDisplay({ allScores, era, eraName, isDarkMode }: { allScores: S
 
     const maxDistributionCount = Math.max(...stats.scoreDistribution, 1);
 
-    const containerClasses = isDarkMode 
+    const containerClasses = isDarkMode
       ? "mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full"
       : "mt-8 p-6 bg-white/50 rounded-lg border border-gray-200 w-full";
     const mutedText = isDarkMode ? "text-slate-400" : "text-gray-500";
@@ -95,7 +97,7 @@ function EraStatsDisplay({ allScores, era, eraName, isDarkMode }: { allScores: S
             </div>
         );
     }
-    
+
     return (
         <div className={containerClasses}>
             <h3 className={`font-bold text-xl mb-4 text-center ${headerText}`}>Your {eraName} Statistics</h3>
@@ -117,14 +119,14 @@ function EraStatsDisplay({ allScores, era, eraName, isDarkMode }: { allScores: S
                     <p className={`text-xs ${mutedText}`}>Possible</p>
                 </div>
             </div>
-            
+
             <h4 className={`font-bold text-center mb-3 ${headerText}`}>Score Distribution (0-10)</h4>
             <div className="space-y-2">
                 {stats.scoreDistribution.map((count, index) => (
                     <div key={index} className="flex items-center text-sm">
                         <div className="w-6 font-bold text-right pr-2">{index}</div>
                         <div className={`flex-grow rounded-sm ${barBg}`}>
-                            <div 
+                            <div
                                 className="bg-sky-500 text-right px-2 py-0.5 rounded-sm text-white font-bold"
                                 style={{ width: count > 0 ? `${Math.max(8, (count / maxDistributionCount) * 100)}%` : '0%' }}
                             >
@@ -158,8 +160,7 @@ function StatOverUnderEraGameContent() {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isLogoVisible, setIsLogoVisible] = useState(false);
-  // --- NEW ---: State to control the feedback section's animation
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false);
 
   useEffect(() => {
@@ -169,15 +170,6 @@ function StatOverUnderEraGameContent() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  useEffect(() => {
-    if (gameStatus === 'playing') {
-      const timer = setTimeout(() => {
-        setIsLogoVisible(true);
-      }, 100); 
-      return () => clearTimeout(timer);
-    }
-  }, [currentRoundIndex, gameStatus]);
 
 
   const fetchChallenges = useCallback(async (dateISO: string, era: string): Promise<GameChallenge[]> => {
@@ -283,7 +275,7 @@ function StatOverUnderEraGameContent() {
 
     fetchHistory();
   }, [user, authIsLoading]);
-  
+
   useEffect(() => {
     if (authIsLoading) return;
     if (!gameEraFromParam) {
@@ -357,14 +349,12 @@ function StatOverUnderEraGameContent() {
         }
     } else {
         setGameStatus('round_feedback');
-        // --- MODIFIED ---: Make the feedback section visible when it appears
         setIsFeedbackVisible(true);
     }
   }, [gameStatus, currentRoundIndex, challenges, score, userAnswers, user, saveGameResult, gameEraFromParam, todayDateISO]);
   
   const handleNextRound = useCallback(() => {
-    // --- MODIFIED ---: Start both fade-out animations immediately for instant feedback
-    setIsLogoVisible(false);
+    setIsImageLoaded(false); 
     setIsFeedbackVisible(false);
 
     setTimeout(() => {
@@ -401,7 +391,7 @@ function StatOverUnderEraGameContent() {
   if (gameStatus === 'initial_loading' || (gameStatus === 'fetching_challenges')) {
     return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}><p className={`text-center p-10 text-xl ${mutedText}`}>Loading {eraName} Game...</p></div>;
   }
-  if (gameStatus === 'error_loading') { 
+  if (gameStatus === 'error_loading') {
     return (
         <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
             <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
@@ -413,7 +403,7 @@ function StatOverUnderEraGameContent() {
         </div>
     );
   }
-  if (gameStatus === 'no_game_today') { 
+  if (gameStatus === 'no_game_today') {
     return (
         <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
             <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
@@ -433,8 +423,8 @@ function StatOverUnderEraGameContent() {
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
             <p className={`text-xl mb-6 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
-            {isLoadingStats ? ( <p className={mutedText}>Loading your stats...</p> ) : 
-             user ? ( <EraStatsDisplay allScores={statsHistory} era={gameEraFromParam} eraName={eraName} isDarkMode={isDarkMode}/> ) : 
+            {isLoadingStats ? ( <p className={mutedText}>Loading your stats...</p> ) :
+             user ? ( <EraStatsDisplay allScores={statsHistory} era={gameEraFromParam} eraName={eraName} isDarkMode={isDarkMode}/> ) :
              !isCompleted ? null :
              (<div className="my-6">
                 <p className={`${amberText} mb-3`}>Want to save scores?</p>
@@ -448,11 +438,13 @@ function StatOverUnderEraGameContent() {
       </div>
     );
   }
+
   const currentChallenge = challenges[currentRoundIndex];
   if (!currentChallenge) {
       return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainBg}`}>
         <p className={`text-center p-10 text-xl ${mutedText}`}>Loading round...</p></div>;
   }
+
   return (
     <div className={`w-full rounded-lg shadow-2xl ${mainContainerClasses}`}>
       <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-8 px-4 ${mainBg}`}>
@@ -465,11 +457,16 @@ function StatOverUnderEraGameContent() {
             <div className={`relative p-6 rounded-xl shadow-2xl mb-6 text-center backdrop-blur-sm border overflow-hidden ${gameCardBg}`}>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <Image
+                        key={currentChallenge.player_id}
                         fill
                         src={getTeamLogoUrl(currentChallenge.team_name)}
                         alt={currentChallenge.team_name || 'Team Logo'}
-                        className={`object-contain transform transition-all duration-500 ease-in-out ${isLogoVisible ? 'opacity-[0.15] scale-100' : 'opacity-0 scale-95'}`}
-                        onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
+                        className={`object-contain transform transition-all duration-500 ease-in-out ${isImageLoaded ? 'opacity-[0.15] scale-100' : 'opacity-0 scale-95'}`}
+                        onLoad={() => setIsImageLoaded(true)}
+                        onError={(e) => { 
+                            e.currentTarget.src = '/nba-logo.png';
+                            setIsImageLoaded(true); 
+                        }}
                     />
                 </div>
                 <div className="relative z-10">
@@ -488,7 +485,6 @@ function StatOverUnderEraGameContent() {
               </div>
             )}
             
-            {/* --- MODIFIED ---: This whole block is now wrapped in a div that controls its animation */}
             {gameStatus === 'round_feedback' && feedbackMessage && (
               <div className={`transition-opacity duration-300 ease-in-out ${isFeedbackVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="mt-6 text-center">
