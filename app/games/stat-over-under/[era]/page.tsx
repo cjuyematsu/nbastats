@@ -33,7 +33,7 @@ interface UserRoundAnswer {
   user_guess: 'over' | 'under' | null;
   is_correct: boolean | null;
 }
-type GameStatus = 'initial_loading' | 'selecting_era' | 'fetching_challenges' | 'playing' | 'round_feedback' | 'completed' | 'already_played' | 'no_game_today' | 'error_loading';
+type GameStatus = 'initial_loading' | 'selecting_era' | 'fetching_challenges' | 'playing' | 'round_feedback' | 'saving_results' | 'completed' | 'already_played' | 'no_game_today' | 'error_loading';
 type StatHistoryRecord = {
     game_era: string;
     points: number;
@@ -163,6 +163,7 @@ function StatOverUnderEraGameContent() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false);
 
+  // ... (useEffect for dark mode is unchanged)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDarkMode(mediaQuery.matches);
@@ -249,7 +250,7 @@ function StatOverUnderEraGameContent() {
       setGameStatus('error_loading');
     }
   }, [user, checkPriorPlay, fetchChallenges, resetGameState]);
-  
+
   useEffect(() => {
     if (authIsLoading) {
         setIsLoadingStats(true);
@@ -275,7 +276,7 @@ function StatOverUnderEraGameContent() {
 
     fetchHistory();
   }, [user, authIsLoading]);
-
+  
   useEffect(() => {
     if (authIsLoading) return;
     if (!gameEraFromParam) {
@@ -333,20 +334,30 @@ function StatOverUnderEraGameContent() {
     setScore(updatedScore);
     setFeedbackMessage(`Your guess: ${guess.toUpperCase()}. Actual: ${currentChallenge.actual_stat_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}. You were ${isCorrect ? 'Correct!' : 'Incorrect.'}`);
     const isFinalRound = currentRoundIndex === challenges.length - 1;
+
     if (isFinalRound) {
-        setGameStatus('completed');
-        if (user) {
-            try { 
-                await saveGameResult(updatedScore, gameEraFromParam, todayDateISO, challenges.length); 
-                const { data, error } = await supabase.rpc('get_stat_ou_history', { p_user_id: user.id });
-                if (error) console.error("Could not refresh stats after game.", error);
-                else if (data) setStatsHistory(data as StatHistoryRecord[]);
+        setGameStatus('saving_results');
+        setTimeout(async () => {
+            if (user) {
+                try { 
+                    await saveGameResult(updatedScore, gameEraFromParam, todayDateISO, challenges.length); 
+                    const { data, error } = await supabase.rpc('get_stat_ou_history', { p_user_id: user.id });
+                    if (error) console.error("Could not refresh stats after game.", error);
+                    else if (data) setStatsHistory(data as StatHistoryRecord[]);
+                }
+                catch (err) { 
+                    console.error("Caught error during game finalization:", err);
+                    setPageFetchError("Failed to save final score and update stats.");
+                } finally {
+                    setGameStatus('completed');
+                }
+            } else {
+                sessionStorage.setItem(`guestGameResult_${gameEraFromParam}`, JSON.stringify({ score: updatedScore, userAnswers: updatedUserAnswers }));
+                sessionStorage.setItem(`guestGameChallenges_${gameEraFromParam}`, JSON.stringify(challenges));
+                setGameStatus('completed');
             }
-            catch { console.error("Caught error from saveGameResult in handleGuess."); }
-        } else {
-            sessionStorage.setItem(`guestGameResult_${gameEraFromParam}`, JSON.stringify({ score: updatedScore, userAnswers: updatedUserAnswers }));
-            sessionStorage.setItem(`guestGameChallenges_${gameEraFromParam}`, JSON.stringify(challenges));
-        }
+        }, 1500); 
+
     } else {
         setGameStatus('round_feedback');
         setIsFeedbackVisible(true);
@@ -410,6 +421,16 @@ function StatOverUnderEraGameContent() {
                 <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>No Game Today</h2>
                 <p className={`mb-6 ${mutedText}`}>No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
                 <button onClick={handlePlayDifferentEra} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg text-white font-bold shadow-md transition-transform hover:scale-105 inline-block">Select Different Era</button>
+            </div>
+        </div>
+    );
+  }
+  if (gameStatus === 'saving_results') {
+    return (
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+            <div className={`text-center p-6 rounded-xl`}>
+                <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>Finalizing your results...</h2>
+                <p className={`text-lg ${mutedText}`}>Updating your stats, please wait.</p>
             </div>
         </div>
     );
