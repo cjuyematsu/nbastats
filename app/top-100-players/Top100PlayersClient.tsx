@@ -91,6 +91,8 @@ interface PlayerBoxProps {
 }
 
 const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled }) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   const stats = [
     { label: "PTS", value: player.pointsPerGame?.toFixed(1) ?? 'N/A' },
     { label: "REB", value: player.reboundsPerGame?.toFixed(1) ?? 'N/A' },
@@ -110,14 +112,18 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   };
 
   return (
-    <div className="relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10">
+    <div className={`relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <Image
         width="1000"
         height="500"
         src={getTeamLogoUrl(player.playerteamName)}
         alt={`${player.playerteamName} logo`}
         className="absolute top-1/2 left-1/2 w-[29rem] h-[17.5rem] object-cover opacity-[0.12] dark:opacity-[0.09] transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-        onError={(e) => { e.currentTarget.src = '/nba-logo.png'; }}
+        onLoad={() => setIsImageLoaded(true)}
+        onError={(e) => {
+          e.currentTarget.src = '/nba-logo.png';
+          setIsImageLoaded(true); 
+        }}
       />
       
       <div className="relative z-10 flex w-3/5 flex-col justify-between p-4">
@@ -149,7 +155,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
               <span className="font-semibold text-xs ml-1.5">{player.upvotes}</span>
             </VotingButton>
             <VotingButton
-              onClick={() => handleVoteClick(2)} 
+              onClick={() => handleVoteClick(2)}
               isActive={player.currentUserVote === 2}
               disabled={isVotingDisabled}
               ariaLabel={`Confirm spot for ${player.firstName} ${player.lastName}`}
@@ -485,14 +491,14 @@ export default function Top100PlayersPage() {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       }
       setNominationSearchTerm(''); setNominationSuggestions([]);
-    } catch (error) { 
+    } catch (error) {
       let message = "Failed to nominate player.";
-      if (error instanceof Error) message = error.message; 
+      if (error instanceof Error) message = error.message;
       else if (typeof error === 'string') message = error;
       console.error("Error nominating player:", error); setNominationMessage(`Error: ${message}`);
     } finally {
       setIsNominating(false); setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerToNominate.personId]: false }));
-      setTimeout(() => setNominationMessage(null), 5000); 
+      setTimeout(() => setNominationMessage(null), 5000);
     }
   };
 
@@ -509,13 +515,13 @@ export default function Top100PlayersPage() {
     </div>
   );
 
-  if (authIsLoading || (isLoadingPlayers && players.length === 0 && !fetchError)) { 
+  if (authIsLoading || (isLoadingPlayers && players.length === 0 && !fetchError)) {
     return <LoadingErrorDisplay><p className="text-xl">Loading players...</p></LoadingErrorDisplay>;
   }
   if (fetchError) {
      return <LoadingErrorDisplay><p className="text-center text-red-600 dark:text-red-400 mt-4">Error: {fetchError}</p></LoadingErrorDisplay>;
   }
-  if (!isLoadingPlayers && players.length === 0) { 
+  if (!isLoadingPlayers && players.length === 0) {
     return <LoadingErrorDisplay>
       <p className="text-slate-700 dark:text-slate-300">No player data is currently available for this week&apos;s ranking.</p>
       <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p>
@@ -523,8 +529,8 @@ export default function Top100PlayersPage() {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0"> 
-      <div className="p-4 md:py-6"> 
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0">
+      <div className="p-4 md:py-6">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-600 dark:text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mb-1 text-center">{pageSubtitle}</p>
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
@@ -535,17 +541,17 @@ export default function Top100PlayersPage() {
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
           {players.map((player) => (
-            <PlayerBox 
-              key={player.personId.toString()} 
+            <PlayerBox
+              key={player.personId.toString()}
               player={player}
               onVote={handlePlayerVote}
-              isVotingDisabled={!user || !session} 
+              isVotingDisabled={!user || !session}
             />
           ))}
         </div>
       </div>
       {user && (
-          <div className="px-4 md:px-6 pb-8"> 
+          <div className="px-4 md:px-6 pb-8">
             <div className="max-w-2xl mx-auto bg-gray-100 dark:bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 dark:border-transparent">
                 <h2 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center"> Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote. </p>
