@@ -102,21 +102,22 @@ const TEXT_VISIBILITY_THRESHOLD = 160;
 
 const NavLink = ({ href, children, icon, showText }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean }) => {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/")); 
+  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
   return (
     <Link
       href={href}
-      className={`flex items-center py-2.5 rounded-md text-sm font-medium transition-colors group
+      className={`flex items-center py-2.5 rounded-md text-sm font-medium transition-colors group px-3
                   ${isActive
                     ? 'bg-sky-500 text-white dark:bg-sky-600 dark:text-sky-100'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-100'
-                  }
-                  ${showText ? 'px-3 justify-start' : 'px-2 justify-center'}`}
+                  }`}
     >
-      {icon}
+      <div className="w-6 h-6 mr-3 flex-shrink-0 flex items-center justify-center">
+        {icon}
+      </div>
       {showText && (
-        <span className="ml-3 whitespace-nowrap overflow-hidden">
+        <span className="whitespace-nowrap overflow-hidden">
           {children}
         </span>
       )}
@@ -129,9 +130,30 @@ export default function Navbar() {
   const [navWidth, setNavWidth] = useState(DEFAULT_NAV_WIDTH);
   const [lastExpandedDesktopWidth, setLastExpandedDesktopWidth] = useState(DEFAULT_NAV_WIDTH);
   const [isMdScreen, setIsMdScreen] = useState(false);
+  const [effectiveHeaderHeight, setEffectiveHeaderHeight] = useState(64);
+  const [pagePadding, setPagePadding] = useState(24);
 
-  const navRef = useRef<HTMLElement>(null); 
-  const toggleButtonRef = useRef<HTMLButtonElement>(null); 
+  const navRef = useRef<HTMLElement>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const updateLayout = () => {
+      if (typeof window !== 'undefined') {
+        const desiredHeaderHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height').replace('px', '')) || 64;
+        const desiredPagePadding = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 24;
+
+        const maxHeight = window.innerHeight * 0.20;
+        
+        setEffectiveHeaderHeight(Math.min(desiredHeaderHeight, maxHeight));
+        setPagePadding(desiredPagePadding);
+      }
+    };
+
+    window.addEventListener('resize', updateLayout);
+    updateLayout();
+
+    return () => window.removeEventListener('resize', updateLayout);
+  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -140,7 +162,7 @@ export default function Navbar() {
       if (isMdScreen !== currentlyIsMdScreen) {
         setIsMdScreen(currentlyIsMdScreen);
         if (currentlyIsMdScreen) {
-          if (isOpenOnMobile) setIsOpenOnMobile(false); 
+          if (isOpenOnMobile) setIsOpenOnMobile(false);
            setNavWidth(prevWidth => {
             if (prevWidth === MIN_NAV_WIDTH) return MIN_NAV_WIDTH;
             return lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH;
@@ -148,18 +170,18 @@ export default function Navbar() {
         }
       }
     };
-    handleScreenResize(); 
+    handleScreenResize();
     mediaQuery.addEventListener('change', handleScreenResize);
     return () => mediaQuery.removeEventListener('change', handleScreenResize);
   }, [isMdScreen, isOpenOnMobile, lastExpandedDesktopWidth]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        const pageInsetPadding = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 0;
+        const pageInsetPaddingValue = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 0;
         const navbarHeaderGap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navbar-header-gap').replace('px', '')) || 0;
         if (isMdScreen) {
         document.documentElement.style.setProperty('--nav-actual-width', `${navWidth}px`);
-        document.documentElement.style.setProperty('--nav-offset-left', `${pageInsetPadding + navWidth + navbarHeaderGap}px`);
+        document.documentElement.style.setProperty('--nav-offset-left', `${pageInsetPaddingValue + navWidth + navbarHeaderGap}px`);
         } else {
         document.documentElement.style.setProperty('--nav-actual-width', isOpenOnMobile ? `${DEFAULT_NAV_WIDTH}px` : '0px');
         document.documentElement.style.setProperty('--nav-offset-left', '0px');
@@ -181,18 +203,18 @@ export default function Navbar() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpenOnMobile, isMdScreen]); 
+  }, [isOpenOnMobile, isMdScreen]);
 
   const handleToggleNav = () => {
     if (isMdScreen) {
-      if (navWidth > MIN_NAV_WIDTH) { 
-        setLastExpandedDesktopWidth(navWidth); 
-        setNavWidth(MIN_NAV_WIDTH); 
-      } else { 
-        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH); 
+      if (navWidth > MIN_NAV_WIDTH) {
+        setLastExpandedDesktopWidth(navWidth);
+        setNavWidth(MIN_NAV_WIDTH);
+      } else {
+        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH);
       }
-    } else { 
-      setIsOpenOnMobile(!isOpenOnMobile); 
+    } else {
+      setIsOpenOnMobile(!isOpenOnMobile);
     }
   };
 
@@ -214,14 +236,14 @@ export default function Navbar() {
 
   const hamburgerButtonStyle: React.CSSProperties = {
     left: (() => {
-      if (!isMdScreen) { 
+      if (!isMdScreen) {
         return isOpenOnMobile ? '1.25rem' : '1rem';
       }
       return navWidth > MIN_NAV_WIDTH
         ? `calc(var(--page-inset-padding) + 18px)`
         : `calc(var(--page-inset-padding) + 20px)`;
     })(),
-    top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))`,
+    top: `${pagePadding + effectiveHeaderHeight / 2}px`,
   };
 
   return (
@@ -264,9 +286,21 @@ export default function Navbar() {
       >
         {(isMdScreen || isOpenOnMobile) && (
           <>
-            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
-            </div>
-            <div className="flex-grow flex flex-col space-y-1 p-4 pb-40 overflow-y-auto">
+          <div
+            className="absolute bg-gray-200 dark:bg-gray-700 pointer-events-none"
+            style={{
+              top: `${effectiveHeaderHeight}px`,
+              left: '1rem',
+              right: '1rem',
+              height: '1px',
+            }}
+          />
+            <div
+              className="flex-grow flex flex-col space-y-1 px-4 pb-30 overflow-y-auto "
+              style={{ paddingTop: `${effectiveHeaderHeight}px`, paddingBottom: '2rem' }}
+            >
+              <div className="pt-2"></div>
+              
               <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
               
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
@@ -277,6 +311,7 @@ export default function Navbar() {
               <div className="pt-2">
                 {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                
                 <NavLink 
                   href="/analysis/salary-vs-points" 
                   icon={<SalaryVPointsIcon />} 
