@@ -102,7 +102,7 @@ const TEXT_VISIBILITY_THRESHOLD = 160;
 
 const NavLink = ({ href, children, icon, showText }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean }) => {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/")); 
+  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
   return (
     <Link
@@ -130,17 +130,17 @@ export default function Navbar() {
   const [lastExpandedDesktopWidth, setLastExpandedDesktopWidth] = useState(DEFAULT_NAV_WIDTH);
   const [isMdScreen, setIsMdScreen] = useState(false);
 
-  const navRef = useRef<HTMLElement>(null); 
-  const toggleButtonRef = useRef<HTMLButtonElement>(null); 
+  const navRef = useRef<HTMLElement>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+    useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
     const handleScreenResize = () => {
       const currentlyIsMdScreen = mediaQuery.matches;
       if (isMdScreen !== currentlyIsMdScreen) {
         setIsMdScreen(currentlyIsMdScreen);
         if (currentlyIsMdScreen) {
-          if (isOpenOnMobile) setIsOpenOnMobile(false); 
+          if (isOpenOnMobile) setIsOpenOnMobile(false);
            setNavWidth(prevWidth => {
             if (prevWidth === MIN_NAV_WIDTH) return MIN_NAV_WIDTH;
             return lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH;
@@ -148,7 +148,7 @@ export default function Navbar() {
         }
       }
     };
-    handleScreenResize(); 
+    handleScreenResize();
     mediaQuery.addEventListener('change', handleScreenResize);
     return () => mediaQuery.removeEventListener('change', handleScreenResize);
   }, [isMdScreen, isOpenOnMobile, lastExpandedDesktopWidth]);
@@ -181,18 +181,18 @@ export default function Navbar() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpenOnMobile, isMdScreen]); 
+  }, [isOpenOnMobile, isMdScreen]);
 
   const handleToggleNav = () => {
     if (isMdScreen) {
-      if (navWidth > MIN_NAV_WIDTH) { 
-        setLastExpandedDesktopWidth(navWidth); 
-        setNavWidth(MIN_NAV_WIDTH); 
-      } else { 
-        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH); 
+      if (navWidth > MIN_NAV_WIDTH) {
+        setLastExpandedDesktopWidth(navWidth);
+        setNavWidth(MIN_NAV_WIDTH);
+      } else {
+        setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH);
       }
-    } else { 
-      setIsOpenOnMobile(!isOpenOnMobile); 
+    } else {
+      setIsOpenOnMobile(!isOpenOnMobile);
     }
   };
 
@@ -214,7 +214,7 @@ export default function Navbar() {
 
   const hamburgerButtonStyle: React.CSSProperties = {
     left: (() => {
-      if (!isMdScreen) { 
+      if (!isMdScreen) {
         return isOpenOnMobile ? '1.25rem' : '1rem';
       }
       return navWidth > MIN_NAV_WIDTH
@@ -264,62 +264,65 @@ export default function Navbar() {
       >
         {(isMdScreen || isOpenOnMobile) && (
           <>
-            <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
+            <div className={`h-[var(--header-height)] flex-shrink-0 flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
             </div>
-            <div className="flex-grow flex flex-col space-y-1 p-4 pb-40 overflow-y-auto">
-              <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
-              
-                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
-                <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
-                <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
 
-              <div className="pt-2">
-                {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
-                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                <NavLink 
-                  href="/analysis/salary-vs-points" 
-                  icon={<SalaryVPointsIcon />} 
-                  showText={showTextInNav}
-                >
-                  Salary vs. Points
-                </NavLink>
-                <NavLink 
-                  href="/analysis/growth-of-nba" 
-                  icon={<TrendingUpIcon />} 
-                  showText={showTextInNav}
-                >
-                  Growth of the NBA
-                </NavLink>
-
-                <NavLink 
-                  href="/analysis/draft-points" 
-                  icon={<DraftPointsIcon />} 
-                  showText={showTextInNav}
-                >
-                  Draft Points
-                </NavLink>
-              </div>
-
-              <div className="pt-2">
-                {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
-                {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+            <div className="flex-grow overflow-y-auto">
+              <div className="flex flex-col space-y-1 p-4">
+                <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
                 
-                <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
-                  Over/Under
-                </NavLink>
-                <NavLink href="/games/draft-quiz" icon={<QuizIcon />} showText={showTextInNav}>
-                  Fill in the Draft
-                </NavLink>
-                <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
-                  Guess the Ranking
-                </NavLink>
-                <NavLink href="/games/odd-man-out" icon={<OddManOutIcon />} showText={showTextInNav}>
-                  Odd Man Out
-                </NavLink>
-                <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
-                  Six Degrees
-                </NavLink>
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                  <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
+                  <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
+                  <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
+
+                <div className="pt-2">
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                  <NavLink
+                    href="/analysis/salary-vs-points"
+                    icon={<SalaryVPointsIcon />}
+                    showText={showTextInNav}
+                  >
+                    Salary vs. Points
+                  </NavLink>
+                  <NavLink
+                    href="/analysis/growth-of-nba"
+                    icon={<TrendingUpIcon />}
+                    showText={showTextInNav}
+                  >
+                    Growth of the NBA
+                  </NavLink>
+
+                  <NavLink
+                    href="/analysis/draft-points"
+                    icon={<DraftPointsIcon />}
+                    showText={showTextInNav}
+                  >
+                    Draft Points
+                  </NavLink>
+                </div>
+
+                <div className="pt-2">
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                  
+                  <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
+                    Over/Under
+                  </NavLink>
+                  <NavLink href="/games/draft-quiz" icon={<QuizIcon />} showText={showTextInNav}>
+                    Fill in the Draft
+                  </NavLink>
+                  <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
+                    Guess the Ranking
+                  </NavLink>
+                  <NavLink href="/games/odd-man-out" icon={<OddManOutIcon />} showText={showTextInNav}>
+                    Odd Man Out
+                  </NavLink>
+                  <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
+                    Six Degrees
+                  </NavLink>
+                </div>
               </div>
             </div>
           </>
