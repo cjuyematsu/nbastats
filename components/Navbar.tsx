@@ -266,7 +266,7 @@ export default function Navbar() {
           <>
             <div className={`h-[var(--header-height)] flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
             </div>
-            <div className="flex-grow flex flex-col space-y-1 p-4 pb-20 overflow-y-auto">
+            <div className="flex-grow flex flex-col space-y-1 p-4 pb-40 overflow-y-auto">
               <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
               
                 {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
