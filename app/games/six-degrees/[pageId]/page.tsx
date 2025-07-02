@@ -370,15 +370,16 @@ function SixDegreesGameContent() {
 
 
     if (gameStatus === 'loading' || authIsLoading) {
-        return <div className={`flex justify-center items-center min-h-screen ${mainContainerClasses}`}><p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p></div>;
+        return <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}><p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p></div>;
     }
     if (gameStatus === 'error') {
-        return <div className={`flex justify-center items-center min-h-screen ${errorTextClasses}`}><p>Error: {errorMsg}</p></div>;
+        return <div className={`flex justify-center rounded-lg items-center min-h-screen ${errorTextClasses} border border-gray-200 dark:border-gray-700`}><p>Error: {errorMsg}</p></div>;
     }
 
     if (gameStatus === 'already_played') {
         return (
-             <div className={`w-full rounded-lg shadow-2xl p-4 text-center max-w-lg mx-auto ${alreadyPlayedContainer}`}>
+            <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
+             <div className={`w-full p-4 text-center max-w-lg mx-auto ${alreadyPlayedContainer}`}>
                 <h1 className={`text-3xl font-bold ${highlightColor} mb-6`}>Daily Challenge Complete</h1>
                     
                 {priorPlayResult ? (
@@ -405,17 +406,18 @@ function SixDegreesGameContent() {
                     Back to Lobby
                 </button>
             </div>
+            </div>
         );
     }
 
     if (!puzzle) {
-        return <div className={`flex justify-center items-center min-h-screen ${loadingTextClasses}`}><p>Could not load puzzle data.</p></div>;
+        return <div className={`flex justify-center items-center min-h-screen ${loadingTextClasses} border border-gray-200 dark:border-gray-700`}><p>Could not load puzzle data.</p></div>;
     }
 
     const nextPlayerToGuessFor = path.length > 0 ? path[path.length - 1] : null;
 
     return (
-        <div className={`w-full min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+        <div className={`w-full min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="container mx-auto p-4 text-center max-w-lg">
             <h1 className="text-3xl font-bold mb-4">Six Degrees of NBA</h1>
             <p className="mb-4">Connect <span className={`font-bold ${highlightColor}`}>{puzzle.player_a_name}</span> to <span className={`font-bold ${highlightColor}`}>{puzzle.player_b_name}</span>.</p>

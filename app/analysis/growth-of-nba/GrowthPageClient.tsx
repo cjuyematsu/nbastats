@@ -232,7 +232,7 @@ export default function GrowthPage() {
 
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 w-full border border-gray-200 dark:border-gray-700">
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <header className="text-center mb-12">
                     <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">

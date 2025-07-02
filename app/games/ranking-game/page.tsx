@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 function Loading() {
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg shadow-2xl">
+    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg">
         <div className="text-center p-10 text-slate-100">Loading Game...</div>
     </div>
   );

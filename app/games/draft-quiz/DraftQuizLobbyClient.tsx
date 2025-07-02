@@ -66,7 +66,7 @@ export default function DraftQuizLobby() {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 text-center transition-colors duration-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center transition-colors duration-200 border border-gray-200 dark:border-gray-700">
         <h1 className="text-3xl font-bold mb-6 text-slate-800 dark:text-slate-100 transition-colors duration-200">NBA Draft Quiz</h1>
         <p className="text-slate-600 dark:text-slate-300 transition-colors duration-200">Loading Quizzes...</p>
       </div>
@@ -75,7 +75,7 @@ export default function DraftQuizLobby() {
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 text-center transition-colors duration-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center transition-colors duration-200 border border-gray-200 dark:border-gray-700">
         <h1 className="text-3xl font-bold mb-6 text-red-600 dark:text-red-500 transition-colors duration-200">Error</h1>
         <p className="text-slate-600 dark:text-slate-300 transition-colors duration-200">{error}</p>
       </div>
@@ -83,7 +83,7 @@ export default function DraftQuizLobby() {
   }
   
   return (
-    <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl transition-colors duration-200">
+    <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
       <h1 className="text-3xl font-bold mb-6 text-center text-slate-900 dark:text-slate-100 transition-colors duration-200">NBA Draft Quiz</h1>
       <p className="text-center mb-8 text-slate-500 dark:text-slate-400 transition-colors duration-200">Select a year and see how many you know</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ">

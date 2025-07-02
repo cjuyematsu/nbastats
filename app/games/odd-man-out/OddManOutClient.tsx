@@ -209,7 +209,7 @@ export default function OddManOutGame() {
   const totalGames = totalCorrect + totalIncorrect;
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
   
-  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-gray-50 text-gray-800";
+  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800";
   const loadingTextClasses = isDarkMode ? "text-slate-100" : "text-gray-700";
   const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
   const streakTextClasses = isDarkMode ? "text-yellow-400" : "text-amber-500";
@@ -224,14 +224,14 @@ export default function OddManOutGame() {
 
   if (status === GameStatus.Loading || authIsLoading) {
     return (
-      <div className={`w-full rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen ${mainContainerClasses}`}>
+      <div className={`w-full rounded-lg flex flex-col items-center justify-center min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className={`text-center p-10 ${loadingTextClasses}`}>Loading New Round...</div>
       </div>
     );
   }
 
   return (
-    <div className={`w-full min-h-screen rounded-lg shadow-2xl p-4 text-center flex flex-col ${mainContainerClasses}`}>
+    <div className={`w-full min-h-screen rounded-lg p-4 text-center flex flex-col ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
       
       <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
 

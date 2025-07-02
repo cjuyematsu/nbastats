@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 
 export default function ComparePlayersPage() {
   return (
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       <header className="text-center mb-8">
@@ -48,6 +50,7 @@ export default function ComparePlayersPage() {
             <Link href="/compare?players=Shaquille+O'Neal,Hakeem+Olajuwon" className="text-sky-600 dark:text-sky-400 hover:underline">Shaquille O&apos;Neal vs Hakeem Olajuwon</Link>
         </div>
       </section>
+    </div>
     </div>
   );
 }

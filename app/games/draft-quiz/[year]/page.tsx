@@ -154,7 +154,7 @@ export default function DraftQuizPage() {
   return (
     <div className={`flex flex-col h-screen ${mainContainerClasses}`}>
       
-      <div className={`rounded-lg shadow-2xl p-4 w-full ${headerClasses}`}>
+      <div className={`rounded-lg p-4 w-full ${headerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="relative flex justify-center items-center mb-2">
           <button
             onClick={() => router.push('/games/draft-quiz')}
@@ -179,7 +179,7 @@ export default function DraftQuizPage() {
         </form>
       </div>
 
-      <div className={`mt-3 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 w-full ${gridContainerClasses}`}>
+      <div className={`mt-3 rounded-lg shadow-2xl flex-grow overflow-y-auto p-4 w-full ${gridContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {draftPicks.map(pick => {
             const isGuessed = guessedIds.has(pick.compositeKey);

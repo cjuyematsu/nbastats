@@ -529,7 +529,7 @@ export default function Top100PlayersPage() {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
       <div className="p-4 md:py-6">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-600 dark:text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mb-1 text-center">{pageSubtitle}</p>

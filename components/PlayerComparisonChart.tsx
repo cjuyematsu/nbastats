@@ -481,8 +481,8 @@ export default function PlayerComparisonChart() {
   }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]); 
 
   const mainContainerClasses = isDarkMode 
-    ? "w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100" 
-    : "w-full bg-white rounded-lg shadow-2xl text-gray-800";
+    ? "w-full bg-gray-800 rounded-lg text-slate-100" 
+    : "w-full bg-white rounded-lg text-gray-800";
   const sectionClasses = isDarkMode
     ? "p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600"
     : "p-5 bg-gray-50 rounded-xl shadow-lg border border-gray-200";

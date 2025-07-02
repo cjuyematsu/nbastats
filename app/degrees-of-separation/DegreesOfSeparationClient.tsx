@@ -41,6 +41,23 @@ interface ApiErrorOrMessageResponse {
   searchedPlayerIds?: { p1: string; p2: string };
 }
 
+const useThemeDetector = () => {
+    const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        setIsDarkMode(mediaQuery.matches);
+
+        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
+    return isDarkMode;
+};
+
+
 const PlayerCard = ({ playerNode, className, linkClassName }: { playerNode: PathNode, className: string, linkClassName: string }) => {
   return (
     <div className={className}>
@@ -72,6 +89,7 @@ const ConnectionDetailsCard = ({ linkDetail, className, labelClassName, valueCla
   );
 };
 
+
 function DegreesOfSeparationClientContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -86,15 +104,7 @@ function DegreesOfSeparationClientContent() {
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  const isDarkMode = useThemeDetector();
 
   useEffect(() => {
     const queryP1Id = searchParams?.get('p1');
@@ -229,37 +239,34 @@ function DegreesOfSeparationClientContent() {
     newParams.delete('p1'); newParams.delete('p2');
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   }, [router, pathname, searchParams]);
-
+  
+  if (isDarkMode === null) {
+    return null;
+  }
   const mainContainerClasses = isDarkMode 
-    ? "w-full bg-gray-800 rounded-lg shadow-2xl text-slate-100" 
-    : "w-full bg-gray-50 rounded-lg shadow-2xl text-gray-800";
+    ? "w-full bg-gray-800 rounded-lg text-slate-100" 
+    : "w-full bg-white rounded-lg text-gray-800";
   const textColor = isDarkMode ? "text-slate-100" : "text-gray-900";
   const mutedTextColor = isDarkMode ? "text-slate-400" : "text-gray-500";
   const labelColor = isDarkMode ? "text-gray-300" : "text-gray-600";
   const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
   const highlightHoverColor = isDarkMode ? "hover:text-sky-300" : "hover:text-sky-500";
-
   const clearButtonClasses = isDarkMode 
     ? "w-full sm:w-auto px-6 py-3 bg-slate-600 text-slate-100 rounded-md hover:bg-slate-700 transition-colors text-lg" 
     : "w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-lg";
-
   const errorBoxClasses = isDarkMode
     ? "my-6 p-4 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-center"
     : "my-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-center";
-
   const infoBoxClasses = isDarkMode
     ? "my-6 p-4 bg-sky-900/30 border border-sky-700/50 rounded-md text-sky-400 text-center"
     : "my-6 p-4 bg-sky-50 border border-sky-200 rounded-md text-sky-700 text-center";
-  
   const linkSegmentContainerClasses = isDarkMode 
     ? "block lg:grid lg:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)_minmax(0,_1fr)] lg:items-stretch gap-4 p-2 bg-slate-800/30 rounded-lg"
     : "block lg:grid lg:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)_minmax(0,_1fr)] lg:items-stretch gap-4 p-2 bg-gray-100 rounded-lg";
-  
   const playerCardClasses = isDarkMode
     ? "bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/30 hover:border-sky-500/50"
     : "bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/20 hover:border-sky-400";
   const playerCardLinkClasses = `text-xl text-center font-bold leading-tight cursor-pointer ${textColor} ${highlightHoverColor}`;
-  
   const connectionCardClasses = isDarkMode
     ? "bg-slate-800 border border-slate-600 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-center items-center text-center h-full text-slate-300"
     : "bg-gray-50 border border-gray-200 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-center items-center text-center h-full text-gray-700";
@@ -267,7 +274,7 @@ function DegreesOfSeparationClientContent() {
   const connectionValueClasses = `text-lg font-bold ${highlightColor}`;
 
   return (
-    <div className={mainContainerClasses}>
+    <div className={`${mainContainerClasses} rounded-lg border border-gray-200 dark:border-gray-700`}>
       <div className={`container mx-auto p-4 min-h-screen ${textColor}`}>
         <h1 className={`mt-4 text-4xl font-bold sm:text-5xl md:text-6xl text-center mb-3 ${highlightColor}`}>
             NBA Player Connection Explorer
@@ -345,18 +352,21 @@ function DegreesOfSeparationClientContent() {
 }
 
 function LoadingState() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  const isDarkMode = useThemeDetector();
+
+  if (isDarkMode === null) {
+      return (
+        <div className="w-full bg-transparent">
+           <div className="container mx-auto p-4 min-h-screen flex flex-col items-center justify-center">
+              <p className="text-xl text-gray-500 dark:text-gray-400">Loading Connections...</p>
+           </div>
+        </div>
+      );
+  }
 
   const mainContainerClasses = isDarkMode 
     ? "w-full bg-gray-800 text-slate-100" 
-    : "w-full bg-gray-50 text-gray-800";
+    : "w-full bg-white text-gray-800";
   const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
   const textColor = isDarkMode ? "text-slate-300" : "text-gray-600";
   

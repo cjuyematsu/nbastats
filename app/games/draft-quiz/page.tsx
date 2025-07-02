@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 function Loading() {
     return (
-      <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl transition-colors duration-200">
+      <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg transition-colors duration-200">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
           <h1 className="text-3xl font-bold mb-6 text-slate-800 dark:text-slate-100">NBA Draft Quiz</h1>
           <p className="text-slate-600 dark:text-slate-300">Loading Quizzes...</p>

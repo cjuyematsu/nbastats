@@ -384,8 +384,8 @@ function StatOverUnderEraGameContent() {
   };
   const eraName = AVAILABLE_ERAS.find(e=>e.id===gameEraFromParam)?.name || gameEraFromParam || 'Selected Era';
 
-  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-gray-50 text-gray-800";
-  const mainBg = isDarkMode ? "bg-gray-800" : "bg-gray-50";
+  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-white text-gray-800";
+  const mainBg = isDarkMode ? "bg-gray-800" : "bg-white";
   const mutedText = isDarkMode ? "text-slate-300" : "text-gray-600";
   const strongText = isDarkMode ? "text-white" : "text-black";
   const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
@@ -400,11 +400,11 @@ function StatOverUnderEraGameContent() {
   const amberRing = isDarkMode ? "ring-offset-slate-800" : "ring-offset-white";
 
   if (gameStatus === 'initial_loading' || (gameStatus === 'fetching_challenges')) {
-    return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}><p className={`text-center p-10 text-xl ${mutedText}`}>Loading {eraName} Game...</p></div>;
+    return <div className={`flex justify-center items-center min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}><p className={`text-center p-10 text-xl ${mutedText}`}>Loading {eraName} Game...</p></div>;
   }
   if (gameStatus === 'error_loading') {
     return (
-        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
                 <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>Error Loading Game</h2>
                 <p className={`mb-6 ${mutedText}`}>{pageFetchError || "Could not load game data."}</p>
@@ -416,7 +416,7 @@ function StatOverUnderEraGameContent() {
   }
   if (gameStatus === 'no_game_today') {
     return (
-        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className={`text-center max-w-md p-6 rounded-xl shadow-2xl ${cardBg}`}>
                 <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>No Game Today</h2>
                 <p className={`mb-6 ${mutedText}`}>No challenges found for {eraName} on {todayDateISO}. Please check back later.</p>
@@ -427,7 +427,7 @@ function StatOverUnderEraGameContent() {
   }
   if (gameStatus === 'saving_results') {
     return (
-        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+        <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses}`}>
             <div className={`text-center p-6 rounded-xl`}>
                 <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>Finalizing your results...</h2>
                 <p className={`text-lg ${mutedText}`}>Updating your stats, please wait.</p>
@@ -439,7 +439,7 @@ function StatOverUnderEraGameContent() {
     const isCompleted = gameStatus === 'completed';
     const potentialPoints = isCompleted ? challenges.length : 10;
     return (
-      <div className={`w-full rounded-lg shadow-2xl min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses}`}>
+      <div className={`w-full rounded-lg min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md ${cardBg}`}>
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
@@ -462,12 +462,12 @@ function StatOverUnderEraGameContent() {
 
   const currentChallenge = challenges[currentRoundIndex];
   if (!currentChallenge) {
-      return <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainBg}`}>
+      return <div className={`flex justify-center items-center min-h-screen rounded-lg ${mainBg}`}>
         <p className={`text-center p-10 text-xl ${mutedText}`}>Loading round...</p></div>;
   }
 
   return (
-    <div className={`w-full rounded-lg shadow-2xl ${mainContainerClasses}`}>
+    <div className={`w-full rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
       <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-8 px-4 ${mainBg}`}>
         <div className="w-full max-w-lg">
             <div className='text-center mb-4'><button onClick={handlePlayDifferentEra} className={`text-sm underline focus:outline-none focus:ring-2 ring-sky-500 rounded-sm font-bold ${highlightColor} ${highlightHover}`}>Select Different Era</button></div>
@@ -540,11 +540,11 @@ function StatOverUnderGamePageFallback() {
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
-    const mainContainerClasses = isDarkMode ? "bg-gray-800" : "bg-gray-50";
+    const mainContainerClasses = isDarkMode ? "bg-gray-800" : "bg-white";
     const mutedText = isDarkMode ? "text-slate-300" : "text-gray-600";
     
     return (
-        <div className={`flex justify-center items-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+        <div className={`flex justify-center items-center min-h-screen rounded-lg ${mainContainerClasses}`}>
             <p className={`text-center p-10 text-xl ${mutedText}`}>Loading Game Data...</p>
         </div>
     );

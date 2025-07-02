@@ -205,7 +205,7 @@ export default function Navbar() {
     navElementClasses += "relative h-full rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden";
   } else {
     navElementStyle = { width: `${DEFAULT_NAV_WIDTH}px` };
-    navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
+    navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
   }
 
   const ToggleButtonIcon = isMdScreen
