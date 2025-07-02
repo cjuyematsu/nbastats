@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
       <main className="text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="mb-10 md:mb-16">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl pt-8">

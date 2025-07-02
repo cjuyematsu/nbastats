@@ -63,7 +63,7 @@ function StatsDisplay({ scores, isDarkMode }: { scores: ScoreHistoryRecord[]; is
     const barBgClasses = isDarkMode ? "bg-slate-700" : "bg-sky-100";
 
     return (
-        <div className={containerClasses}>
+        <div className={`border border-gray-200 dark:border-gray-700 ${containerClasses}`}>
             <h3 className={`font-bold text-xl mb-4 text-center ${headerTextClasses}`}>Your Statistics</h3>
             <div className="flex justify-around text-center mb-6">
                 <div>
@@ -181,14 +181,14 @@ export default function SixDegreesLobby() {
 
     if (isLoadingPage) {
         return (
-            <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl ${mainContainerClasses}`}>
+            <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
                 <p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p>
             </div>
         );
     }
 
     return (
-        <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg shadow-2xl py-12 px-4 ${mainContainerClasses}`}>
+        <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className="text-center w-full max-w-md">
                 <h1 className={`text-4xl font-bold mb-4 ${highlightColor}`}>Six Degrees of NBA</h1>
                 <p className={`text-lg mb-10 ${mutedTextClasses}`}>Connect two NBA players through a chain of former teammates.</p>

@@ -115,7 +115,7 @@ export default function DraftPointsClient() {
   const allPicks = Object.entries(playersByPick).sort(([a], [b]) => parseInt(a) - parseInt(b));
 
   const PageContainer = ({ children }: { children: React.ReactNode }) => (
-    <div className="w-full p-4 bg-gray-100 dark:bg-gray-900/50 rounded-lg shadow-xl">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 w-full border border-gray-200 dark:border-gray-700">
         <header className="text-center mb-10">
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
                 NBA Draft - Top Scorers by Pick

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 function Loading() {
   return (
-    <div className="w-full rounded-lg shadow-2xl flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white">
+    <div className="w-full rounded-lg flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white">
       <div className="text-center p-10 text-slate-100">Loading New Round...</div>
     </div>
   );
