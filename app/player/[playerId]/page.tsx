@@ -182,7 +182,7 @@ export default function PlayerStatsPage() {
   const playerEndYear = currentPlayerData?.endYear;
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 transition-colors duration-200">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 transition-colors duration-200 border border-gray-200 dark:border-gray-700">
       <div className="p-4 md:py-6">
         {error && (
           <p className="text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/60 border border-red-300 dark:border-red-700 p-3 rounded-md text-center my-4 transition-colors duration-200"
