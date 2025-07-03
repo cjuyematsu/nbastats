@@ -109,7 +109,7 @@ const ValueChart = ({ data, title, barColor }: { data: PlayerData[], title: stri
                 <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid stroke={chartTheme.gridColor} strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(value) => formatCurrency(value as number)} tick={{ fill: chartTheme.tickColor, fontSize: 12 }} />
-                    <YAxis dataKey="name" type="category" width={150} tick={{ fill: chartTheme.tickColor, fontSize: 12 }} />
+                    <YAxis dataKey="name" type="category" width={150} tick={{ fill: chartTheme.tickColor, fontSize: 12 }} reversed={true}/>
                     <Tooltip
                       formatter={(value) => formatCurrency(value as number)}
                       contentStyle={{
