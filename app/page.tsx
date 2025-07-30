@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { Users, TrendingUp, Gamepad2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'NBA Stats, Player Comparisons & Trivia | Hoops Data',
@@ -26,14 +27,11 @@ export default function HomePage() {
         </header>
 
         <section className="mb-12 text-left max-w-2xl mx-auto">
-          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Player Statistics</h2>
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4 flex items-center gap-2">
+            <Users className="w-6 h-6" />
+            Player Statistics
+          </h2>
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Player Profiles</h3>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                View complete career statistics for any NBA player, including regular season and playoff averages and totals.
-              </p>
-            </div>
             <Link href="/compare" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Compare Players</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
@@ -52,11 +50,20 @@ export default function HomePage() {
                 Discover how players are connected through shared teammates across different eras.
               </p>
             </Link>
+            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Player Profiles</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Try the search bar above to view complete career statistics for any NBA player. 
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="mb-12 text-left max-w-2xl mx-auto">
-          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Statistical Analysis</h2>
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6" />
+            Statistical Analysis
+          </h2>
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <Link href="/analysis/salary-vs-points" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Salary vs. Performance</h3>
@@ -70,11 +77,20 @@ export default function HomePage() {
                 Explore how the NBA has evolved over time through statistical trends.
               </p>
             </Link>
+            <Link href="/analysis/draft-points" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+              <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Points Leaders</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                View points leaders at each draft position. 
+              </p>
+            </Link>
           </div>
         </section>
 
         <section className="mb-12 text-left max-w-2xl mx-auto">
-          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4">Interactive Games</h2>
+          <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4 flex items-center gap-2">
+            <Gamepad2 className="w-6 h-6" />
+            Games
+          </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <Link href="/games/stat-over-under" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Stat Over/Under</h3>
