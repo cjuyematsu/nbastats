@@ -89,7 +89,7 @@ export default function HomePage() {
         <section className="mb-12 text-left max-w-2xl mx-auto">
           <h2 className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mb-4 flex items-center gap-2">
             <Gamepad2 className="w-6 h-6" />
-            Games
+            Trivia Games
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <Link href="/games/stat-over-under" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">

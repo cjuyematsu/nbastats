@@ -304,7 +304,7 @@ export default function Navbar() {
                 </div>
 
                 <div className="pt-2">
-                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Games</h3>}
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Trivia Games</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                   
                   <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
