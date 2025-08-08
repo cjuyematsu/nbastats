@@ -6,7 +6,7 @@ import Top100PlayersClient from './Top100PlayersClient';
 export const revalidate = 3600; 
 
 export const metadata: Metadata = {
-  title: 'NBA Player Rankings 2025: Top 100 Best Players & Stats',
+  title: 'Top 100 NBA Players 2025: Vote To Change Rankings',
   description: 'View the official Top 100 NBA player rankings for 2025. Compare NBA player stats, vote on the best players in the league, and see who rises to the top. Your vote helps shape the list!',
   keywords: [
     'top 100 nba players',
