@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       currentweeklyrankings: {
@@ -128,6 +133,36 @@ export type Database = {
           played_on_date?: string
           points?: number | null
           potential_points?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      odd_man_out_streaks: {
+        Row: {
+          current_streak: number
+          is_active: boolean
+          max_streak: number
+          total_correct: number
+          total_incorrect: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          is_active?: boolean
+          max_streak?: number
+          total_correct?: number
+          total_incorrect?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          is_active?: boolean
+          max_streak?: number
+          total_correct?: number
+          total_incorrect?: number
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -337,6 +372,36 @@ export type Database = {
           created_at?: string | null
           draft_year?: number
           guessed_ids?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ranking_game_streaks: {
+        Row: {
+          current_streak: number
+          is_active: boolean
+          max_streak: number
+          total_correct: number
+          total_incorrect: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          is_active?: boolean
+          max_streak?: number
+          total_correct?: number
+          total_incorrect?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          is_active?: boolean
+          max_streak?: number
+          total_correct?: number
+          total_incorrect?: number
           updated_at?: string | null
           user_id?: string
         }
@@ -776,14 +841,6 @@ export type Database = {
           year: number
         }[]
       }
-      get_next_rearrangement_time: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_next_rearrangement_time_calculated: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       get_odd_man_out_game_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -856,26 +913,6 @@ export type Database = {
           potential_points: number
         }[]
       }
-      get_top_100_prominence_2025_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          rankNumber: number
-          personId: number
-          firstName: string
-          lastName: string
-          playerteamName: string
-          gamesPlayed: number
-          pointsPerGame: number
-          reboundsPerGame: number
-          assistsPerGame: number
-          stealsPerGame: number
-          blocksPerGame: number
-          fieldGoalPercentage: number
-          threePointPercentage: number
-          freeThrowPercentage: number
-          weightedProminence: number
-        }[]
-      }
       get_user_quiz_summary: {
         Args: { p_user_id: string }
         Returns: {
@@ -885,16 +922,8 @@ export type Database = {
         }[]
       }
       perform_weekly_player_rearrangement: {
-        Args: {
-          p_target_year: number
-          p_target_week_of_year: number
-          p_previous_rearrangement_tstamp: string
-        }
-        Returns: string
-      }
-      run_weekly_ranking_job: {
         Args: Record<PropertyKey, never>
-        Returns: undefined
+        Returns: string
       }
       safe_to_integer: {
         Args: { val: string; default_val?: number }
@@ -935,25 +964,39 @@ export type Database = {
         base_fta_total: number | null
         base_ftm_total: number | null
       }
+      weekly_ranking_row: {
+        rank_position: number | null
+        player_id: number | null
+        year: number | null
+        week_of_year: number | null
+        weekly_movement_score: number | null
+        weekly_same_spot_votes: number | null
+        stats_based_prominence: number | null
+        ranked_at: string | null
+      }
     }
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -971,14 +1014,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -994,14 +1039,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1017,14 +1064,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1032,14 +1081,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
