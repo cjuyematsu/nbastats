@@ -1,14 +1,15 @@
 //app/top-100-players/Top100PlayersClient.tsx
 
-'use client'; 
+'use client';
 
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { supabase } from '@/lib/supabaseClient'; 
+import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
-import { useAuth } from '../contexts/AuthContext'; 
-import CountdownTimer from '@/components/CountdownTimer'; 
+import { useAuth } from '../contexts/AuthContext';
+import CountdownTimer from '@/components/CountdownTimer';
 import Image from 'next/image';
-import { TopPlayer, RpcRankedPlayerData } from './types'; 
+import { TopPlayer, RpcRankedPlayerData } from './types';
+import { getAnonymousId } from '@/lib/anonymousIdentifier'; 
 
 const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v1';
 
@@ -54,6 +55,24 @@ interface VotingButtonProps {
   inactiveClass: string; 
 }
 
+export interface RankingHistoryData {
+  week_of_year: number;
+  rank_position: number;
+  archived_at: string;
+}
+
+interface PlayerRankingHistoryRPC {
+  player_id: number;
+  ranking_history: Array<{
+    week: number;
+    rank: number;
+    date: string;
+  }>;
+  last_week_rank: number | null;
+  current_rank: number;
+  weekly_change: number;
+}
+
 const VotingButton: React.FC<VotingButtonProps> = ({ 
   onClick, isActive, disabled, ariaLabel, children, activeClass, inactiveClass,
 }) => {
@@ -88,10 +107,24 @@ interface PlayerBoxProps {
   player: TopPlayer;
   onVote: (playerId: number, newVoteType: number) => Promise<void>;
   isVotingDisabled: boolean;
+  rankingHistory?: RankingHistoryData[];
+  weeklyChange?: number;
 }
 
-const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled }) => {
+const PlayerBox: React.FC<PlayerBoxProps> = ({ 
+  player, 
+  onVote, 
+  isVotingDisabled, 
+  rankingHistory = [], 
+  weeklyChange = 0 
+}) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  const formattedHistory = rankingHistory.map(h => ({
+    week: h.week_of_year,
+    rank: h.rank_position,
+    date: h.archived_at
+  }));
 
   const stats = [
     { label: "PTS", value: player.pointsPerGame?.toFixed(1) ?? 'N/A' },
@@ -112,7 +145,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
   };
 
   return (
-    <div className={`relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-row h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-col h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <Image
         width="1000"
         height="500"
@@ -126,24 +159,49 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
         }}
       />
       
-      <div className="relative z-10 flex w-3/5 flex-col justify-between p-4">
-        <div>
-          <div className="flex items-center mb-1">
-            <div className="flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-sky-500 text-white font-bold text-sm flex-shrink-0">
-              {player.rankNumber}
-            </div>
-            <Link
-              href={`/player/${player.personId}`}
-              className="text-2xl font-bold leading-tight text-slate-800 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-            >
-              {`${player.firstName} ${player.lastName}`}
-            </Link>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 pl-11">{player.playerteamName}</p>
+      {formattedHistory.length > 0 && player.rankNumber && (
+        <div className="relative z-10 px-3 pt-3 border-b border-gray-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+          <CollapsibleRankingTimeline 
+            history={formattedHistory}
+            currentRank={player.rankNumber}
+            weeklyChange={weeklyChange}
+          />
         </div>
+      )}
+      
+      <div className="relative z-10 flex flex-row flex-1">
+        <div className="flex w-3/5 flex-col justify-between p-4">
+          <div>
+            <div className="flex items-center mb-1">
+              <div className="flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-sky-500 text-white font-bold text-sm flex-shrink-0">
+                {player.rankNumber}
+              </div>
+              <div className="flex flex-col">
+                <Link
+                  href={`/player/${player.personId}`}
+                  className="text-2xl font-bold leading-tight text-slate-800 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                >
+                  {`${player.firstName} ${player.lastName}`}
+                </Link>
+                <div className="flex items-center gap-2 mt-1">
+                  {player.gamesPlayed === 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700">
+                      INJURED
+                    </span>
+                  )}
+                  {player.seasonYear === 2025 && (
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-50 dark:bg-sky-900/20 text-white-700 dark:text-white-400 border border-sky-200 dark:border-sky-800">
+                      2025 Stats
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 pl-11">{player.playerteamName}</p>
+          </div>
 
-        <div className="flex items-center space-x-2 mt-4">
-           <VotingButton
+          <div className="flex items-center space-x-2 mt-4">
+            <VotingButton
               onClick={() => handleVoteClick(1)}
               isActive={player.currentUserVote === 1}
               disabled={isVotingDisabled}
@@ -176,11 +234,11 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                <span className="font-semibold text-xs ml-1.5">{player.downvotes}</span>
             </VotingButton>
+          </div>
         </div>
-      </div>
 
-      <div className="relative z-10 w-2/5 border-l border-gray-200 dark:border-slate-700 p-4">
-        <div className="grid grid-cols-2 grid-rows-5 gap-x-4 gap-y-2 h-full">
+        <div className="relative z-10 w-2/5 border-l border-gray-200 dark:border-slate-700 p-4">
+          <div className="grid grid-cols-2 grid-rows-5 gap-x-4 gap-y-2 h-full">
             {stats.map(stat => (
                 <div key={stat.label} className="flex flex-col">
                     <span className="text-xs text-sky-600 dark:text-sky-400">{stat.label}</span>
@@ -190,6 +248,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({ player, onVote, isVotingDisabled 
                     </span>
                 </div>
             ))}
+          </div>
         </div>
       </div>
     </div>
@@ -208,10 +267,13 @@ export default function Top100PlayersPage() {
   const [isNominating, setIsNominating] = useState(false); 
   const [nominationMessage, setNominationMessage] = useState<string | null>(null);
   const [isSubmittingVoteForPlayer, setIsSubmittingVoteForPlayer] = useState<Record<number, boolean>>({});
+  const [playerRankingData, setPlayerRankingData] = useState<Map<number, { history: RankingHistoryData[], weeklyChange: number }>>(new Map());
 
   const fetchOfficialWeeklyRankingWithCache = useCallback(async (
     currentNextRearrangementTime: string | null
   ): Promise<RpcRankedPlayerData[]> => {
+
+    // Check cache first to avoid unnecessary database calls
     if (!currentNextRearrangementTime) {
       const { data, error } = await supabase.rpc('get_current_ranking_with_details');
       if (error) {
@@ -225,6 +287,7 @@ export default function Top100PlayersPage() {
       if (cachedItem) {
         const cachedData: CachedTop100Data = JSON.parse(cachedItem);
         if (cachedData.expiresAt && new Date().getTime() < new Date(cachedData.expiresAt).getTime()) {
+          console.log("Returning cached rankings data.");
           return cachedData.ranks;
         } else {
           localStorage.removeItem(CACHE_KEY_TOP_100_RANKS);
@@ -232,15 +295,18 @@ export default function Top100PlayersPage() {
       }
     } catch (e) { console.error("Error reading official rankings from localStorage:", e); localStorage.removeItem(CACHE_KEY_TOP_100_RANKS); }
 
+    console.log("Fetching fresh official weekly rankings from database.");
     const { data, error } = await supabase.rpc('get_current_ranking_with_details');
     if (error) {
       console.error("Error fetching official weekly rankings via RPC:", error);
       throw new Error("Failed to fetch official rankings. Message: " + (error.message || 'Unknown RPC error'));
     }
     const fetchedRanks = (data || []) as RpcRankedPlayerData[];
+
     try {
       localStorage.setItem(CACHE_KEY_TOP_100_RANKS, JSON.stringify({ ranks: fetchedRanks, expiresAt: currentNextRearrangementTime }));
     } catch (e) { console.error("Error writing official rankings to localStorage:", e); }
+
     return fetchedRanks; 
   }, []);
 
@@ -271,21 +337,75 @@ export default function Top100PlayersPage() {
     });
     return voteCountsMap;
   }, []);
+
+    const fetchRankingHistoriesWithRPC = useCallback(async (
+    playerIds: number[]
+  ): Promise<Map<number, { history: RankingHistoryData[], weeklyChange: number }>> => {
+    const historiesMap = new Map<number, { history: RankingHistoryData[], weeklyChange: number }>();
+    
+    if (playerIds.length === 0) {
+      return historiesMap;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_players_ranking_histories_with_current', {
+        player_ids_array: playerIds,
+      });
+
+      if (error) {
+        console.error('Error fetching ranking histories via RPC:', error);
+        return historiesMap;
+      }
+
+      if (data && Array.isArray(data)) {
+        (data as PlayerRankingHistoryRPC[]).forEach(record => {
+          const history = record.ranking_history.map(h => ({
+            week_of_year: h.week,
+            rank_position: h.rank,
+            archived_at: h.date
+          }));
+          
+          historiesMap.set(record.player_id, {
+            history,
+            weeklyChange: record.weekly_change
+          });
+        });
+      }
+    } catch (err) {
+      console.error('Exception fetching ranking histories:', err);
+    }
+
+    return historiesMap;
+  }, []);
   
   const loadPlayerDataInternal = useCallback(async (currentNextRankTimeForCache: string | null) => {
     setFetchError(null); 
     try {
       const rpcData = await fetchOfficialWeeklyRankingWithCache(currentNextRankTimeForCache); 
       if (rpcData.length === 0) { 
-        setPlayers([]); return; 
+        setPlayers([]); 
+        return; 
       }
+      
       const playerIds = rpcData.map(p => p.personId);
-      const [liveVoteCountsMapResult, currentUserVotesResult] = await Promise.all([
+      
+      const [liveVoteCountsMapResult, currentUserVotesResult, rankingDataMap] = await Promise.all([
         lastRearrangementTimeISO ? fetchCurrentWeekVoteCountsForPlayers(playerIds, lastRearrangementTimeISO) : Promise.resolve(new Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>()),
-        user && playerIds.length > 0 
-          ? supabase.from('playervotes').select('player_id, vote_type').eq('user_id', user.id).in('player_id', playerIds)
-          : Promise.resolve({ data: null, error: null })
+        playerIds.length > 0
+          ? (async () => {
+              if (user) {
+                return supabase.from('playervotes').select('player_id, vote_type').eq('user_id', user.id).in('player_id', playerIds);
+              } else {
+                const anonymousId = getAnonymousId();
+                return supabase.from('playervotes').select('player_id, vote_type').eq('anonymous_id', anonymousId).in('player_id', playerIds);
+              }
+            })()
+          : Promise.resolve({ data: null, error: null }),
+        fetchRankingHistoriesWithRPC(playerIds)
       ]);
+      
+      setPlayerRankingData(rankingDataMap);
+      
       const liveVoteCountsMap = liveVoteCountsMapResult;
       const currentUserVotesMap = new Map<number, number | null>();
       if (currentUserVotesResult?.error) console.warn("Error fetching current user votes:", currentUserVotesResult.error.message);
@@ -301,8 +421,8 @@ export default function Top100PlayersPage() {
         const trueShootingPercentage = trueShootingAttempts > 0 ? points / (2 * trueShootingAttempts) : null;
 
         return {
-          rankNumber: p.rankNumber, personId: p.personId, firstName: p.firstName ?? 'N/A', lastName: p.lastName ?? 'N/A',
-          playerteamName: p.playerteamName ?? 'N/A', gamesPlayed: gamesPlayed,
+          rankNumber: p.rankNumber, personId: p.personId, firstName: p.firstName ?? 'Unknown', lastName: p.lastName ?? 'Player',
+          playerteamName: p.playerteamName ?? 'Free Agent', gamesPlayed: gamesPlayed,
           pointsPerGame: gamesPlayed > 0 && p.PTS_total != null ? p.PTS_total / gamesPlayed : null,
           reboundsPerGame: gamesPlayed > 0 && p.TRB_total != null ? p.TRB_total / gamesPlayed : null,
           assistsPerGame: gamesPlayed > 0 && p.AST_total != null ? p.AST_total / gamesPlayed : null,
@@ -311,11 +431,12 @@ export default function Top100PlayersPage() {
           fieldGoalPercentage: p.FGA_total != null && p.FGA_total > 0 && p.FGM_total != null ? p.FGM_total / p.FGA_total : null,
           threePointPercentage: p.FG3A_total != null && p.FG3A_total > 0 && p.FG3M_total != null ? p.FG3M_total / p.FG3A_total : null,
           freeThrowPercentage: p.FTA_total != null && p.FTA_total > 0 && p.FTM_total != null ? p.FTM_total / p.FTA_total : null,
-          trueShootingPercentage: trueShootingPercentage, 
+          trueShootingPercentage: trueShootingPercentage,
           weightedProminence: p.statsBasedProminence ?? p.Prominence_rs ?? null,
           upvotes: liveCounts.upvotes, downvotes: liveCounts.downvotes, sameSpotVotes: liveCounts.sameSpotVotes,
           finalMovementScoreAtRanking: p.weeklyMovementScore ?? 0,
           currentUserVote: currentUserVotesMap.get(p.personId) ?? null,
+          seasonYear: p.SeasonYear ?? null,
         };
       });
       setPlayers(combinedPlayersData);
@@ -325,7 +446,7 @@ export default function Top100PlayersPage() {
       else if (typeof error === 'string') message = error;
       setFetchError(message); console.error("Error in loadPlayerDataInternal:", error); 
     }
-  }, [user, fetchOfficialWeeklyRankingWithCache, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO]); 
+  }, [user, fetchOfficialWeeklyRankingWithCache, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, fetchRankingHistoriesWithRPC]); 
 
   useEffect(() => {
     if (!nextRearrangementTime) {
@@ -369,18 +490,21 @@ export default function Top100PlayersPage() {
   }, [authIsLoading, lastRearrangementTimeISO, nextRearrangementTime, loadPlayerDataInternal]); 
 
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
-    if (!user || !session) { alert("Please sign in to vote."); return; }
-    if (isSubmittingVoteForPlayer[playerId]) return; 
+    if (isSubmittingVoteForPlayer[playerId]) return;
+
+    // Get identifier (user_id or anonymous_id)
+    const userId = user?.id || null;
+    const anonymousId = !userId ? getAnonymousId() : null;
 
     setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerId]: true }));
-    
+
     let originalPlayerForRevert: TopPlayer | undefined;
     const playerIndex = players.findIndex(p => p.personId === playerId);
     if (playerIndex !== -1) {
       originalPlayerForRevert = JSON.parse(JSON.stringify(players[playerIndex]));
     }
-    
-    setPlayers(prevPlayers => 
+
+    setPlayers(prevPlayers =>
       prevPlayers.map(p => {
         if (p.personId === playerId) {
           const updatedPlayer = { ...p };
@@ -398,14 +522,27 @@ export default function Top100PlayersPage() {
       })
     );
     try {
-      if (newVoteType === 0) { 
-        const { error: deleteError } = await supabase.from('playervotes').delete().match({ player_id: playerId, user_id: user.id });
+      if (newVoteType === 0) {
+        // Delete vote
+        const deleteQuery = supabase.from('playervotes').delete();
+        if (userId) {
+          deleteQuery.match({ player_id: playerId, user_id: userId });
+        } else {
+          deleteQuery.match({ player_id: playerId, anonymous_id: anonymousId });
+        }
+        const { error: deleteError } = await deleteQuery;
         if (deleteError) throw deleteError;
-      } else { 
-        const { error: upsertError } = await supabase.from('playervotes').upsert({ player_id: playerId, user_id: user.id, vote_type: newVoteType }, { onConflict: 'player_id, user_id' });
+      } else {
+        // Upsert vote
+        const { error: upsertError } = await supabase.from('playervotes').upsert({
+          player_id: playerId,
+          user_id: userId,
+          anonymous_id: anonymousId,
+          vote_type: newVoteType
+        });
         if (upsertError) throw upsertError;
       }
-    } catch (error) { 
+    } catch (error) {
         let message = "An unknown error occurred.";
         if (error instanceof Error) message = error.message;
         else if (typeof error === 'string') message = error;
@@ -533,21 +670,37 @@ export default function Top100PlayersPage() {
       <div className="p-4 md:py-6">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-center text-sky-600 dark:text-sky-400">{pageTitle}</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mb-1 text-center">{pageSubtitle}</p>
+
+        {/* Voting Open Announcement */}
+        <div className="mt-4 mb-4 p-4 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-200 dark:border-sky-800 rounded-lg">
+          <p className="text-center text-sky-700 dark:text-sky-300 font-semibold text-lg">
+            🗳️ Voting is now open to everyone! No sign-in required.
+          </p>
+          <p className="text-center text-sky-600 dark:text-sky-400 text-sm mt-1">
+            Your votes are saved locally and count equally toward weekly rankings
+          </p>
+        </div>
+
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
         {!user && !authIsLoading && (
           <p className="text-center text-sky-600 dark:text-sky-400 my-6 font-semibold">
-            <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to vote on player rankings or nominate players!
+            <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to nominate players and save your vote history!
           </p>
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
-          {players.map((player) => (
-            <PlayerBox
-              key={player.personId.toString()}
-              player={player}
-              onVote={handlePlayerVote}
-              isVotingDisabled={!user || !session}
-            />
-          ))}
+          {players.map((player) => {
+            const rankingInfo = playerRankingData.get(player.personId);
+            return (
+              <PlayerBox
+                key={player.personId.toString()}
+                player={player}
+                onVote={handlePlayerVote}
+                isVotingDisabled={false}
+                rankingHistory={rankingInfo?.history || []}
+                weeklyChange={rankingInfo?.weeklyChange ?? 0}
+              />
+            );
+          })}
         </div>
       </div>
       {user && (
@@ -574,3 +727,136 @@ export default function Top100PlayersPage() {
     </div>
   );
 }
+
+
+// --- NEW COMPONENT: CollapsibleRankingTimeline ---
+// This component replaces the old timeline for a more subtle and interactive UI.
+
+interface RankingHistoryPoint {
+  week: number;
+  rank: number;
+  date: string;
+}
+
+interface CollapsibleRankingTimelineProps {
+  history: RankingHistoryPoint[];
+  currentRank: number;
+  weeklyChange: number;
+}
+
+const CollapsibleRankingTimeline: React.FC<CollapsibleRankingTimelineProps> = ({ history, currentRank, weeklyChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const displayHistory = history.slice(-4); // Show last 4 weeks + current week = 5 points
+
+  // --- Change Indicator Logic ---
+  const getChangeIndicator = () => {
+    if (weeklyChange > 0) {
+      return { color: 'text-green-500 dark:text-green-400', icon: '▲', text: `+${weeklyChange}` };
+    }
+    if (weeklyChange < 0) {
+      return { color: 'text-red-500 dark:text-red-400', icon: '▼', text: `${weeklyChange}` };
+    }
+    return { color: 'text-slate-500 dark:text-slate-400', icon: '▬', text: '0' };
+  };
+  const change = getChangeIndicator();
+
+  // --- Charting Logic ---
+  const allRanks = [...displayHistory.map(h => h.rank), currentRank];
+  const minRank = Math.min(...allRanks);
+  const maxRank = Math.max(...allRanks);
+  const rankRange = maxRank - minRank;
+  
+  // Add padding for better visualization, ensuring it doesn't go below 1
+  const paddedMin = Math.max(1, minRank - (rankRange > 10 ? 5 : 2));
+  const paddedMax = maxRank + (rankRange > 10 ? 5 : 2);
+  const paddedRange = paddedMax - paddedMin || 1;
+  
+  const getY = (rank: number) => 100 - ((rank - paddedMin) / paddedRange) * 100;
+
+  return (
+    <div className="w-full mb-1">
+      {/* --- Collapsible Header / Button --- */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex justify-between items-center bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 p-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500"
+      >
+        <div className="flex items-center space-x-2">
+          <span className={`font-bold text-sm ${change.color}`}>
+            {change.icon} {change.text}
+          </span>
+          <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+            Weekly Trend
+          </span>
+        </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={3}
+          stroke="currentColor"
+          className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {/* --- Expandable Chart Content --- */}
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          isOpen ? 'max-h-40 mt-2' : 'max-h-0'
+        }`}
+      >
+        <div className="relative p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <svg viewBox="0 0 100 35" className="overflow-visible w-full h-auto">
+            {/* --- Rank line connecting all points --- */}
+            <polyline
+              points={
+                displayHistory.map((point, index) =>
+                  `${index * 22 + 10},${getY(point.rank) * 0.25 + 5}`
+                ).join(' ') + ` ${displayHistory.length * 22 + 10},${getY(currentRank) * 0.25 + 5}`
+              }
+              fill="none"
+              className="stroke-sky-500"
+              strokeWidth="1"
+            />
+            
+            {/* --- Historical data points and labels --- */}
+            {displayHistory.map((point, index) => (
+              <g key={index}>
+                <circle
+                  cx={index * 22 + 10}
+                  cy={getY(point.rank) * 0.25 + 5}
+                  r="1.5"
+                  className="fill-sky-500"
+                />
+                <text x={index * 22 + 10} y="34" textAnchor="middle" className="text-[5px] fill-slate-500 dark:fill-slate-400">
+                  W{point.week}
+                </text>
+                 <text x={index * 22 + 10} y={getY(point.rank) * 0.25 + 2} textAnchor="middle" className="text-[5px] font-bold fill-slate-600 dark:fill-slate-300">
+                  {point.rank}
+                </text>
+              </g>
+            ))}
+
+            {/* --- Current rank point and label --- */}
+            <g>
+              <circle
+                cx={displayHistory.length * 22 + 10}
+                cy={getY(currentRank) * 0.25 + 5}
+                r="2"
+                className="fill-white dark:fill-slate-900 stroke-sky-500"
+                strokeWidth="1"
+              />
+               <text x={displayHistory.length * 22 + 10} y="34" textAnchor="middle" className="text-[5px] font-bold fill-slate-700 dark:fill-slate-300">
+                  Now
+                </text>
+              <text x={displayHistory.length * 22 + 10} y={getY(currentRank) * 0.25 + 2} textAnchor="middle" className="text-[6px] font-extrabold fill-slate-800 dark:fill-slate-100">
+                {currentRank}
+              </text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+};

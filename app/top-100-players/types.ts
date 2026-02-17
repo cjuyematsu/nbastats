@@ -1,14 +1,14 @@
 //app/top-100-players/types.ts
 
-export interface RpcRankedPlayerData { 
-    rankNumber: number; 
-    personId: number; 
+export interface RpcRankedPlayerData {
+    rankNumber: number;
+    personId: number;
     weeklyMovementScore: number | null;
     statsBasedProminence: number | null;
     firstName: string | null;
     lastName: string | null;
     playerteamName: string | null;
-    G: number | null; 
+    G: number | null;
     PTS_total: number | null;
     TRB_total: number | null;
     AST_total: number | null;
@@ -20,12 +20,13 @@ export interface RpcRankedPlayerData {
     FG3M_total: number | null;
     FTA_total: number | null;
     FTM_total: number | null;
-    Prominence_rs: number | null; 
+    Prominence_rs: number | null;
+    SeasonYear: number | null;
   }
   
   export interface TopPlayer {
-    rankNumber: number; 
-    personId: number; 
+    rankNumber: number;
+    personId: number;
     firstName: string;
     lastName: string;
     playerteamName: string;
@@ -38,11 +39,12 @@ export interface RpcRankedPlayerData {
     fieldGoalPercentage: number | null;
     threePointPercentage: number | null;
     freeThrowPercentage: number | null;
-    trueShootingPercentage: number | null; 
-    weightedProminence: number | null; 
-    upvotes: number;            
-    downvotes: number;          
-    sameSpotVotes: number;      
-    finalMovementScoreAtRanking: number; 
+    trueShootingPercentage: number | null;
+    weightedProminence: number | null;
+    upvotes: number;
+    downvotes: number;
+    sameSpotVotes: number;
+    finalMovementScoreAtRanking: number;
     currentUserVote?: number | null;
+    seasonYear: number | null;
   }
