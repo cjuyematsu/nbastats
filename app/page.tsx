@@ -23,7 +23,11 @@ export default function HomePage() {
                 Explore NBA Player Stats, NBA Player Comparisons, and NBA Trivia
             </span>
           </h2>
-          
+
+          <Link href="/top-100-players" className="inline-flex items-center gap-2 mt-6 px-5 py-3 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-300 dark:border-sky-700 rounded-full text-sky-700 dark:text-sky-300 font-semibold text-sm hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors">
+            Voting is now open to everyone! No sign-in required! Vote on the Top 100 NBA players of 2026
+          </Link>
+
         </header>
 
         <section className="mb-12 text-left max-w-2xl mx-auto">
