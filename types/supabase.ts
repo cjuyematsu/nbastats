@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -184,24 +184,27 @@ export type Database = {
       }
       playervotes: {
         Row: {
+          anonymous_id: string | null
           created_at: string | null
           player_id: number
           updated_at: string | null
-          user_id: string
+          user_id: string | null
           vote_type: number
         }
         Insert: {
+          anonymous_id?: string | null
           created_at?: string | null
           player_id: number
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
           vote_type: number
         }
         Update: {
+          anonymous_id?: string | null
           created_at?: string | null
           player_id?: number
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
           vote_type?: number
         }
         Relationships: []
@@ -709,80 +712,80 @@ export type Database = {
       calculate_player_career_playoff_stats: {
         Args: { p_person_id: number }
         Returns: {
-          personId: number
-          firstName: string
-          lastName: string
-          startYear: number
-          endYear: number
-          games_played: number
-          mp_total: number
-          pts_total: number
-          ast_total: number
-          blk_total: number
-          stl_total: number
-          fga_total: number
-          fgm_total: number
-          fg3a_total: number
-          fg3m_total: number
-          fta_total: number
-          ftm_total: number
-          dreb_total: number
-          oreb_total: number
-          trb_total: number
-          pf_total: number
-          tov_total: number
-          mp_per_g: number
-          pts_per_g: number
           ast_per_g: number
+          ast_total: number
           blk_per_g: number
-          stl_per_g: number
-          trb_per_g: number
-          pf_per_g: number
-          tov_per_g: number
+          blk_total: number
+          dreb_total: number
+          efg_pct: number
+          endYear: number
           fg_pct: number
           fg3_pct: number
+          fg3a_total: number
+          fg3m_total: number
+          fga_total: number
+          fgm_total: number
+          firstName: string
           ft_pct: number
-          efg_pct: number
+          fta_total: number
+          ftm_total: number
+          games_played: number
+          lastName: string
+          mp_per_g: number
+          mp_total: number
+          oreb_total: number
+          personId: number
+          pf_per_g: number
+          pf_total: number
+          pts_per_g: number
+          pts_total: number
+          startYear: number
+          stl_per_g: number
+          stl_total: number
+          tov_per_g: number
+          tov_total: number
+          trb_per_g: number
+          trb_total: number
           ts_pct: number
         }[]
       }
       calculate_player_career_stats: {
         Args: { p_person_id: number }
         Returns: {
-          personId: number
-          firstName: string
-          lastName: string
-          startYear: number
-          endYear: number
-          games_played: number
-          mp_total: number
-          pts_total: number
-          ast_total: number
-          blk_total: number
-          stl_total: number
-          fga_total: number
-          fgm_total: number
-          fg3a_total: number
-          fg3m_total: number
-          fta_total: number
-          ftm_total: number
-          dreb_total: number
-          oreb_total: number
-          trb_total: number
-          pf_total: number
-          tov_total: number
-          mp_per_g: number
-          pts_per_g: number
           ast_per_g: number
+          ast_total: number
           blk_per_g: number
-          stl_per_g: number
-          trb_per_g: number
-          pf_per_g: number
-          tov_per_g: number
+          blk_total: number
+          dreb_total: number
+          efg_pct: number
+          endYear: number
           fg_pct: number
           fg3_pct: number
+          fg3a_total: number
+          fg3m_total: number
+          fga_total: number
+          fgm_total: number
+          firstName: string
           ft_pct: number
-          efg_pct: number
+          fta_total: number
+          ftm_total: number
+          games_played: number
+          lastName: string
+          mp_per_g: number
+          mp_total: number
+          oreb_total: number
+          personId: number
+          pf_per_g: number
+          pf_total: number
+          pts_per_g: number
+          pts_total: number
+          startYear: number
+          stl_per_g: number
+          stl_total: number
+          tov_per_g: number
+          tov_total: number
+          trb_per_g: number
+          trb_total: number
           ts_pct: number
         }[]
       }
@@ -802,91 +805,124 @@ export type Database = {
         Returns: undefined
       }
       get_aggregated_weekly_votes_for_players: {
-        Args: { player_ids_array: number[]; p_week_start_time: string }
+        Args: { p_week_start_time: string; player_ids_array: number[] }
         Returns: {
-          playerId: number
-          upvotes: number
           downvotes: number
+          playerId: number
           sameSpotVotes: number
+          upvotes: number
         }[]
       }
       get_current_ranking_with_details: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          rankNumber: number
-          personId: number
-          weeklyMovementScore: number
-          statsBasedProminence: number
-          firstName: string
-          lastName: string
-          playerteamName: string
-          G: number
-          PTS_total: number
-          TRB_total: number
           AST_total: number
-          STL_total: number
           BLK_total: number
-          FGA_total: number
-          FGM_total: number
           FG3A_total: number
           FG3M_total: number
+          FGA_total: number
+          FGM_total: number
+          firstName: string
           FTA_total: number
           FTM_total: number
+          G: number
+          lastName: string
+          personId: number
+          playerteamName: string
           Prominence_rs: number
-        }[]
-      }
-      get_distinct_draft_years: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          year: number
+          PTS_total: number
+          rankNumber: number
+          SeasonYear: number
+          statsBasedProminence: number
+          STL_total: number
+          TRB_total: number
+          weeklyMovementScore: number
         }[]
       }
       get_odd_man_out_game_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          players: Json
-          oddManOutName: string
           connectionName: string
+          oddManOutName: string
+          players: Json
+        }[]
+      }
+      get_player_rankings: {
+        Args: {
+          p_current_week?: number
+          p_year?: number
+          player_ids_array: number[]
+        }
+        Returns: {
+          current_rank: number
+          last_week_rank: number
+          player_id: number
+          ranking_history: Json
+          weekly_change: number
         }[]
       }
       get_player_suggestions: {
         Args: { search_term: string }
         Returns: {
-          personId: number
+          endYear: number
           firstName: string
           lastName: string
+          personId: number
           startYear: number
-          endYear: number
         }[]
       }
       get_player_suggestions_2025: {
         Args: { search_term: string }
         Returns: {
-          personId: number
           firstName: string
           lastName: string
-          min_season: number
           max_season: number
+          min_season: number
+          personId: number
+        }[]
+      }
+      get_players_ranking_histories: {
+        Args: {
+          p_year?: number
+          player_ids_array: number[]
+          weeks_to_fetch?: number
+        }
+        Returns: {
+          archived_at: string
+          player_id: number
+          rank_position: number
+          week_of_year: number
+          weekly_change: number
+        }[]
+      }
+      get_players_ranking_histories_with_current: {
+        Args: { player_ids_array: number[] }
+        Returns: {
+          current_rank: number
+          last_week_rank: number
+          player_id: number
+          ranking_history: Json
+          weekly_change: number
         }[]
       }
       get_ranking_game_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          personId: number
-          firstName: string
-          lastName: string
-          SeasonYear: number
-          statValue: number
           categoryName: string
           categoryOptions: string[]
+          firstName: string
+          lastName: string
+          personId: number
+          SeasonYear: number
+          statValue: number
         }[]
       }
       get_six_degrees_history: {
         Args: { p_user_id: string }
         Returns: {
           game_date: string
-          is_successful: boolean
           guess_count: number
+          is_successful: boolean
         }[]
       }
       get_stat_ou_challenges_for_date: {
@@ -904,6 +940,12 @@ export type Database = {
           stat_category: string
           team_name: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "stat_ou_daily_challenges"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_stat_ou_history: {
         Args: { p_user_id: string }
@@ -916,21 +958,14 @@ export type Database = {
       get_user_quiz_summary: {
         Args: { p_user_id: string }
         Returns: {
-          year: number
           correct_count: number
           total_count: number
+          year: number
         }[]
       }
-      perform_weekly_player_rearrangement: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      safe_to_integer: {
-        Args: { val: string; default_val?: number }
-        Returns: number
-      }
+      perform_weekly_player_rearrangement: { Args: never; Returns: string }
       submit_player_vote: {
-        Args: { target_player_id: number; new_vote_type: number }
+        Args: { new_vote_type: number; target_player_id: number }
         Returns: undefined
       }
     }
