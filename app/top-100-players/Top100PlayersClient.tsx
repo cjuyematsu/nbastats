@@ -674,7 +674,7 @@ export default function Top100PlayersPage() {
         {/* Voting Open Announcement */}
         <div className="mt-4 mb-4 p-4 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-200 dark:border-sky-800 rounded-lg">
           <p className="text-center text-sky-700 dark:text-sky-300 font-semibold text-lg">
-            🗳️ Voting is now open to everyone! No sign-in required.
+            Voting is now open to everyone! No sign-in required.
           </p>
           <p className="text-center text-sky-600 dark:text-sky-400 text-sm mt-1">
             Your votes are saved locally and count equally toward weekly rankings
