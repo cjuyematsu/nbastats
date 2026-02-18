@@ -524,22 +524,27 @@ export default function Top100PlayersPage() {
     try {
       if (newVoteType === 0) {
         // Delete vote
-        const deleteQuery = supabase.from('playervotes').delete();
         if (userId) {
-          deleteQuery.match({ player_id: playerId, user_id: userId });
+          const { error: deleteError } = await supabase.from('playervotes').delete()
+            .match({ player_id: playerId, user_id: userId });
+          if (deleteError) throw deleteError;
         } else {
-          deleteQuery.match({ player_id: playerId, anonymous_id: anonymousId });
+          const { error: deleteError } = await supabase.from('playervotes').delete()
+            .match({ player_id: playerId, anonymous_id: anonymousId });
+          if (deleteError) throw deleteError;
         }
-        const { error: deleteError } = await deleteQuery;
-        if (deleteError) throw deleteError;
       } else {
-        // Upsert vote
-        const { error: upsertError } = await supabase.from('playervotes').upsert({
-          player_id: playerId,
-          user_id: userId,
-          anonymous_id: anonymousId,
-          vote_type: newVoteType
-        });
+        // Upsert vote with correct conflict target
+        const conflictColumn = userId ? 'player_id,user_id' : 'player_id,anonymous_id';
+        const { error: upsertError } = await supabase.from('playervotes').upsert(
+          {
+            player_id: playerId,
+            user_id: userId,
+            anonymous_id: anonymousId,
+            vote_type: newVoteType
+          },
+          { onConflict: conflictColumn }
+        );
         if (upsertError) throw upsertError;
       }
     } catch (error) {
