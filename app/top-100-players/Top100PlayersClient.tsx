@@ -494,7 +494,16 @@ export default function Top100PlayersPage() {
 
     // Get identifier (user_id or anonymous_id)
     const userId = user?.id || null;
-    const anonymousId = !userId ? getAnonymousId() : null;
+    let anonymousId: string | null = null;
+    if (!userId) {
+      try {
+        anonymousId = getAnonymousId();
+      } catch (e) {
+        console.error("Failed to get anonymous ID (localStorage may be blocked):", e);
+        alert("Voting requires localStorage access. Please disable private browsing or enable cookies for this site.");
+        return;
+      }
+    }
 
     setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerId]: true }));
 
@@ -522,35 +531,49 @@ export default function Top100PlayersPage() {
       })
     );
     try {
+      // Build the match filter for this user's vote
+      const matchFilter = userId
+        ? { player_id: playerId, user_id: userId }
+        : { player_id: playerId, anonymous_id: anonymousId };
+
       if (newVoteType === 0) {
         // Delete vote
-        if (userId) {
-          const { error: deleteError } = await supabase.from('playervotes').delete()
-            .match({ player_id: playerId, user_id: userId });
-          if (deleteError) throw deleteError;
-        } else {
-          const { error: deleteError } = await supabase.from('playervotes').delete()
-            .match({ player_id: playerId, anonymous_id: anonymousId });
-          if (deleteError) throw deleteError;
-        }
+        const { error: deleteError } = await supabase.from('playervotes').delete().match(matchFilter);
+        if (deleteError) throw deleteError;
       } else {
-        // Upsert vote with correct conflict target
-        const conflictColumn = userId ? 'player_id,user_id' : 'player_id,anonymous_id';
-        const { error: upsertError } = await supabase.from('playervotes').upsert(
-          {
-            player_id: playerId,
-            user_id: userId,
-            anonymous_id: anonymousId,
-            vote_type: newVoteType
-          },
-          { onConflict: conflictColumn }
-        );
-        if (upsertError) throw upsertError;
+        // Check if vote already exists
+        let existingQuery = supabase.from('playervotes').select('player_id').eq('player_id', playerId);
+        if (userId) {
+          existingQuery = existingQuery.eq('user_id', userId);
+        } else {
+          existingQuery = existingQuery.eq('anonymous_id', anonymousId!);
+        }
+        const { data: existing, error: selectError } = await existingQuery.maybeSingle();
+        if (selectError) throw selectError;
+
+        if (existing) {
+          // Update existing vote
+          const { error: updateError } = await supabase.from('playervotes')
+            .update({ vote_type: newVoteType })
+            .match(matchFilter);
+          if (updateError) throw updateError;
+        } else {
+          // Insert new vote
+          const { error: insertError } = await supabase.from('playervotes')
+            .insert({
+              player_id: playerId,
+              user_id: userId,
+              anonymous_id: anonymousId,
+              vote_type: newVoteType
+            });
+          if (insertError) throw insertError;
+        }
       }
-    } catch (error) {
+    } catch (error: unknown) {
         let message = "An unknown error occurred.";
         if (error instanceof Error) message = error.message;
         else if (typeof error === 'string') message = error;
+        else if (error && typeof error === 'object' && 'message' in error) message = String((error as { message: unknown }).message);
         console.error("Error submitting vote:", error);
         alert(`Failed to submit vote: ${message}`);
         if (originalPlayerForRevert) {
