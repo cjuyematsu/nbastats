@@ -741,7 +741,7 @@ export default function Top100PlayersPage() {
             Voting is now open to everyone! No sign-in required.
           </p>
           <p className="text-center text-sky-600 dark:text-sky-400 text-sm mt-1">
-            Your votes are saved locally and count equally toward weekly rankings
+            Nominate new players to be added to the ranking to be included on next week&apos;s ranking
           </p>
         </div>
 
@@ -767,7 +767,7 @@ export default function Top100PlayersPage() {
           })}
         </div>
       </div>
-      <div className="px-4 md:px-6 pb-8">
+      <div id="nominate" className="px-4 md:px-6 pb-8 scroll-mt-4">
             <div className="max-w-2xl mx-auto bg-gray-100 dark:bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 dark:border-transparent">
                 <h2 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center"> Search for a player not in the Top 100. Each nomination counts as an upvote. </p>
