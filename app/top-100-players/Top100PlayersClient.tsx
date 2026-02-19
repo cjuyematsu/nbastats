@@ -256,7 +256,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({
 };
 
 export default function Top100PlayersPage() {
-  const { user, isLoading: authIsLoading, session } = useAuth();
+  const { user, isLoading: authIsLoading } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>([]);
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
