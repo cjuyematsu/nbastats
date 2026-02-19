@@ -636,30 +636,66 @@ export default function Top100PlayersPage() {
   };
 
   const handleNominatePlayer = async (playerToNominate: PlayerSuggestion) => {
-    if (!user || !session) { alert("Please sign in to nominate a player."); setNominationMessage("Please sign in to nominate."); return; }
-    if (isNominating || isSubmittingVoteForPlayer[playerToNominate.personId]) return; 
+    if (isNominating || isSubmittingVoteForPlayer[playerToNominate.personId]) return;
     if (players.some(p => p.personId === playerToNominate.personId)) {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} is already in the Top 100.`);
         setNominationSearchTerm(''); setNominationSuggestions([]);
-        setTimeout(() => setNominationMessage(null), 5000); return; 
+        setTimeout(() => setNominationMessage(null), 5000); return;
     }
-    setIsNominating(true); setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerToNominate.personId]: true })); 
+
+    // Get identifier (user_id or anonymous_id)
+    const userId = user?.id || null;
+    let anonymousId: string | null = null;
+    if (!userId) {
+      try {
+        anonymousId = getAnonymousId();
+      } catch (e) {
+        console.error("Failed to get anonymous ID:", e);
+        setNominationMessage("Nomination requires localStorage. Please disable private browsing or enable cookies.");
+        setTimeout(() => setNominationMessage(null), 5000); return;
+      }
+    }
+
+    setIsNominating(true); setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerToNominate.personId]: true }));
     setNominationMessage(`Nominating ${playerToNominate.firstName} ${playerToNominate.lastName}...`);
     try {
-      const { data: existingVote, error: existingVoteError } = await supabase.from('playervotes').select('vote_type').eq('user_id', user.id).eq('player_id', playerToNominate.personId).maybeSingle();
+      // Check if already nominated/voted
+      let existingQuery = supabase.from('playervotes').select('vote_type').eq('player_id', playerToNominate.personId);
+      if (userId) {
+        existingQuery = existingQuery.eq('user_id', userId);
+      } else {
+        existingQuery = existingQuery.eq('anonymous_id', anonymousId!);
+      }
+      const { data: existingVote, error: existingVoteError } = await existingQuery.maybeSingle();
       if (existingVoteError) throw existingVoteError;
+
       if (existingVote && existingVote.vote_type === 1) {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} has already been upvoted/nominated by you.`);
+      } else if (existingVote) {
+        // Update existing vote to upvote
+        const matchFilter = userId
+          ? { player_id: playerToNominate.personId, user_id: userId }
+          : { player_id: playerToNominate.personId, anonymous_id: anonymousId };
+        const { error: updateError } = await supabase.from('playervotes').update({ vote_type: 1 }).match(matchFilter);
+        if (updateError) throw updateError;
+        setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       } else {
-        const { error: upsertError } = await supabase.from('playervotes').upsert({ player_id: playerToNominate.personId, user_id: user.id, vote_type: 1 }, { onConflict: 'player_id, user_id' });
-        if (upsertError) throw upsertError;
+        // Insert new nomination vote
+        const { error: insertError } = await supabase.from('playervotes').insert({
+          player_id: playerToNominate.personId,
+          user_id: userId,
+          anonymous_id: anonymousId,
+          vote_type: 1
+        });
+        if (insertError) throw insertError;
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       }
       setNominationSearchTerm(''); setNominationSuggestions([]);
-    } catch (error) {
+    } catch (error: unknown) {
       let message = "Failed to nominate player.";
       if (error instanceof Error) message = error.message;
       else if (typeof error === 'string') message = error;
+      else if (error && typeof error === 'object' && 'message' in error) message = String((error as { message: unknown }).message);
       console.error("Error nominating player:", error); setNominationMessage(`Error: ${message}`);
     } finally {
       setIsNominating(false); setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerToNominate.personId]: false }));
@@ -712,7 +748,7 @@ export default function Top100PlayersPage() {
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
         {!user && !authIsLoading && (
           <p className="text-center text-sky-600 dark:text-sky-400 my-6 font-semibold">
-            <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to nominate players and save your vote history!
+            <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to save your vote history across devices!
           </p>
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6">
@@ -731,11 +767,10 @@ export default function Top100PlayersPage() {
           })}
         </div>
       </div>
-      {user && (
-          <div className="px-4 md:px-6 pb-8">
+      <div className="px-4 md:px-6 pb-8">
             <div className="max-w-2xl mx-auto bg-gray-100 dark:bg-slate-700/50 p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 dark:border-transparent">
                 <h2 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-3 text-center">Nominate a Player for Top 100</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center"> Search for a player (2025 Season) not in the Top 100. Each nomination counts as an upvote. </p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center"> Search for a player not in the Top 100. Each nomination counts as an upvote. </p>
                 <div className="max-w-md mx-auto relative">
                   <input type="text" placeholder="Search player name to nominate..." value={nominationSearchTerm} onChange={handleNominationSearchChange} disabled={isNominating} className="w-full p-2.5 rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 border border-gray-300 dark:border-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
                   {nominationSuggestions.length > 0 && (
@@ -751,7 +786,6 @@ export default function Top100PlayersPage() {
                 </div>
             </div>
           </div>
-        )}
     </div>
   );
 }
