@@ -12,16 +12,71 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NBA Player Stats',
-  description: 'Search and compare NBA player statistics',
+  title: {
+    default: 'NBA Player Comparison Tool & Stats | HoopsData',
+    template: '%s | HoopsData',
+  },
+  description: 'Free NBA player comparison tool. Compare any NBA players side-by-side, view Top 100 rankings, play basketball trivia games, and explore NBA stats and analytics.',
+  keywords: ['nba player comparison', 'compare nba players', 'nba player comparison tool', 'nba stats', 'nba player stats', 'basketball stats', 'compare nba player stats', 'nba stat comparison', 'top 100 nba players', 'nba trivia'],
+  metadataBase: new URL('https://hoopsdata.net'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://hoopsdata.net',
+    siteName: 'HoopsData',
+    title: 'NBA Player Comparison Tool & Stats | HoopsData',
+    description: 'Free NBA player comparison tool. Compare any NBA players side-by-side, view Top 100 rankings, and play basketball trivia games.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'HoopsData - NBA Player Comparison Tool',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'NBA Player Comparison Tool & Stats | HoopsData',
+    description: 'Free NBA player comparison tool. Compare any NBA players side-by-side, view Top 100 rankings, and play basketball trivia.',
+    images: ['/logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "HoopsData",
-  "url": "https://www.hoopsdata.net",
-  "logo": "https://www.hoopsdata.net/logo.svg"
+  "url": "https://hoopsdata.net",
+  "logo": "https://hoopsdata.net/logo.svg",
+  "sameAs": []
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "HoopsData",
+  "url": "https://hoopsdata.net",
+  "description": "Free NBA player comparison tool, stats, rankings, and basketball trivia games.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://hoopsdata.net/compare?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
 };
 
 const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256;
@@ -39,6 +94,10 @@ export default function RootLayout({
       <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />

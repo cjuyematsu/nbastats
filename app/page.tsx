@@ -5,8 +5,12 @@ import type { Metadata } from 'next';
 import { Users, TrendingUp, Gamepad2 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'NBA Stats, Player Comparisons & Trivia | Hoops Data',
-  description: 'Your ultimate hub for NBA stats. Use our free NBA player comparison tool, explore NBA player rankings, and test your knowledge with fun trivia games.',
+  title: 'NBA Player Comparison Tool, Stats & Trivia | HoopsData',
+  description: 'Free NBA player comparison tool. Compare any two NBA players side-by-side, vote on Top 100 player rankings, and play basketball trivia games. The ultimate hub for NBA stats and analytics.',
+  keywords: ['nba player comparison', 'compare nba players', 'nba player comparison tool', 'nba stats', 'nba player stats', 'nba trivia', 'top 100 nba players', 'basketball stats', 'nba analytics'],
+  alternates: {
+    canonical: '/',
+  },
 };
 
 
@@ -45,7 +49,7 @@ export default function HomePage() {
             <Link href="/top-100-players" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Top 100 Players</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Explore our rankings of the top 100 players of 2025 and vote to change rankings.
+                Explore our rankings of the top 100 NBA players of 2026 and vote to change rankings. No sign-in required!
               </p>
             </Link>
             <Link href="/degrees-of-separation" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
