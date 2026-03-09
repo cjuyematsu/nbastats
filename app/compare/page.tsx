@@ -7,7 +7,16 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'NBA Player Comparison Tool | Compare Stats Side-by-Side',
-  description: 'Use our free NBA player comparison tool to compare careers. Settle the debate on who is better by comparing stats like PPG, RPG, APG, and advanced metrics by age.',
+  description: 'Use our free NBA player comparison tool to compare any two NBA players side-by-side. Compare stats like PPG, RPG, APG, shooting percentages, and advanced metrics by age or season.',
+  keywords: ['nba player comparison', 'compare nba players', 'nba player comparison tool', 'nba stats comparison', 'nba player compare', 'compare player stats nba', 'nba stat comparison', 'compare nba player stats', 'nba player comparison generator', 'basketball player comparison'],
+  alternates: {
+    canonical: '/compare',
+  },
+  openGraph: {
+    title: 'NBA Player Comparison Tool | Compare Stats Side-by-Side',
+    description: 'Free tool to compare any two NBA players. Compare PPG, RPG, APG, shooting stats, and advanced metrics side-by-side.',
+    url: '/compare',
+  },
 };
 
 
