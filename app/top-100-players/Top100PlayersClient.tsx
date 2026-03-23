@@ -1,5 +1,3 @@
-//app/top-100-players/Top100PlayersClient.tsx
-
 'use client';
 
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
@@ -273,7 +271,6 @@ export default function Top100PlayersPage() {
     currentNextRearrangementTime: string | null
   ): Promise<RpcRankedPlayerData[]> => {
 
-    // Check cache first to avoid unnecessary database calls
     if (!currentNextRearrangementTime) {
       const { data, error } = await supabase.rpc('get_current_ranking_with_details');
       if (error) {
@@ -492,7 +489,6 @@ export default function Top100PlayersPage() {
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
     if (isSubmittingVoteForPlayer[playerId]) return;
 
-    // Get identifier (user_id or anonymous_id)
     const userId = user?.id || null;
     let anonymousId: string | null = null;
     if (!userId) {
@@ -531,17 +527,14 @@ export default function Top100PlayersPage() {
       })
     );
     try {
-      // Build the match filter for this user's vote
       const matchFilter = userId
         ? { player_id: playerId, user_id: userId }
         : { player_id: playerId, anonymous_id: anonymousId };
 
       if (newVoteType === 0) {
-        // Delete vote
         const { error: deleteError } = await supabase.from('playervotes').delete().match(matchFilter);
         if (deleteError) throw deleteError;
       } else {
-        // Check if vote already exists
         let existingQuery = supabase.from('playervotes').select('player_id').eq('player_id', playerId);
         if (userId) {
           existingQuery = existingQuery.eq('user_id', userId);
@@ -552,13 +545,11 @@ export default function Top100PlayersPage() {
         if (selectError) throw selectError;
 
         if (existing) {
-          // Update existing vote
           const { error: updateError } = await supabase.from('playervotes')
             .update({ vote_type: newVoteType })
             .match(matchFilter);
           if (updateError) throw updateError;
         } else {
-          // Insert new vote
           const { error: insertError } = await supabase.from('playervotes')
             .insert({
               player_id: playerId,
@@ -643,7 +634,6 @@ export default function Top100PlayersPage() {
         setTimeout(() => setNominationMessage(null), 5000); return;
     }
 
-    // Get identifier (user_id or anonymous_id)
     const userId = user?.id || null;
     let anonymousId: string | null = null;
     if (!userId) {
@@ -659,7 +649,6 @@ export default function Top100PlayersPage() {
     setIsNominating(true); setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerToNominate.personId]: true }));
     setNominationMessage(`Nominating ${playerToNominate.firstName} ${playerToNominate.lastName}...`);
     try {
-      // Check if already nominated/voted
       let existingQuery = supabase.from('playervotes').select('vote_type').eq('player_id', playerToNominate.personId);
       if (userId) {
         existingQuery = existingQuery.eq('user_id', userId);
@@ -672,7 +661,6 @@ export default function Top100PlayersPage() {
       if (existingVote && existingVote.vote_type === 1) {
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} has already been upvoted/nominated by you.`);
       } else if (existingVote) {
-        // Update existing vote to upvote
         const matchFilter = userId
           ? { player_id: playerToNominate.personId, user_id: userId }
           : { player_id: playerToNominate.personId, anonymous_id: anonymousId };
@@ -680,7 +668,6 @@ export default function Top100PlayersPage() {
         if (updateError) throw updateError;
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       } else {
-        // Insert new nomination vote
         const { error: insertError } = await supabase.from('playervotes').insert({
           player_id: playerToNominate.personId,
           user_id: userId,
@@ -791,8 +778,6 @@ export default function Top100PlayersPage() {
 }
 
 
-// --- NEW COMPONENT: CollapsibleRankingTimeline ---
-// This component replaces the old timeline for a more subtle and interactive UI.
 
 interface RankingHistoryPoint {
   week: number;
@@ -808,9 +793,8 @@ interface CollapsibleRankingTimelineProps {
 
 const CollapsibleRankingTimeline: React.FC<CollapsibleRankingTimelineProps> = ({ history, currentRank, weeklyChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const displayHistory = history.slice(-4); // Show last 4 weeks + current week = 5 points
+  const displayHistory = history.slice(-4); 
 
-  // --- Change Indicator Logic ---
   const getChangeIndicator = () => {
     if (weeklyChange > 0) {
       return { color: 'text-green-500 dark:text-green-400', icon: '▲', text: `+${weeklyChange}` };
@@ -822,18 +806,16 @@ const CollapsibleRankingTimeline: React.FC<CollapsibleRankingTimelineProps> = ({
   };
   const change = getChangeIndicator();
 
-  // --- Charting Logic ---
   const allRanks = [...displayHistory.map(h => h.rank), currentRank];
   const minRank = Math.min(...allRanks);
   const maxRank = Math.max(...allRanks);
   const rankRange = maxRank - minRank;
   
-  // Add padding for better visualization, ensuring it doesn't go below 1
-  const paddedMin = Math.max(1, minRank - (rankRange > 10 ? 5 : 2));
-  const paddedMax = maxRank + (rankRange > 10 ? 5 : 2);
+  const pad = rankRange > 10 ? 5 : Math.max(2, rankRange === 0 ? 5 : 2);
+  const paddedMin = Math.max(1, minRank - pad);
+  const paddedMax = maxRank + pad;
   const paddedRange = paddedMax - paddedMin || 1;
   
-  const getY = (rank: number) => 100 - ((rank - paddedMin) / paddedRange) * 100;
 
   return (
     <div className="w-full mb-1">
@@ -868,55 +850,77 @@ const CollapsibleRankingTimeline: React.FC<CollapsibleRankingTimelineProps> = ({
           isOpen ? 'max-h-40 mt-2' : 'max-h-0'
         }`}
       >
-        <div className="relative p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
-          <svg viewBox="0 0 100 35" className="overflow-visible w-full h-auto">
-            {/* --- Rank line connecting all points --- */}
-            <polyline
-              points={
-                displayHistory.map((point, index) =>
-                  `${index * 22 + 10},${getY(point.rank) * 0.25 + 5}`
-                ).join(' ') + ` ${displayHistory.length * 22 + 10},${getY(currentRank) * 0.25 + 5}`
-              }
-              fill="none"
-              className="stroke-sky-500"
-              strokeWidth="1"
-            />
-            
-            {/* --- Historical data points and labels --- */}
-            {displayHistory.map((point, index) => (
-              <g key={index}>
-                <circle
-                  cx={index * 22 + 10}
-                  cy={getY(point.rank) * 0.25 + 5}
-                  r="1.5"
-                  className="fill-sky-500"
-                />
-                <text x={index * 22 + 10} y="34" textAnchor="middle" className="text-[5px] fill-slate-500 dark:fill-slate-400">
-                  W{point.week}
-                </text>
-                 <text x={index * 22 + 10} y={getY(point.rank) * 0.25 + 2} textAnchor="middle" className="text-[5px] font-bold fill-slate-600 dark:fill-slate-300">
-                  {point.rank}
-                </text>
-              </g>
-            ))}
+        <div className="relative px-3 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          {(() => {
+            const totalPoints = displayHistory.length + 1;
+            const svgWidth = 120;
+            const svgHeight = 45;
+            const padX = 12;
+            const padTop = 10;
+            const padBottom = 6;
+            const chartWidth = svgWidth - padX * 2;
+            const chartHeight = svgHeight - padTop - padBottom;
+            const spacing = totalPoints > 1 ? chartWidth / (totalPoints - 1) : 0;
+            const getChartY = (rank: number) => padTop + ((rank - paddedMin) / paddedRange) * chartHeight;
+            const getChartX = (i: number) => padX + i * spacing;
 
-            {/* --- Current rank point and label --- */}
-            <g>
-              <circle
-                cx={displayHistory.length * 22 + 10}
-                cy={getY(currentRank) * 0.25 + 5}
-                r="2"
-                className="fill-white dark:fill-slate-900 stroke-sky-500"
-                strokeWidth="1"
-              />
-               <text x={displayHistory.length * 22 + 10} y="34" textAnchor="middle" className="text-[5px] font-bold fill-slate-700 dark:fill-slate-300">
-                  Now
-                </text>
-              <text x={displayHistory.length * 22 + 10} y={getY(currentRank) * 0.25 + 2} textAnchor="middle" className="text-[6px] font-extrabold fill-slate-800 dark:fill-slate-100">
-                {currentRank}
-              </text>
-            </g>
-          </svg>
+            const allPoints = [
+              ...displayHistory.map((p, i) => ({ x: getChartX(i), y: getChartY(p.rank), rank: p.rank, isCurrent: false })),
+              { x: getChartX(displayHistory.length), y: getChartY(currentRank), rank: currentRank, isCurrent: true },
+            ];
+
+            const areaPath = `M ${allPoints[0].x},${allPoints[0].y} ` +
+              allPoints.slice(1).map(p => `L ${p.x},${p.y}`).join(' ') +
+              ` L ${allPoints[allPoints.length - 1].x},${svgHeight - padBottom} L ${allPoints[0].x},${svgHeight - padBottom} Z`;
+
+            return (
+              <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="overflow-visible w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgb(14,165,233)" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="rgb(14,165,233)" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
+
+                {/* Filled area under the line */}
+                <path d={areaPath} fill="url(#areaGradient)" />
+
+                {/* Main line */}
+                <polyline
+                  points={allPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                  fill="none"
+                  stroke="rgb(14,165,233)"
+                  strokeWidth="1.2"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+
+                {/* Data points and rank labels */}
+                {allPoints.map((p, i) => {
+                  const labelBelow = p.y < padTop + 6;
+                  return (
+                  <g key={i}>
+                    {p.isCurrent ? (
+                      <>
+                        <circle cx={p.x} cy={p.y} r="2.5" className="fill-white dark:fill-slate-900" stroke="rgb(14,165,233)" strokeWidth="1.2" />
+                        <text x={p.x} y={labelBelow ? p.y + 8 : p.y - 4} textAnchor="middle" className="text-[5.5px] font-extrabold fill-sky-600 dark:fill-sky-300">
+                          #{p.rank}
+                        </text>
+                      </>
+                    ) : (
+                      <>
+                        <circle cx={p.x} cy={p.y} r="1.8" className="fill-sky-500" />
+                        <text x={p.x} y={labelBelow ? p.y + 7.5 : p.y - 3.5} textAnchor="middle" className="text-[4.5px] font-semibold fill-slate-500 dark:fill-slate-400">
+                          #{p.rank}
+                        </text>
+                      </>
+                    )}
+                  </g>
+                  );
+                })}
+              </svg>
+            );
+          })()}
         </div>
       </div>
     </div>
