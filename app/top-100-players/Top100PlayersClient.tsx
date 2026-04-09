@@ -9,7 +9,8 @@ import Image from 'next/image';
 import { TopPlayer, RpcRankedPlayerData } from './types';
 import { getAnonymousId } from '@/lib/anonymousIdentifier'; 
 
-const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v1';
+const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v3';
+const STATS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — stats update as games are played
 
 function getNextSundayMidnightISO(): string {
   const now = new Date();
@@ -301,7 +302,8 @@ export default function Top100PlayersPage() {
     const fetchedRanks = (data || []) as RpcRankedPlayerData[];
 
     try {
-      localStorage.setItem(CACHE_KEY_TOP_100_RANKS, JSON.stringify({ ranks: fetchedRanks, expiresAt: currentNextRearrangementTime }));
+      const statsExpiresAt = new Date(Date.now() + STATS_CACHE_TTL_MS).toISOString();
+      localStorage.setItem(CACHE_KEY_TOP_100_RANKS, JSON.stringify({ ranks: fetchedRanks, expiresAt: statsExpiresAt }));
     } catch (e) { console.error("Error writing official rankings to localStorage:", e); }
 
     return fetchedRanks; 
