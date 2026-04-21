@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
@@ -250,6 +250,8 @@ interface Top100PlayersClientProps {
 export default function Top100PlayersPage({ initialPlayers, initialRankingData }: Top100PlayersClientProps) {
   const { user, isLoading: authIsLoading } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>(initialPlayers);
+  const playersRef = useRef(players);
+  useEffect(() => { playersRef.current = players; }, [players]);
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(initialPlayers.length === 0);
   const [fetchError] = useState<string | null>(null);
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
@@ -264,8 +266,9 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData }
   );
 
   const loadVoteDataInternal = useCallback(async (weekStartISO: string) => {
-    if (players.length === 0) return;
-    const playerIds = players.map(p => p.personId);
+    const currentPlayers = playersRef.current;
+    if (currentPlayers.length === 0) return;
+    const playerIds = currentPlayers.map(p => p.personId);
 
     const weeklyVotesPromise = supabase.rpc('get_aggregated_weekly_votes_for_players', {
       player_ids_array: playerIds,
@@ -313,7 +316,7 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData }
         currentUserVote: currentUserVotesMap.get(p.personId) ?? null,
       };
     }));
-  }, [players, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!nextRearrangementTime) {
