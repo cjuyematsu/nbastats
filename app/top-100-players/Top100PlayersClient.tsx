@@ -9,18 +9,26 @@ import Image from 'next/image';
 import { TopPlayer } from './types';
 import { getAnonymousId } from '@/lib/anonymousIdentifier';
 
-function getNextSundayMidnightISO(): string {
+function getNextRearrangementISO(): string {
   const now = new Date();
-  const nextSunday = new Date(now.getTime());
-  const currentDay = now.getDay(); 
-  const daysToAdd = (7 - currentDay) % 7; 
-  nextSunday.setDate(now.getDate() + daysToAdd);
-  nextSunday.setHours(0, 0, 0, 0); 
-  if (nextSunday.getTime() < now.getTime()) {
-    nextSunday.setDate(nextSunday.getDate() + 7);
-    nextSunday.setHours(0, 0, 0, 0); 
+  const candidate = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
+  ));
+  while (candidate.getTime() <= now.getTime() || candidate.getUTCDate() % 2 === 0) {
+    candidate.setUTCDate(candidate.getUTCDate() + 1);
   }
-  return nextSunday.toISOString();
+  return candidate.toISOString();
+}
+
+function getLastRearrangementISO(): string {
+  const now = new Date();
+  const candidate = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
+  ));
+  while (candidate.getTime() > now.getTime() || candidate.getUTCDate() % 2 === 0) {
+    candidate.setUTCDate(candidate.getUTCDate() - 1);
+  }
+  return candidate.toISOString();
 }
 
 interface CurrentWeekPlayerVoteCountsRow {
@@ -309,13 +317,8 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData }
 
   useEffect(() => {
     if (!nextRearrangementTime) {
-        const nextTime = getNextSundayMidnightISO();
-        setNextRearrangementTime(nextTime);
-
-        const lastSunday = new Date(nextTime);
-        lastSunday.setDate(lastSunday.getDate() - 7);
-        lastSunday.setHours(0,0,0,0);
-        setLastRearrangementTimeISO(lastSunday.toISOString());
+        setNextRearrangementTime(getNextRearrangementISO());
+        setLastRearrangementTimeISO(getLastRearrangementISO());
     }
   }, [nextRearrangementTime]);
 
