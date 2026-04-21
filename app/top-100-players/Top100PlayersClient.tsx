@@ -6,11 +6,8 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import CountdownTimer from '@/components/CountdownTimer';
 import Image from 'next/image';
-import { TopPlayer, RpcRankedPlayerData } from './types';
-import { getAnonymousId } from '@/lib/anonymousIdentifier'; 
-
-const CACHE_KEY_TOP_100_RANKS = 'top100OfficialRanksCache_v3';
-const STATS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — stats update as games are played
+import { TopPlayer } from './types';
+import { getAnonymousId } from '@/lib/anonymousIdentifier';
 
 function getNextSundayMidnightISO(): string {
   const now = new Date();
@@ -39,11 +36,6 @@ interface PlayerSuggestion {
   max_season?: number; 
 }
 
-interface CachedTop100Data {
-  ranks: RpcRankedPlayerData[];
-  expiresAt: string; 
-}
-
 interface VotingButtonProps {
   onClick: () => void;
   isActive: boolean;
@@ -60,19 +52,7 @@ export interface RankingHistoryData {
   archived_at: string;
 }
 
-interface PlayerRankingHistoryRPC {
-  player_id: number;
-  ranking_history: Array<{
-    week: number;
-    rank: number;
-    date: string;
-  }>;
-  last_week_rank: number | null;
-  current_rank: number;
-  weekly_change: number;
-}
-
-const VotingButton: React.FC<VotingButtonProps> = ({ 
+const VotingButton: React.FC<VotingButtonProps> = ({
   onClick, isActive, disabled, ariaLabel, children, activeClass, inactiveClass,
 }) => {
   return (
@@ -254,239 +234,104 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({
   );
 };
 
-export default function Top100PlayersPage() {
+interface Top100PlayersClientProps {
+  initialPlayers: TopPlayer[];
+  initialRankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }>;
+}
+
+export default function Top100PlayersPage({ initialPlayers, initialRankingData }: Top100PlayersClientProps) {
   const { user, isLoading: authIsLoading } = useAuth();
-  const [players, setPlayers] = useState<TopPlayer[]>([]);
-  const [isLoadingPlayers, setIsLoadingPlayers] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [players, setPlayers] = useState<TopPlayer[]>(initialPlayers);
+  const [isLoadingPlayers, setIsLoadingPlayers] = useState(initialPlayers.length === 0);
+  const [fetchError] = useState<string | null>(null);
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
   const [lastRearrangementTimeISO, setLastRearrangementTimeISO] = useState<string | null>(null);
   const [nominationSearchTerm, setNominationSearchTerm] = useState('');
   const [nominationSuggestions, setNominationSuggestions] = useState<PlayerSuggestion[]>([]);
-  const [isNominating, setIsNominating] = useState(false); 
+  const [isNominating, setIsNominating] = useState(false);
   const [nominationMessage, setNominationMessage] = useState<string | null>(null);
   const [isSubmittingVoteForPlayer, setIsSubmittingVoteForPlayer] = useState<Record<number, boolean>>({});
-  const [playerRankingData, setPlayerRankingData] = useState<Map<number, { history: RankingHistoryData[], weeklyChange: number }>>(new Map());
+  const [playerRankingData] = useState<Map<number, { history: RankingHistoryData[], weeklyChange: number }>>(
+    () => new Map(Object.entries(initialRankingData).map(([id, v]) => [Number(id), v]))
+  );
 
-  const fetchOfficialWeeklyRankingWithCache = useCallback(async (
-    currentNextRearrangementTime: string | null
-  ): Promise<RpcRankedPlayerData[]> => {
+  const loadVoteDataInternal = useCallback(async (weekStartISO: string) => {
+    if (players.length === 0) return;
+    const playerIds = players.map(p => p.personId);
 
-    if (!currentNextRearrangementTime) {
-      const { data, error } = await supabase.rpc('get_current_ranking_with_details');
-      if (error) {
-        console.error("Error fetching official weekly rankings (no cache time):", error);
-        throw new Error("Failed to fetch official rankings. Message: " + (error.message || 'Unknown RPC error'));
-      }
-      return (data || []) as RpcRankedPlayerData[];
-    }
-    try {
-      const cachedItem = localStorage.getItem(CACHE_KEY_TOP_100_RANKS);
-      if (cachedItem) {
-        const cachedData: CachedTop100Data = JSON.parse(cachedItem);
-        if (cachedData.expiresAt && new Date().getTime() < new Date(cachedData.expiresAt).getTime()) {
-          console.log("Returning cached rankings data.");
-          return cachedData.ranks;
-        } else {
-          localStorage.removeItem(CACHE_KEY_TOP_100_RANKS);
-        }
-      }
-    } catch (e) { console.error("Error reading official rankings from localStorage:", e); localStorage.removeItem(CACHE_KEY_TOP_100_RANKS); }
-
-    console.log("Fetching fresh official weekly rankings from database.");
-    const { data, error } = await supabase.rpc('get_current_ranking_with_details');
-    if (error) {
-      console.error("Error fetching official weekly rankings via RPC:", error);
-      throw new Error("Failed to fetch official rankings. Message: " + (error.message || 'Unknown RPC error'));
-    }
-    const fetchedRanks = (data || []) as RpcRankedPlayerData[];
-
-    try {
-      const statsExpiresAt = new Date(Date.now() + STATS_CACHE_TTL_MS).toISOString();
-      localStorage.setItem(CACHE_KEY_TOP_100_RANKS, JSON.stringify({ ranks: fetchedRanks, expiresAt: statsExpiresAt }));
-    } catch (e) { console.error("Error writing official rankings to localStorage:", e); }
-
-    return fetchedRanks; 
-  }, []);
-
-  const fetchCurrentWeekVoteCountsForPlayers = useCallback(async (playerIds: number[], weekStartTimeISO: string): Promise<Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>> => {
-    const voteCountsMap = new Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>();
-    playerIds.forEach(id => voteCountsMap.set(id, { upvotes: 0, downvotes: 0, sameSpotVotes: 0 }));
-
-    if (playerIds.length === 0 || !weekStartTimeISO) {
-        return voteCountsMap;
-    }
-    
-    const { data, error } = await supabase.rpc('get_aggregated_weekly_votes_for_players', {
-        player_ids_array: playerIds,
-        p_week_start_time: weekStartTimeISO 
+    const weeklyVotesPromise = supabase.rpc('get_aggregated_weekly_votes_for_players', {
+      player_ids_array: playerIds,
+      p_week_start_time: weekStartISO,
     });
 
-    if (error) {
-        console.error('Error fetching current week vote counts via RPC:', error);
-        return voteCountsMap; 
-    }
+    const userVotesPromise = (async () => {
+      if (user) {
+        return supabase.from('playervotes').select('player_id, vote_type').eq('user_id', user.id).in('player_id', playerIds);
+      }
+      try {
+        const anonymousId = getAnonymousId();
+        return supabase.from('playervotes').select('player_id, vote_type').eq('anonymous_id', anonymousId).in('player_id', playerIds);
+      } catch {
+        return { data: null, error: null };
+      }
+    })();
 
-    data?.forEach((row: AggregatedVotesData) => { 
-        voteCountsMap.set(row.playerId, { 
-            upvotes: row.upvotes,
-            downvotes: row.downvotes,
-            sameSpotVotes: row.sameSpotVotes
+    const [weeklyVotesResult, userVotesResult] = await Promise.all([weeklyVotesPromise, userVotesPromise]);
+
+    const liveVoteCountsMap = new Map<number, { upvotes: number; downvotes: number; sameSpotVotes: number }>();
+    if (weeklyVotesResult.error) {
+      console.error('Error fetching current week vote counts via RPC:', weeklyVotesResult.error);
+    } else {
+      (weeklyVotesResult.data ?? []).forEach((row: AggregatedVotesData) => {
+        liveVoteCountsMap.set(row.playerId, {
+          upvotes: row.upvotes,
+          downvotes: row.downvotes,
+          sameSpotVotes: row.sameSpotVotes,
         });
-    });
-    return voteCountsMap;
-  }, []);
-
-    const fetchRankingHistoriesWithRPC = useCallback(async (
-    playerIds: number[]
-  ): Promise<Map<number, { history: RankingHistoryData[], weeklyChange: number }>> => {
-    const historiesMap = new Map<number, { history: RankingHistoryData[], weeklyChange: number }>();
-    
-    if (playerIds.length === 0) {
-      return historiesMap;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('get_players_ranking_histories_with_current', {
-        player_ids_array: playerIds,
       });
-
-      if (error) {
-        console.error('Error fetching ranking histories via RPC:', error);
-        return historiesMap;
-      }
-
-      if (data && Array.isArray(data)) {
-        (data as PlayerRankingHistoryRPC[]).forEach(record => {
-          const history = record.ranking_history.map(h => ({
-            week_of_year: h.week,
-            rank_position: h.rank,
-            archived_at: h.date
-          }));
-          
-          historiesMap.set(record.player_id, {
-            history,
-            weeklyChange: record.weekly_change
-          });
-        });
-      }
-    } catch (err) {
-      console.error('Exception fetching ranking histories:', err);
     }
 
-    return historiesMap;
-  }, []);
-  
-  const loadPlayerDataInternal = useCallback(async (currentNextRankTimeForCache: string | null) => {
-    setFetchError(null); 
-    try {
-      const rpcData = await fetchOfficialWeeklyRankingWithCache(currentNextRankTimeForCache); 
-      if (rpcData.length === 0) { 
-        setPlayers([]); 
-        return; 
-      }
-      
-      const playerIds = rpcData.map(p => p.personId);
-      
-      const [liveVoteCountsMapResult, currentUserVotesResult, rankingDataMap] = await Promise.all([
-        lastRearrangementTimeISO ? fetchCurrentWeekVoteCountsForPlayers(playerIds, lastRearrangementTimeISO) : Promise.resolve(new Map<number, {upvotes: number, downvotes: number, sameSpotVotes: number}>()),
-        playerIds.length > 0
-          ? (async () => {
-              if (user) {
-                return supabase.from('playervotes').select('player_id, vote_type').eq('user_id', user.id).in('player_id', playerIds);
-              } else {
-                const anonymousId = getAnonymousId();
-                return supabase.from('playervotes').select('player_id, vote_type').eq('anonymous_id', anonymousId).in('player_id', playerIds);
-              }
-            })()
-          : Promise.resolve({ data: null, error: null }),
-        fetchRankingHistoriesWithRPC(playerIds)
-      ]);
-      
-      setPlayerRankingData(rankingDataMap);
-      
-      const liveVoteCountsMap = liveVoteCountsMapResult;
-      const currentUserVotesMap = new Map<number, number | null>();
-      if (currentUserVotesResult?.error) console.warn("Error fetching current user votes:", currentUserVotesResult.error.message);
-      currentUserVotesResult?.data?.forEach((v: CurrentWeekPlayerVoteCountsRow) => currentUserVotesMap.set(v.player_id, v.vote_type));
-      
-      const combinedPlayersData: TopPlayer[] = rpcData.map(p => {
-        const gamesPlayed = p.G ?? 0;
-        const liveCounts = liveVoteCountsMap.get(p.personId) || { upvotes: 0, downvotes: 0, sameSpotVotes: 0 };
-        const points = p.PTS_total ?? 0;
-        const fga = p.FGA_total ?? 0;
-        const fta = p.FTA_total ?? 0;
-        const trueShootingAttempts = fga + 0.44 * fta;
-        const trueShootingPercentage = trueShootingAttempts > 0 ? points / (2 * trueShootingAttempts) : null;
+    const currentUserVotesMap = new Map<number, number | null>();
+    if (userVotesResult?.error) console.warn('Error fetching current user votes:', userVotesResult.error.message);
+    userVotesResult?.data?.forEach((v: CurrentWeekPlayerVoteCountsRow) => currentUserVotesMap.set(v.player_id, v.vote_type));
 
-        return {
-          rankNumber: p.rankNumber, personId: p.personId, firstName: p.firstName ?? 'Unknown', lastName: p.lastName ?? 'Player',
-          playerteamName: p.playerteamName ?? 'Free Agent', gamesPlayed: gamesPlayed,
-          pointsPerGame: gamesPlayed > 0 && p.PTS_total != null ? p.PTS_total / gamesPlayed : null,
-          reboundsPerGame: gamesPlayed > 0 && p.TRB_total != null ? p.TRB_total / gamesPlayed : null,
-          assistsPerGame: gamesPlayed > 0 && p.AST_total != null ? p.AST_total / gamesPlayed : null,
-          stealsPerGame: gamesPlayed > 0 && p.STL_total != null ? p.STL_total / gamesPlayed : null,
-          blocksPerGame: gamesPlayed > 0 && p.BLK_total != null ? p.BLK_total / gamesPlayed : null,
-          fieldGoalPercentage: p.FGA_total != null && p.FGA_total > 0 && p.FGM_total != null ? p.FGM_total / p.FGA_total : null,
-          threePointPercentage: p.FG3A_total != null && p.FG3A_total > 0 && p.FG3M_total != null ? p.FG3M_total / p.FG3A_total : null,
-          freeThrowPercentage: p.FTA_total != null && p.FTA_total > 0 && p.FTM_total != null ? p.FTM_total / p.FTA_total : null,
-          trueShootingPercentage: trueShootingPercentage,
-          weightedProminence: p.statsBasedProminence ?? p.Prominence_rs ?? null,
-          upvotes: liveCounts.upvotes, downvotes: liveCounts.downvotes, sameSpotVotes: liveCounts.sameSpotVotes,
-          finalMovementScoreAtRanking: p.weeklyMovementScore ?? 0,
-          currentUserVote: currentUserVotesMap.get(p.personId) ?? null,
-          seasonYear: p.SeasonYear ?? null,
-        };
-      });
-      setPlayers(combinedPlayersData);
-    } catch (error) { 
-      let message = "An unknown error occurred while fetching player data.";
-      if (error instanceof Error) message = error.message;
-      else if (typeof error === 'string') message = error;
-      setFetchError(message); console.error("Error in loadPlayerDataInternal:", error); 
-    }
-  }, [user, fetchOfficialWeeklyRankingWithCache, fetchCurrentWeekVoteCountsForPlayers, lastRearrangementTimeISO, fetchRankingHistoriesWithRPC]); 
+    setPlayers(prev => prev.map(p => {
+      const live = liveVoteCountsMap.get(p.personId);
+      return {
+        ...p,
+        upvotes: live?.upvotes ?? p.upvotes,
+        downvotes: live?.downvotes ?? p.downvotes,
+        sameSpotVotes: live?.sameSpotVotes ?? p.sameSpotVotes,
+        currentUserVote: currentUserVotesMap.get(p.personId) ?? null,
+      };
+    }));
+  }, [players, user]);
 
   useEffect(() => {
     if (!nextRearrangementTime) {
         const nextTime = getNextSundayMidnightISO();
         setNextRearrangementTime(nextTime);
-        
+
         const lastSunday = new Date(nextTime);
         lastSunday.setDate(lastSunday.getDate() - 7);
-        lastSunday.setHours(0,0,0,0); 
+        lastSunday.setHours(0,0,0,0);
         setLastRearrangementTimeISO(lastSunday.toISOString());
     }
-  }, [nextRearrangementTime]); 
+  }, [nextRearrangementTime]);
 
   useEffect(() => {
-    if (!authIsLoading && lastRearrangementTimeISO && nextRearrangementTime) {
-      let isMounted = true;
-      
-      setIsLoadingPlayers(true);
-      loadPlayerDataInternal(nextRearrangementTime) 
-        .catch(err => { 
-          if (isMounted) {
-            let message = "Failed to load player data.";
-            if (err instanceof Error) message = err.message;
-            else if (typeof err === 'string') message = err;
-            setFetchError(message); 
-            console.error("Error from loadPlayerDataInternal call:", err);
-          }
-        })
-        .finally(() => {
-          if (isMounted) {
-            setIsLoadingPlayers(false);
-          }
-        });
-      
-      return () => { isMounted = false; }; 
-    } else if (authIsLoading || !lastRearrangementTimeISO || !nextRearrangementTime) {
-        if (players.length === 0 && !fetchError) { 
-            setIsLoadingPlayers(true);
-        }
-    }
-  }, [authIsLoading, lastRearrangementTimeISO, nextRearrangementTime, loadPlayerDataInternal]); 
+    if (authIsLoading || !lastRearrangementTimeISO) return;
+    let isMounted = true;
+    loadVoteDataInternal(lastRearrangementTimeISO)
+      .catch(err => {
+        if (!isMounted) return;
+        console.error('Error loading vote data:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingPlayers(false);
+      });
+    return () => { isMounted = false; };
+  }, [authIsLoading, lastRearrangementTimeISO, loadVoteDataInternal]);
 
   const handlePlayerVote = async (playerId: number, newVoteType: number) => {
     if (isSubmittingVoteForPlayer[playerId]) return;
