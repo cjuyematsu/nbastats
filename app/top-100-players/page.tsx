@@ -45,6 +45,24 @@ interface PlayerRankingHistoryRPCRow {
   weekly_change: number;
 }
 
+interface AggregatedVotesRPCRow {
+  playerId: number;
+  upvotes: number;
+  downvotes: number;
+  sameSpotVotes: number;
+}
+
+function getLastRearrangementISO(): string {
+  const now = new Date();
+  const candidate = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
+  ));
+  while (candidate.getTime() > now.getTime() || candidate.getUTCDate() % 2 === 0) {
+    candidate.setUTCDate(candidate.getUTCDate() - 1);
+  }
+  return candidate.toISOString();
+}
+
 function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
   const gamesPlayed = p.G ?? 0;
   const points = p.PTS_total ?? 0;
@@ -82,11 +100,14 @@ function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
 async function getInitialTop100Data(): Promise<{
   players: TopPlayer[];
   rankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }>;
+  weekStartISO: string;
 }> {
+  const weekStartISO = getLastRearrangementISO();
+
   const { data: rpcData, error: rpcError } = await supabase.rpc('get_current_ranking_with_details');
   if (rpcError || !rpcData) {
     if (rpcError) console.error('SSR: error fetching top 100 rankings:', rpcError);
-    return { players: [], rankingData: {} };
+    return { players: [], rankingData: {}, weekStartISO };
   }
 
   const ranked = rpcData as RpcRankedPlayerData[];
@@ -94,31 +115,49 @@ async function getInitialTop100Data(): Promise<{
   const playerIds = ranked.map((p) => p.personId);
 
   const rankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }> = {};
-  if (playerIds.length > 0) {
-    const { data: historyData, error: historyError } = await supabase.rpc(
-      'get_players_ranking_histories_with_current',
-      { player_ids_array: playerIds },
-    );
-    if (historyError) {
-      console.error('SSR: error fetching ranking histories:', historyError);
-    } else if (Array.isArray(historyData)) {
-      (historyData as unknown as PlayerRankingHistoryRPCRow[]).forEach((record) => {
-        rankingData[record.player_id] = {
-          history: record.ranking_history.map((h) => ({
-            week_of_year: h.week,
-            rank_position: h.rank,
-            archived_at: h.date,
-          })),
-          weeklyChange: record.weekly_change,
-        };
-      });
-    }
+
+  const [historyResult, voteCountsResult] = await Promise.all([
+    playerIds.length > 0
+      ? supabase.rpc('get_players_ranking_histories_with_current', { player_ids_array: playerIds })
+      : Promise.resolve({ data: null, error: null }),
+    playerIds.length > 0
+      ? supabase.rpc('get_aggregated_weekly_votes_for_players', {
+          player_ids_array: playerIds,
+          p_week_start_time: weekStartISO,
+        })
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (historyResult.error) {
+    console.error('SSR: error fetching ranking histories:', historyResult.error);
+  } else if (Array.isArray(historyResult.data)) {
+    (historyResult.data as unknown as PlayerRankingHistoryRPCRow[]).forEach((record) => {
+      rankingData[record.player_id] = {
+        history: record.ranking_history.map((h) => ({
+          week_of_year: h.week,
+          rank_position: h.rank,
+          archived_at: h.date,
+        })),
+        weeklyChange: record.weekly_change,
+      };
+    });
   }
 
-  return { players, rankingData };
+  if (!voteCountsResult.error && Array.isArray(voteCountsResult.data)) {
+    const voteMap = new Map<number, { upvotes: number; downvotes: number; sameSpotVotes: number }>();
+    (voteCountsResult.data as AggregatedVotesRPCRow[]).forEach((row) => {
+      voteMap.set(row.playerId, { upvotes: row.upvotes, downvotes: row.downvotes, sameSpotVotes: row.sameSpotVotes });
+    });
+    players.forEach((p) => {
+      const v = voteMap.get(p.personId);
+      if (v) { p.upvotes = v.upvotes; p.downvotes = v.downvotes; p.sameSpotVotes = v.sameSpotVotes; }
+    });
+  }
+
+  return { players, rankingData, weekStartISO };
 }
 
 export default async function Top100PlayersPage() {
-  const { players, rankingData } = await getInitialTop100Data();
-  return <Top100PlayersClient initialPlayers={players} initialRankingData={rankingData} />;
+  const { players, rankingData, weekStartISO } = await getInitialTop100Data();
+  return <Top100PlayersClient initialPlayers={players} initialRankingData={rankingData} initialWeekStartISO={weekStartISO} />;
 }
