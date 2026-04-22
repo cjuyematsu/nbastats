@@ -20,16 +20,6 @@ function getNextRearrangementISO(): string {
   return candidate.toISOString();
 }
 
-function getLastRearrangementISO(): string {
-  const now = new Date();
-  const candidate = new Date(Date.UTC(
-    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
-  ));
-  while (candidate.getTime() > now.getTime() || candidate.getUTCDate() % 2 === 0) {
-    candidate.setUTCDate(candidate.getUTCDate() - 1);
-  }
-  return candidate.toISOString();
-}
 
 interface CurrentWeekPlayerVoteCountsRow {
     player_id: number; 
@@ -245,9 +235,10 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({
 interface Top100PlayersClientProps {
   initialPlayers: TopPlayer[];
   initialRankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }>;
+  initialWeekStartISO: string;
 }
 
-export default function Top100PlayersPage({ initialPlayers, initialRankingData }: Top100PlayersClientProps) {
+export default function Top100PlayersPage({ initialPlayers, initialRankingData, initialWeekStartISO }: Top100PlayersClientProps) {
   const { user, isLoading: authIsLoading } = useAuth();
   const [players, setPlayers] = useState<TopPlayer[]>(initialPlayers);
   const playersRef = useRef(players);
@@ -255,7 +246,7 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData }
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(initialPlayers.length === 0);
   const [fetchError] = useState<string | null>(null);
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
-  const [lastRearrangementTimeISO, setLastRearrangementTimeISO] = useState<string | null>(null);
+  const lastRearrangementTimeISO = initialWeekStartISO;
   const [nominationSearchTerm, setNominationSearchTerm] = useState('');
   const [nominationSuggestions, setNominationSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isNominating, setIsNominating] = useState(false);
@@ -321,7 +312,6 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData }
   useEffect(() => {
     if (!nextRearrangementTime) {
         setNextRearrangementTime(getNextRearrangementISO());
-        setLastRearrangementTimeISO(getLastRearrangementISO());
     }
   }, [nextRearrangementTime]);
 
