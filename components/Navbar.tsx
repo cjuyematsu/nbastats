@@ -272,7 +272,7 @@ export default function Navbar() {
                 <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
                 
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>              
+                  {/* <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>               */}
                   <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
                   <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
 

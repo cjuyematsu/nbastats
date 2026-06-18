@@ -28,9 +28,9 @@ export default function HomePage() {
             </span>
           </h2>
 
-          <Link href="/top-100-players" className="inline-flex items-center gap-2 mt-6 px-5 py-3 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-300 dark:border-sky-700 rounded-full text-sky-700 dark:text-sky-300 font-semibold text-sm hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors">
+          {/* <Link href="/top-100-players" className="inline-flex items-center gap-2 mt-6 px-5 py-3 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-300 dark:border-sky-700 rounded-full text-sky-700 dark:text-sky-300 font-semibold text-sm hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors">
             Voting is now open to everyone! No sign-in required! Vote on the Top 100 NBA players of 2026
-          </Link>
+          </Link> */}
 
         </header>
 
@@ -46,12 +46,12 @@ export default function HomePage() {
                 Compare player stats side-by-side. Settle debates on who is the better player based on hard data.
               </p>
             </Link>
-            <Link href="/top-100-players" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
+            {/* <Link href="/top-100-players" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Top 100 Players</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Explore our rankings of the top 100 NBA players of 2026 and vote to change rankings. No sign-in required!
               </p>
-            </Link>
+            </Link> */}
             <Link href="/degrees-of-separation" className="block bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-transform hover:scale-105 hover:shadow-xl">
               <h3 className="text-xl font-semibold text-sky-600 dark:text-sky-400 mb-2">Teammate Connections</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
