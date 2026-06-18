@@ -27,11 +27,11 @@ const HomeIcon = () => (
     </svg>
 );
 
-const UsersIcon = () => (
-    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
-    <path d="M10 15h12v2H10zM10 7h12v2H10zM4 19h2c1.1 0 2-.9 2-2v-2c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4zM4 11h2c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4z"/>
-    </svg>
-);
+// const UsersIcon = () => (
+//     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+//     <path d="M10 15h12v2H10zM10 7h12v2H10zM4 19h2c1.1 0 2-.9 2-2v-2c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4zM4 11h2c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2m0-4h2v2H4z"/>
+//     </svg>
+// );
 
 const ChartBarIcon = () => (
     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
