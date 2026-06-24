@@ -37,8 +37,8 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
     try {
         const projectRoot = process.cwd();
 
-        const adjListPath = path.join(projectRoot, 'adjacency_list.json');
-        const playerMapPath = path.join(projectRoot, 'player_map.json');
+        const adjListPath = path.join(projectRoot, 'public', 'adjacency_list.json');
+        const playerMapPath = path.join(projectRoot, 'public', 'player_map.json');
 
         const [adjFileContents, mapFileContents] = await Promise.all([
             fs.readFile(adjListPath, 'utf8'),
@@ -66,7 +66,7 @@ async function loadGraphData(): Promise<{ adjList: Record<string, number[]>; pla
         adjList = null; playerMap = null; graphDataLoaded = false;
         if (error instanceof Error) {
              if ('code' in error && error.code === 'ENOENT') {
-                throw new Error(`Failed to load graph data: A required file was not found. Make sure adjacency_list.json and player_map.json are in the project root.`);
+                throw new Error(`Failed to load graph data: A required file was not found. Make sure adjacency_list.json and player_map.json are in the public directory.`);
              }
              throw new Error(`Failed to load graph data: ${error.message}`);
         }
