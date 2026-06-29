@@ -6,9 +6,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "LeBron",
       "lastName": "James",
-      "careerpoints": 42184,
-      "pointspergame": "27.01",
-      "yearsactive": "2004-2025"
+      "careerpoints": 43440,
+      "pointspergame": "26.78",
+      "yearsactive": "2004-2026"
     },
     {
       "personId": 76003,
@@ -61,9 +61,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Kevin",
       "lastName": "Durant",
-      "careerpoints": 30571,
-      "pointspergame": "27.22",
-      "yearsactive": "2008-2025"
+      "careerpoints": 32597,
+      "pointspergame": "27.14",
+      "yearsactive": "2008-2026"
     },
     {
       "personId": 78497,
@@ -121,26 +121,26 @@ export const draftData = [
       "yearsactive": "1985-2003"
     },
     {
-      "personId": 2546,
+      "personId": 201935,
       "Round": 1,
       "Pick": 3,
       "playerrank": 2,
+      "firstName": "James",
+      "lastName": "Harden",
+      "careerpoints": 29339,
+      "pointspergame": "24.03",
+      "yearsactive": "2010-2026"
+    },
+    {
+      "personId": 2546,
+      "Round": 1,
+      "Pick": 3,
+      "playerrank": 3,
       "firstName": "Carmelo",
       "lastName": "Anthony",
       "careerpoints": 28289,
       "pointspergame": "22.45",
       "yearsactive": "2004-2022"
-    },
-    {
-      "personId": 201935,
-      "Round": 1,
-      "Pick": 3,
-      "playerrank": 3,
-      "firstName": "James",
-      "lastName": "Harden",
-      "careerpoints": 27687,
-      "pointspergame": "24.05",
-      "yearsactive": "2010-2025"
     },
     {
       "personId": 1122,
@@ -171,9 +171,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Russell",
       "lastName": "Westbrook",
-      "careerpoints": 26205,
-      "pointspergame": "21.18",
-      "yearsactive": "2009-2025"
+      "careerpoints": 27176,
+      "pointspergame": "20.89",
+      "yearsactive": "2009-2026"
     },
     {
       "personId": 101108,
@@ -182,9 +182,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Chris",
       "lastName": "Paul",
-      "careerpoints": 23011,
-      "pointspergame": "16.99",
-      "yearsactive": "2006-2025"
+      "careerpoints": 23058,
+      "pointspergame": "16.83",
+      "yearsactive": "2006-2026"
     },
     {
       "personId": 1712,
@@ -336,9 +336,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Stephen",
       "lastName": "Curry",
-      "careerpoints": 25386,
-      "pointspergame": "24.74",
-      "yearsactive": "2010-2025"
+      "careerpoints": 26528,
+      "pointspergame": "24.82",
+      "yearsactive": "2010-2026"
     },
     {
       "personId": 77264,
@@ -374,15 +374,15 @@ export const draftData = [
       "yearsactive": "2000-2013"
     },
     {
-      "personId": 201569,
+      "personId": 203944,
       "Round": 1,
       "Pick": 7,
       "playerrank": 5,
-      "firstName": "Eric",
-      "lastName": "Gordon",
-      "careerpoints": 14134,
-      "pointspergame": "15.28",
-      "yearsactive": "2009-2025"
+      "firstName": "Julius",
+      "lastName": "Randle",
+      "careerpoints": 15184,
+      "pointspergame": "19.24",
+      "yearsactive": "2015-2026"
     },
     {
       "personId": 305,
@@ -451,26 +451,26 @@ export const draftData = [
       "yearsactive": "1999-2019"
     },
     {
-      "personId": 76970,
+      "personId": 201942,
       "Round": 1,
       "Pick": 9,
       "playerrank": 2,
+      "firstName": "DeMar",
+      "lastName": "DeRozan",
+      "careerpoints": 26711,
+      "pointspergame": "21.13",
+      "yearsactive": "2010-2026"
+    },
+    {
+      "personId": 76970,
+      "Round": 1,
+      "Pick": 9,
+      "playerrank": 3,
       "firstName": "John",
       "lastName": "Havlicek",
       "careerpoints": 26395,
       "pointspergame": "20.80",
       "yearsactive": "1963-1978"
-    },
-    {
-      "personId": 201942,
-      "Round": 1,
-      "Pick": 9,
-      "playerrank": 3,
-      "firstName": "DeMar",
-      "lastName": "DeRozan",
-      "careerpoints": 25292,
-      "pointspergame": "21.31",
-      "yearsactive": "2010-2025"
     },
     {
       "personId": 78310,
@@ -517,10 +517,21 @@ export const draftData = [
       "yearsactive": "2002-2022"
     },
     {
-      "personId": 76832,
+      "personId": 202331,
       "Round": 1,
       "Pick": 10,
       "playerrank": 3,
+      "firstName": "Paul",
+      "lastName": "George",
+      "careerpoints": 19338,
+      "pointspergame": "20.46",
+      "yearsactive": "2011-2026"
+    },
+    {
+      "personId": 76832,
+      "Round": 1,
+      "Pick": 10,
+      "playerrank": 4,
       "firstName": "Gail",
       "lastName": "Goodrich",
       "careerpoints": 19181,
@@ -531,23 +542,12 @@ export const draftData = [
       "personId": 1891,
       "Round": 1,
       "Pick": 10,
-      "playerrank": 4,
+      "playerrank": 5,
       "firstName": "Jason",
       "lastName": "Terry",
       "careerpoints": 18881,
       "pointspergame": "13.39",
       "yearsactive": "2000-2018"
-    },
-    {
-      "personId": 202331,
-      "Round": 1,
-      "Pick": 10,
-      "playerrank": 5,
-      "firstName": "Paul",
-      "lastName": "George",
-      "careerpoints": 18697,
-      "pointspergame": "20.59",
-      "yearsactive": "2011-2025"
     },
     {
       "personId": 397,
@@ -561,26 +561,26 @@ export const draftData = [
       "yearsactive": "1988-2005"
     },
     {
-      "personId": 788,
+      "personId": 202691,
       "Round": 1,
       "Pick": 11,
       "playerrank": 2,
+      "firstName": "Klay",
+      "lastName": "Thompson",
+      "careerpoints": 17346,
+      "pointspergame": "18.57",
+      "yearsactive": "2012-2026"
+    },
+    {
+      "personId": 788,
+      "Round": 1,
+      "Pick": 11,
+      "playerrank": 3,
       "firstName": "Kevin",
       "lastName": "Willis",
       "careerpoints": 17253,
       "pointspergame": "12.13",
       "yearsactive": "1985-2007"
-    },
-    {
-      "personId": 202691,
-      "Round": 1,
-      "Pick": 11,
-      "playerrank": 3,
-      "firstName": "Klay",
-      "lastName": "Thompson",
-      "careerpoints": 16536,
-      "pointspergame": "19.12",
-      "yearsactive": "2012-2025"
     },
     {
       "personId": 157,
@@ -688,31 +688,31 @@ export const draftData = [
       "playerrank": 3,
       "firstName": "Devin",
       "lastName": "Booker",
-      "careerpoints": 16452,
-      "pointspergame": "24.45",
-      "yearsactive": "2016-2025"
+      "careerpoints": 18120,
+      "pointspergame": "24.59",
+      "yearsactive": "2016-2026"
+    },
+    {
+      "personId": 1628378,
+      "Round": 1,
+      "Pick": 13,
+      "playerrank": 4,
+      "firstName": "Donovan",
+      "lastName": "Mitchell",
+      "careerpoints": 15272,
+      "pointspergame": "25.08",
+      "yearsactive": "2018-2026"
     },
     {
       "personId": 78398,
       "Round": 2,
       "Pick": 13,
-      "playerrank": 4,
+      "playerrank": 5,
       "firstName": "Dick",
       "lastName": "Van Arsdale",
       "careerpoints": 15079,
       "pointspergame": "16.37",
       "yearsactive": "1966-1977"
-    },
-    {
-      "personId": 2210,
-      "Round": 1,
-      "Pick": 13,
-      "playerrank": 5,
-      "firstName": "Richard",
-      "lastName": "Jefferson",
-      "careerpoints": 14904,
-      "pointspergame": "12.64",
-      "yearsactive": "2002-2018"
     },
     {
       "personId": 17,
@@ -776,9 +776,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Giannis",
       "lastName": "Antetokounmpo",
-      "careerpoints": 20538,
-      "pointspergame": "23.91",
-      "yearsactive": "2014-2025"
+      "careerpoints": 21531,
+      "pointspergame": "24.06",
+      "yearsactive": "2014-2026"
     },
     {
       "personId": 959,
@@ -792,26 +792,26 @@ export const draftData = [
       "yearsactive": "1997-2014"
     },
     {
-      "personId": 77615,
+      "personId": 202695,
       "Round": 1,
       "Pick": 15,
       "playerrank": 3,
+      "firstName": "Kawhi",
+      "lastName": "Leonard",
+      "careerpoints": 16546,
+      "pointspergame": "20.73",
+      "yearsactive": "2012-2026"
+    },
+    {
+      "personId": 77615,
+      "Round": 1,
+      "Pick": 15,
+      "playerrank": 4,
       "firstName": "Mike",
       "lastName": "Mitchell",
       "careerpoints": 15020,
       "pointspergame": "19.79",
       "yearsactive": "1979-1988"
-    },
-    {
-      "personId": 202695,
-      "Round": 1,
-      "Pick": 15,
-      "playerrank": 4,
-      "firstName": "Kawhi",
-      "lastName": "Leonard",
-      "careerpoints": 14733,
-      "pointspergame": "20.10",
-      "yearsactive": "2012-2025"
     },
     {
       "personId": 2744,
@@ -842,9 +842,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Nikola",
       "lastName": "Vucevic",
-      "careerpoints": 16719,
-      "pointspergame": "17.20",
-      "yearsactive": "2012-2025"
+      "careerpoints": 17684,
+      "pointspergame": "17.07",
+      "yearsactive": "2012-2026"
     },
     {
       "personId": 2045,
@@ -876,8 +876,8 @@ export const draftData = [
       "firstName": "Terry",
       "lastName": "Rozier",
       "careerpoints": 9252,
-      "pointspergame": "13.93",
-      "yearsactive": "2016-2025"
+      "pointspergame": "13.91",
+      "yearsactive": "2016-2026"
     },
     {
       "personId": 201950,
@@ -886,9 +886,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Jrue",
       "lastName": "Holiday",
-      "careerpoints": 16422,
-      "pointspergame": "15.84",
-      "yearsactive": "2010-2025"
+      "careerpoints": 17287,
+      "pointspergame": "15.86",
+      "yearsactive": "2010-2026"
     },
     {
       "personId": 431,
@@ -930,9 +930,9 @@ export const draftData = [
       "playerrank": 5,
       "firstName": "Dennis",
       "lastName": "Schroder",
-      "careerpoints": 11738,
-      "pointspergame": "13.94",
-      "yearsactive": "2014-2025"
+      "careerpoints": 12494,
+      "pointspergame": "13.70",
+      "yearsactive": "2014-2026"
     },
     {
       "personId": 77669,
@@ -1018,9 +1018,9 @@ export const draftData = [
       "playerrank": 3,
       "firstName": "Tobias",
       "lastName": "Harris",
-      "careerpoints": 15604,
-      "pointspergame": "16.09",
-      "yearsactive": "2012-2025"
+      "careerpoints": 16440,
+      "pointspergame": "15.91",
+      "yearsactive": "2012-2026"
     },
     {
       "personId": 393,
@@ -1282,9 +1282,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Kyle",
       "lastName": "Lowry",
-      "careerpoints": 16356,
-      "pointspergame": "13.94",
-      "yearsactive": "2007-2025"
+      "careerpoints": 16373,
+      "pointspergame": "13.79",
+      "yearsactive": "2007-2026"
     },
     {
       "personId": 208,
@@ -1348,9 +1348,9 @@ export const draftData = [
       "playerrank": 3,
       "firstName": "Nicolas",
       "lastName": "Batum",
-      "careerpoints": 11260,
-      "pointspergame": "9.96",
-      "yearsactive": "2009-2025"
+      "careerpoints": 11553,
+      "pointspergame": "9.59",
+      "yearsactive": "2009-2026"
     },
     {
       "personId": 899,
@@ -1414,9 +1414,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Taj",
       "lastName": "Gibson",
-      "careerpoints": 8397,
-      "pointspergame": "8.41",
-      "yearsactive": "2010-2025"
+      "careerpoints": 8431,
+      "pointspergame": "8.36",
+      "yearsactive": "2010-2026"
     },
     {
       "personId": 2422,
@@ -1436,31 +1436,31 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Pascal",
       "lastName": "Siakam",
-      "careerpoints": 11325,
-      "pointspergame": "18.00",
-      "yearsactive": "2017-2025"
-    },
-    {
-      "personId": 922,
-      "Round": 1,
-      "Pick": 27,
-      "playerrank": 2,
-      "firstName": "Elden",
-      "lastName": "Campbell",
-      "careerpoints": 10805,
-      "pointspergame": "10.33",
-      "yearsactive": "1991-2005"
+      "careerpoints": 12810,
+      "pointspergame": "18.54",
+      "yearsactive": "2017-2026"
     },
     {
       "personId": 203497,
       "Round": 1,
       "Pick": 27,
-      "playerrank": 3,
+      "playerrank": 2,
       "firstName": "Rudy",
       "lastName": "Gobert",
-      "careerpoints": 10458,
-      "pointspergame": "12.62",
-      "yearsactive": "2014-2025"
+      "careerpoints": 11287,
+      "pointspergame": "12.47",
+      "yearsactive": "2014-2026"
+    },
+    {
+      "personId": 922,
+      "Round": 1,
+      "Pick": 27,
+      "playerrank": 3,
+      "firstName": "Elden",
+      "lastName": "Campbell",
+      "careerpoints": 10805,
+      "pointspergame": "10.33",
+      "yearsactive": "1991-2005"
     },
     {
       "personId": 1628398,
@@ -1469,9 +1469,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Kyle",
       "lastName": "Kuzma",
-      "careerpoints": 9210,
-      "pointspergame": "17.02",
-      "yearsactive": "2018-2025"
+      "careerpoints": 10106,
+      "pointspergame": "16.57",
+      "yearsactive": "2018-2026"
     },
     {
       "personId": 201167,
@@ -1529,15 +1529,15 @@ export const draftData = [
       "yearsactive": "1990-2001"
     },
     {
-      "personId": 2757,
+      "personId": 1629673,
       "Round": 1,
       "Pick": 28,
       "playerrank": 5,
-      "firstName": "Beno",
-      "lastName": "Udrih",
-      "careerpoints": 6952,
-      "pointspergame": "8.39",
-      "yearsactive": "2005-2017"
+      "firstName": "Jordan",
+      "lastName": "Poole",
+      "careerpoints": 7466,
+      "pointspergame": "16.55",
+      "yearsactive": "2020-2026"
     },
     {
       "personId": 698,
@@ -1600,10 +1600,10 @@ export const draftData = [
       "Pick": 30,
       "playerrank": 1,
       "firstName": "Jimmy",
-      "lastName": "Butler",
-      "careerpoints": 15898,
-      "pointspergame": "18.38",
-      "yearsactive": "2012-2025"
+      "lastName": "Butler III",
+      "careerpoints": 16658,
+      "pointspergame": "18.45",
+      "yearsactive": "2026-2026"
     },
     {
       "personId": 76981,
@@ -1639,15 +1639,15 @@ export const draftData = [
       "yearsactive": "2006-2017"
     },
     {
-      "personId": 770,
-      "Round": 2,
+      "personId": 1630217,
+      "Round": 1,
       "Pick": 30,
       "playerrank": 5,
-      "firstName": "Mark",
-      "lastName": "West",
-      "careerpoints": 6259,
-      "pointspergame": "5.75",
-      "yearsactive": "1984-2000"
+      "firstName": "Desmond",
+      "lastName": "Bane",
+      "careerpoints": 7227,
+      "pointspergame": "18.30",
+      "yearsactive": "2021-2026"
     },
     {
       "personId": 76017,
@@ -1716,10 +1716,21 @@ export const draftData = [
       "yearsactive": "1999-2014"
     },
     {
-      "personId": 77175,
+      "personId": 1627826,
       "Round": 2,
       "Pick": 32,
       "playerrank": 2,
+      "firstName": "Ivica",
+      "lastName": "Zubac",
+      "careerpoints": 6630,
+      "pointspergame": "10.52",
+      "yearsactive": "2017-2026"
+    },
+    {
+      "personId": 77175,
+      "Round": 2,
+      "Pick": 32,
+      "playerrank": 3,
       "firstName": "Caldwell",
       "lastName": "Jones",
       "careerpoints": 6600,
@@ -1730,23 +1741,12 @@ export const draftData = [
       "personId": 1626149,
       "Round": 2,
       "Pick": 32,
-      "playerrank": 3,
+      "playerrank": 4,
       "firstName": "Montrezl",
       "lastName": "Harrell",
       "careerpoints": 6220,
       "pointspergame": "12.08",
       "yearsactive": "2016-2023"
-    },
-    {
-      "personId": 1627826,
-      "Round": 2,
-      "Pick": 32,
-      "playerrank": 4,
-      "firstName": "Ivica",
-      "lastName": "Zubac",
-      "careerpoints": 5953,
-      "pointspergame": "10.23",
-      "yearsactive": "2017-2025"
     },
     {
       "personId": 77875,
@@ -1760,26 +1760,26 @@ export const draftData = [
       "yearsactive": "1972-1978"
     },
     {
-      "personId": 3,
+      "personId": 1628973,
       "Round": 2,
       "Pick": 33,
       "playerrank": 1,
+      "firstName": "Jalen",
+      "lastName": "Brunson",
+      "careerpoints": 10748,
+      "pointspergame": "19.16",
+      "yearsactive": "2019-2026"
+    },
+    {
+      "personId": 3,
+      "Round": 2,
+      "Pick": 33,
+      "playerrank": 2,
       "firstName": "Grant",
       "lastName": "Long",
       "careerpoints": 9518,
       "pointspergame": "9.49",
       "yearsactive": "1989-2003"
-    },
-    {
-      "personId": 1628973,
-      "Round": 2,
-      "Pick": 33,
-      "playerrank": 2,
-      "firstName": "Jalen",
-      "lastName": "Brunson",
-      "careerpoints": 8821,
-      "pointspergame": "18.11",
-      "yearsactive": "2019-2025"
     },
     {
       "personId": 404,
@@ -1887,31 +1887,31 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "DeAndre",
       "lastName": "Jordan",
-      "careerpoints": 9483,
-      "pointspergame": "8.56",
-      "yearsactive": "2009-2025"
-    },
-    {
-      "personId": 328,
-      "Round": 2,
-      "Pick": 35,
-      "playerrank": 3,
-      "firstName": "Rick",
-      "lastName": "Mahorn",
-      "careerpoints": 7763,
-      "pointspergame": "6.95",
-      "yearsactive": "1981-1999"
+      "careerpoints": 9536,
+      "pointspergame": "8.51",
+      "yearsactive": "2009-2026"
     },
     {
       "personId": 203110,
       "Round": 2,
       "Pick": 35,
-      "playerrank": 4,
+      "playerrank": 3,
       "firstName": "Draymond",
       "lastName": "Green",
-      "careerpoints": 7665,
-      "pointspergame": "8.70",
-      "yearsactive": "2013-2025"
+      "careerpoints": 8235,
+      "pointspergame": "8.68",
+      "yearsactive": "2013-2026"
+    },
+    {
+      "personId": 328,
+      "Round": 2,
+      "Pick": 35,
+      "playerrank": 4,
+      "firstName": "Rick",
+      "lastName": "Mahorn",
+      "careerpoints": 7763,
+      "pointspergame": "6.95",
+      "yearsactive": "1981-1999"
     },
     {
       "personId": 78183,
@@ -2008,9 +2008,9 @@ export const draftData = [
       "playerrank": 3,
       "firstName": "Gary",
       "lastName": "Trent Jr.",
-      "careerpoints": 5698,
-      "pointspergame": "13.73",
-      "yearsactive": "2019-2025"
+      "careerpoints": 6227,
+      "pointspergame": "12.97",
+      "yearsactive": "2019-2026"
     },
     {
       "personId": 976,
@@ -2079,15 +2079,15 @@ export const draftData = [
       "yearsactive": "2012-2020"
     },
     {
-      "personId": 2768,
+      "personId": 1629655,
       "Round": 2,
       "Pick": 38,
       "playerrank": 5,
-      "firstName": "Chris",
-      "lastName": "Duhon",
-      "careerpoints": 3946,
-      "pointspergame": "6.52",
-      "yearsactive": "2005-2013"
+      "firstName": "Daniel",
+      "lastName": "Gafford",
+      "careerpoints": 4021,
+      "pointspergame": "9.29",
+      "yearsactive": "2020-2026"
     },
     {
       "personId": 203114,
@@ -2096,9 +2096,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Khris",
       "lastName": "Middleton",
-      "careerpoints": 12901,
-      "pointspergame": "16.63",
-      "yearsactive": "2013-2025"
+      "careerpoints": 13541,
+      "pointspergame": "16.14",
+      "yearsactive": "2013-2026"
     },
     {
       "personId": 203924,
@@ -2107,9 +2107,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Jerami",
       "lastName": "Grant",
-      "careerpoints": 9428,
-      "pointspergame": "13.13",
-      "yearsactive": "2015-2025"
+      "careerpoints": 10488,
+      "pointspergame": "13.53",
+      "yearsactive": "2015-2026"
     },
     {
       "personId": 1747,
@@ -2206,9 +2206,9 @@ export const draftData = [
       "playerrank": 1,
       "firstName": "Nikola",
       "lastName": "Jokic",
-      "careerpoints": 16210,
-      "pointspergame": "21.76",
-      "yearsactive": "2016-2025"
+      "careerpoints": 18009,
+      "pointspergame": "22.23",
+      "yearsactive": "2016-2026"
     },
     {
       "personId": 1749,
@@ -2305,9 +2305,9 @@ export const draftData = [
       "playerrank": 5,
       "firstName": "Bruce",
       "lastName": "Brown",
-      "careerpoints": 4045,
-      "pointspergame": "8.85",
-      "yearsactive": "2019-2025"
+      "careerpoints": 4694,
+      "pointspergame": "8.71",
+      "yearsactive": "2019-2026"
     },
     {
       "personId": 2072,
@@ -2453,26 +2453,26 @@ export const draftData = [
       "yearsactive": "1994-2006"
     },
     {
-      "personId": 2440,
+      "personId": 1628415,
       "Round": 2,
       "Pick": 45,
       "playerrank": 4,
+      "firstName": "Dillon",
+      "lastName": "Brooks",
+      "careerpoints": 8101,
+      "pointspergame": "14.78",
+      "yearsactive": "2018-2026"
+    },
+    {
+      "personId": 2440,
+      "Round": 2,
+      "Pick": 45,
+      "playerrank": 5,
       "firstName": "Matt",
       "lastName": "Barnes",
       "careerpoints": 7589,
       "pointspergame": "8.13",
       "yearsactive": "2004-2017"
-    },
-    {
-      "personId": 1628415,
-      "Round": 2,
-      "Pick": 45,
-      "playerrank": 5,
-      "firstName": "Dillon",
-      "lastName": "Brooks",
-      "careerpoints": 6970,
-      "pointspergame": "14.17",
-      "yearsactive": "2018-2025"
     },
     {
       "personId": 204,
@@ -2492,9 +2492,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Jordan",
       "lastName": "Clarkson",
-      "careerpoints": 12029,
-      "pointspergame": "15.97",
-      "yearsactive": "2015-2025"
+      "careerpoints": 12651,
+      "pointspergame": "15.33",
+      "yearsactive": "2015-2026"
     },
     {
       "personId": 760,
@@ -2514,9 +2514,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Norman",
       "lastName": "Powell",
-      "careerpoints": 8157,
-      "pointspergame": "13.24",
-      "yearsactive": "2016-2025"
+      "careerpoints": 9418,
+      "pointspergame": "13.97",
+      "yearsactive": "2016-2026"
     },
     {
       "personId": 201980,
@@ -2624,9 +2624,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Terance",
       "lastName": "Mann",
-      "careerpoints": 3331,
-      "pointspergame": "8.25",
-      "yearsactive": "2020-2025"
+      "careerpoints": 3786,
+      "pointspergame": "8.11",
+      "yearsactive": "2020-2026"
     },
     {
       "personId": 1542,
@@ -2673,26 +2673,26 @@ export const draftData = [
       "yearsactive": "2004-2011"
     },
     {
-      "personId": 203124,
+      "personId": 1630198,
       "Round": 2,
       "Pick": 49,
       "playerrank": 4,
+      "firstName": "Isaiah",
+      "lastName": "Joe",
+      "careerpoints": 3219,
+      "pointspergame": "8.28",
+      "yearsactive": "2021-2026"
+    },
+    {
+      "personId": 203124,
+      "Round": 2,
+      "Pick": 49,
+      "playerrank": 5,
       "firstName": "Kyle",
       "lastName": "O'Quinn",
       "careerpoints": 2568,
       "pointspergame": "5.45",
       "yearsactive": "2013-2020"
-    },
-    {
-      "personId": 1630198,
-      "Round": 2,
-      "Pick": 49,
-      "playerrank": 5,
-      "firstName": "Isaiah",
-      "lastName": "Joe",
-      "careerpoints": 2434,
-      "pointspergame": "7.65",
-      "yearsactive": "2021-2025"
     },
     {
       "personId": 70,
@@ -2761,32 +2761,21 @@ export const draftData = [
       "yearsactive": "2004-2020"
     },
     {
-      "personId": 201147,
-      "Round": 2,
-      "Pick": 51,
-      "playerrank": 2,
-      "firstName": "Corey",
-      "lastName": "Brewer",
-      "careerpoints": 7097,
-      "pointspergame": "8.67",
-      "yearsactive": "2008-2020"
-    },
-    {
       "personId": 1628420,
       "Round": 2,
       "Pick": 51,
-      "playerrank": 3,
+      "playerrank": 2,
       "firstName": "Monte",
       "lastName": "Morris",
-      "careerpoints": 3980,
-      "pointspergame": "9.48",
-      "yearsactive": "2018-2025"
+      "careerpoints": 3998,
+      "pointspergame": "9.38",
+      "yearsactive": "2018-2026"
     },
     {
       "personId": 380,
       "Round": 2,
       "Pick": 51,
-      "playerrank": 4,
+      "playerrank": 3,
       "firstName": "Tony",
       "lastName": "Smith",
       "careerpoints": 2504,
@@ -2797,12 +2786,23 @@ export const draftData = [
       "personId": 1444,
       "Round": 2,
       "Pick": 51,
-      "playerrank": 5,
+      "playerrank": 4,
       "firstName": "Lawrence",
       "lastName": "Funderburke",
       "careerpoints": 2031,
       "pointspergame": "5.97",
       "yearsactive": "1998-2005"
+    },
+    {
+      "personId": 1630592,
+      "Round": 2,
+      "Pick": 51,
+      "playerrank": 5,
+      "firstName": "Jalen",
+      "lastName": "Wilson",
+      "careerpoints": 1306,
+      "pointspergame": "7.42",
+      "yearsactive": "2024-2026"
     },
     {
       "personId": 2446,
@@ -2838,26 +2838,26 @@ export const draftData = [
       "yearsactive": "2021-2025"
     },
     {
-      "personId": 2260,
+      "personId": 1641739,
       "Round": 2,
       "Pick": 52,
       "playerrank": 4,
+      "firstName": "Toumani",
+      "lastName": "Camara",
+      "careerpoints": 2509,
+      "pointspergame": "10.91",
+      "yearsactive": "2024-2026"
+    },
+    {
+      "personId": 2260,
+      "Round": 2,
+      "Pick": 52,
+      "playerrank": 5,
       "firstName": "Jarron",
       "lastName": "Collins",
       "careerpoints": 2095,
       "pointspergame": "3.89",
       "yearsactive": "2002-2011"
-    },
-    {
-      "personId": 1629667,
-      "Round": 2,
-      "Pick": 52,
-      "playerrank": 5,
-      "firstName": "Jalen",
-      "lastName": "McDaniels",
-      "careerpoints": 1699,
-      "pointspergame": "6.77",
-      "yearsactive": "2020-2025"
     },
     {
       "personId": 1761,
@@ -2882,37 +2882,37 @@ export const draftData = [
       "yearsactive": "2000-2005"
     },
     {
-      "personId": 1629646,
+      "personId": 1642285,
       "Round": 2,
       "Pick": 53,
       "playerrank": 3,
-      "firstName": "Charles",
-      "lastName": "Bassey",
-      "careerpoints": 488,
-      "pointspergame": "4.32",
-      "yearsactive": "2022-2025"
+      "firstName": "Cam",
+      "lastName": "Spencer",
+      "careerpoints": 904,
+      "pointspergame": "9.32",
+      "yearsactive": "2025-2026"
     },
     {
-      "personId": 202732,
+      "personId": 1629646,
       "Round": 2,
       "Pick": 53,
       "playerrank": 4,
-      "firstName": "DeAndre",
-      "lastName": "Liggins",
-      "careerpoints": 346,
-      "pointspergame": "2.02",
-      "yearsactive": "2012-2018"
+      "firstName": "Charles",
+      "lastName": "Bassey",
+      "careerpoints": 564,
+      "pointspergame": "4.48",
+      "yearsactive": "2022-2026"
     },
     {
-      "personId": 101158,
+      "personId": 1641740,
       "Round": 2,
       "Pick": 53,
       "playerrank": 5,
-      "firstName": "Orien",
-      "lastName": "Greene",
-      "careerpoints": 326,
-      "pointspergame": "2.57",
-      "yearsactive": "2006-2011"
+      "firstName": "Jaylen",
+      "lastName": "Clark",
+      "careerpoints": 438,
+      "pointspergame": "4.06",
+      "yearsactive": "2025-2026"
     },
     {
       "personId": 1000,
@@ -2948,26 +2948,26 @@ export const draftData = [
       "yearsactive": "2019-2025"
     },
     {
-      "personId": 925,
+      "personId": 1630572,
       "Round": 2,
       "Pick": 54,
       "playerrank": 4,
+      "firstName": "Sandro",
+      "lastName": "Mamukelashvili",
+      "careerpoints": 1885,
+      "pointspergame": "7.06",
+      "yearsactive": "2022-2026"
+    },
+    {
+      "personId": 925,
+      "Round": 2,
+      "Pick": 54,
+      "playerrank": 5,
       "firstName": "Sean",
       "lastName": "Higgins",
       "careerpoints": 1375,
       "pointspergame": "6.25",
       "yearsactive": "1991-1998"
-    },
-    {
-      "personId": 1442,
-      "Round": 2,
-      "Pick": 54,
-      "playerrank": 5,
-      "firstName": "Zeljko",
-      "lastName": "Rebraca",
-      "careerpoints": 1276,
-      "pointspergame": "5.91",
-      "yearsactive": "2002-2007"
     },
     {
       "personId": 2449,
@@ -3009,9 +3009,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Aaron",
       "lastName": "Wiggins",
-      "careerpoints": 2351,
-      "pointspergame": "8.61",
-      "yearsactive": "2022-2025"
+      "careerpoints": 2962,
+      "pointspergame": "8.76",
+      "yearsactive": "2022-2026"
     },
     {
       "personId": 1763,
@@ -3108,9 +3108,9 @@ export const draftData = [
       "playerrank": 3,
       "firstName": "Jabari",
       "lastName": "Walker",
-      "careerpoints": 1167,
-      "pointspergame": "6.24",
-      "yearsactive": "2023-2025"
+      "careerpoints": 1443,
+      "pointspergame": "5.75",
+      "yearsactive": "2023-2026"
     },
     {
       "personId": 1631218,
@@ -3119,9 +3119,9 @@ export const draftData = [
       "playerrank": 4,
       "firstName": "Trayce",
       "lastName": "Jackson-Davis",
-      "careerpoints": 947,
-      "pointspergame": "7.34",
-      "yearsactive": "2024-2025"
+      "careerpoints": 1128,
+      "pointspergame": "6.20",
+      "yearsactive": "2024-2026"
     },
     {
       "personId": 1628426,
@@ -3135,26 +3135,26 @@ export const draftData = [
       "yearsactive": "2024-2024"
     },
     {
-      "personId": 690,
+      "personId": 1630194,
       "Round": 2,
       "Pick": 58,
       "playerrank": 1,
+      "firstName": "Paul",
+      "lastName": "Reed",
+      "careerpoints": 1779,
+      "pointspergame": "5.51",
+      "yearsactive": "2021-2026"
+    },
+    {
+      "personId": 690,
+      "Round": 2,
+      "Pick": 58,
+      "playerrank": 2,
       "firstName": "Don",
       "lastName": "Reid",
       "careerpoints": 1454,
       "pointspergame": "3.63",
       "yearsactive": "1996-2003"
-    },
-    {
-      "personId": 1630194,
-      "Round": 2,
-      "Pick": 58,
-      "playerrank": 2,
-      "firstName": "Paul",
-      "lastName": "Reed",
-      "careerpoints": 1275,
-      "pointspergame": "4.94",
-      "yearsactive": "2021-2025"
     },
     {
       "personId": 1627846,
@@ -3185,9 +3185,9 @@ export const draftData = [
       "playerrank": 5,
       "firstName": "Jericho",
       "lastName": "Sims",
-      "careerpoints": 458,
-      "pointspergame": "2.41",
-      "yearsactive": "2022-2025"
+      "careerpoints": 792,
+      "pointspergame": "3.08",
+      "yearsactive": "2022-2026"
     },
     {
       "personId": 1628417,
@@ -3262,9 +3262,9 @@ export const draftData = [
       "playerrank": 2,
       "firstName": "Sam",
       "lastName": "Merrill",
-      "careerpoints": 1133,
-      "pointspergame": "6.55",
-      "yearsactive": "2021-2025"
+      "careerpoints": 1796,
+      "pointspergame": "7.98",
+      "yearsactive": "2021-2026"
     },
     {
       "personId": 203135,
