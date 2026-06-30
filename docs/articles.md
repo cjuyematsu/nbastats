@@ -244,6 +244,35 @@ $$;
 grant execute on function public.get_published_articles_with_engagement() to anon, authenticated;
 ```
 
+The comment **Delete** button calls a `security definer` RPC so a signed-in user can soft-delete
+their own comment regardless of table grants / RLS on `article_comments`; ownership is enforced
+inside the function via `auth.uid()`, and a non-owner (or unknown id) raises so the client shows
+a real error instead of silently no-op-ing.
+
+```sql
+create or replace function public.soft_delete_own_comment(p_comment_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.article_comments
+     set status = 'deleted',
+         updated_at = now()
+   where id = p_comment_id
+     and user_id = auth.uid();
+
+  if not found then
+    raise exception 'Comment not found or you are not the author';
+  end if;
+end;
+$$;
+
+revoke execute on function public.soft_delete_own_comment(uuid) from public;
+grant  execute on function public.soft_delete_own_comment(uuid) to authenticated;
+```
+
 ### 5. Seed the analysis articles (recent weekly cadence)
 
 Two component articles, dated a week apart on the Monday cron cadence so they read as a current

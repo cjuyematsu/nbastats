@@ -1129,6 +1129,10 @@ export type Database = {
         }[]
       }
       perform_weekly_player_rearrangement: { Args: never; Returns: string }
+      soft_delete_own_comment: {
+        Args: { p_comment_id: string }
+        Returns: undefined
+      }
       submit_player_vote: {
         Args: { new_vote_type: number; target_player_id: number }
         Returns: undefined
