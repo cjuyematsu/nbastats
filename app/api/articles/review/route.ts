@@ -1,0 +1,80 @@
+// app/api/articles/review/route.ts
+//
+// Owner-gated review endpoint. Drafts are private (RLS hides non-published rows
+// from the anon client), so listing and publishing both go through here:
+// verify the caller's Supabase auth token, check it matches ARTICLE_ADMIN_EMAIL,
+// then read/write with the service-role admin client.
+
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { requireAdmin } from '@/lib/articleAdmin';
+
+export async function GET(request: Request) {
+  const gate = await requireAdmin(request);
+  if (!gate.ok) return NextResponse.json({ error: gate.message }, { status: gate.status });
+
+  const { data, error } = await supabaseAdmin
+    .from('articles')
+    .select('id, slug, title, dek, summary, body_markdown, status, created_at, generation_meta')
+    .in('status', ['draft', 'rejected'])
+    .order('created_at', { ascending: false });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ articles: data ?? [] });
+}
+
+export async function POST(request: Request) {
+  const gate = await requireAdmin(request);
+  if (!gate.ok) return NextResponse.json({ error: gate.message }, { status: gate.status });
+
+  let body: { id?: string; action?: string; commentId?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+  }
+
+  const { id, action } = body;
+
+  // Owner moderation: soft-delete any comment (bypasses RLS via the service role).
+  if (action === 'delete-comment') {
+    if (!body.commentId) {
+      return NextResponse.json(
+        { error: 'Provide { action: "delete-comment", commentId }.' },
+        { status: 400 },
+      );
+    }
+    const { data, error } = await supabaseAdmin
+      .from('article_comments')
+      .update({ status: 'deleted', updated_at: new Date().toISOString() })
+      .eq('id', body.commentId)
+      .select('id, status')
+      .single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true, comment: data });
+  }
+
+  if (!id || (action !== 'publish' && action !== 'reject')) {
+    return NextResponse.json(
+      {
+        error:
+          'Provide { id, action: "publish" | "reject" } or { action: "delete-comment", commentId }.',
+      },
+      { status: 400 },
+    );
+  }
+
+  const now = new Date().toISOString();
+  const update =
+    action === 'publish'
+      ? { status: 'published', published_at: now, updated_at: now }
+      : { status: 'rejected', published_at: null };
+
+  const { data, error } = await supabaseAdmin
+    .from('articles')
+    .update(update)
+    .eq('id', id)
+    .select('id, slug, status')
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, article: data });
+}

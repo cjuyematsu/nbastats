@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 const MenuIcon = () => (
   <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -46,12 +47,6 @@ const LinkIcon = () => (
     </svg>
 );
 
-const TrendingUpIcon = () => (
-    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
-    <path d="m18.29,9.29l-3.29,3.29-4.29-4.29c-.39-.39-1.02-.39-1.41,0l-7,7,1.41,1.41,6.29-6.29,4.29,4.29c.39.39,1.02.39,1.41,0l4-4,2.29,2.29v-6h-6l2.29,2.29Z"/>
-    </svg>
-);
-
 const OverUnderGameIcon = () => (
     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
     <path d="m6.29 19.29 1.42 1.42 4.29-4.3 4.29 4.3 1.42-1.42-5.71-5.7zM12 7.59l-4.29-4.3-1.42 1.42 5.71 5.7 5.71-5.7-1.42-1.42z"/>
@@ -82,17 +77,15 @@ const SixDegreesIcon = () => (
     </svg>
 );
 
-const SalaryVPointsIcon = () => (
-    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
-    <path d="M21 8H7c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h14c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1m-1 8c-1.1 0-2 .9-2 2h-8c0-1.1-.9-2-2-2v-4c1.1 0 2-.9 2-2h8c0 1.1.9 2 2 2z"/>
-    <path d="M18 4H3c-.55 0-1 .45-1 1v11h2V6h14zM14 12a2 2 0 1 0 0 4 2 2 0 1 0 0-4"/>
-    </svg>
+const ArticlesIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 16H4V5h16zM6 7h8v2H6zm0 4h8v2H6zm0 4h5v2H6zm10-8h2v10h-2z"/>
+  </svg>
 );
 
-const DraftPointsIcon = () => (
+const ReviewIcon = () => (
   <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M13.51 10.33 12 7 10.49 10.33 7 10.61 9.78 13.11 8.67 17 12 14.78 15.33 17 14.22 13.11 17 10.61 13.51 10.33z"/>
-      <path d="m12,2C6.49,2,2,6.49,2,12s4.49,10,10,10,10-4.49,10-10S17.51,2,12,2Zm0,18c-4.41,0-8-3.59-8-8S7.59,4,12,4s8,3.59,8,8-3.59,8-8,8Z"/>
+      <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1m-2 14-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9z"/>
   </svg>
 );
 
@@ -100,9 +93,11 @@ const MIN_NAV_WIDTH = 80;
 const DEFAULT_NAV_WIDTH = 256;
 const TEXT_VISIBILITY_THRESHOLD = 160;
 
-const NavLink = ({ href, children, icon, showText }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean }) => {
+const NavLink = ({ href, children, icon, showText, excludeActiveFor }: { href: string; children: React.ReactNode; icon: React.ReactNode; showText: boolean; excludeActiveFor?: string[] }) => {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+  const isActive =
+    (pathname === href || (href !== "/" && pathname.startsWith(href + "/"))) &&
+    !excludeActiveFor?.includes(pathname);
 
   return (
     <Link
@@ -129,9 +124,33 @@ export default function Navbar() {
   const [navWidth, setNavWidth] = useState(DEFAULT_NAV_WIDTH);
   const [lastExpandedDesktopWidth, setLastExpandedDesktopWidth] = useState(DEFAULT_NAV_WIDTH);
   const [isMdScreen, setIsMdScreen] = useState(false);
+  const { session, isLoading: isAuthLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Show the owner-only "Review" link only when signed in as ARTICLE_ADMIN_EMAIL.
+  useEffect(() => {
+    if (isAuthLoading) return;
+    const token = session?.access_token;
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    fetch('/api/articles/is-admin', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((j) => {
+        if (active) setIsAdmin(Boolean(j?.admin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [session, isAuthLoading]);
 
     useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -270,37 +289,12 @@ export default function Navbar() {
             <div className="flex-grow overflow-y-auto pb-40">
               <div className="flex flex-col space-y-1 p-4">
                 <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
-                
+                <div className="pt-2">
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Tools</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                   {/* <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>               */}
                   <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
                   <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
-
-                <div className="pt-2">
-                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
-                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  <NavLink
-                    href="/analysis/salary-vs-points"
-                    icon={<SalaryVPointsIcon />}
-                    showText={showTextInNav}
-                  >
-                    Salary vs. Points
-                  </NavLink>
-                  <NavLink
-                    href="/analysis/growth-of-nba"
-                    icon={<TrendingUpIcon />}
-                    showText={showTextInNav}
-                  >
-                    Growth of the NBA
-                  </NavLink>
-
-                  <NavLink
-                    href="/analysis/draft-points"
-                    icon={<DraftPointsIcon />}
-                    showText={showTextInNav}
-                  >
-                    Draft Points
-                  </NavLink>
                 </div>
 
                 <div className="pt-2">
@@ -322,6 +316,16 @@ export default function Navbar() {
                   <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
                     Six Degrees
                   </NavLink>
+                </div>
+
+                <div className="pt-2">
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Articles</h3>}
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                  {/* <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>               */}
+                  <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Forum</NavLink>
+                  {isAdmin && (
+                    <NavLink href="/articles/review" icon={<ReviewIcon />} showText={showTextInNav}>Review</NavLink>
+                  )}
                 </div>
               </div>
             </div>

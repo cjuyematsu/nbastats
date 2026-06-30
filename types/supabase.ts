@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          author: string | null
+          body_markdown: string
+          component_key: string | null
+          created_at: string
+          dek: string | null
+          generation_meta: Json | null
+          id: string
+          kind: string
+          published_at: string | null
+          slug: string
+          sources: Json | null
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          body_markdown: string
+          component_key?: string | null
+          created_at?: string
+          dek?: string | null
+          generation_meta?: Json | null
+          id?: string
+          kind?: string
+          published_at?: string | null
+          slug: string
+          sources?: Json | null
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          body_markdown?: string
+          component_key?: string | null
+          created_at?: string
+          dek?: string | null
+          generation_meta?: Json | null
+          id?: string
+          kind?: string
+          published_at?: string | null
+          slug?: string
+          sources?: Json | null
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      article_comments: {
+        Row: {
+          article_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "article_comments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      article_votes: {
+        Row: {
+          anonymous_id: string | null
+          article_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string | null
+          vote_type: number
+        }
+        Insert: {
+          anonymous_id?: string | null
+          article_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          vote_type: number
+        }
+        Update: {
+          anonymous_id?: string | null
+          article_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          vote_type?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_votes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       currentweeklyrankings: {
         Row: {
           player_id: number
@@ -171,14 +314,17 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_admin: boolean
         }
         Insert: {
           created_at?: string | null
           id: string
+          is_admin?: boolean
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_admin?: boolean
         }
         Relationships: []
       }
@@ -961,6 +1107,25 @@ export type Database = {
           correct_count: number
           total_count: number
           year: number
+        }[]
+      }
+      get_published_articles_with_engagement: {
+        Args: never
+        Returns: {
+          author: string | null
+          comment_count: number
+          component_key: string | null
+          dek: string | null
+          downvotes: number
+          id: string
+          kind: string
+          published_at: string | null
+          score: number
+          slug: string
+          summary: string | null
+          title: string
+          updated_at: string
+          upvotes: number
         }[]
       }
       perform_weekly_player_rearrangement: { Args: never; Returns: string }

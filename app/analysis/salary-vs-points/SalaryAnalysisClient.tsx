@@ -134,18 +134,7 @@ const ValueChart = ({ data, title, barColor }: { data: PlayerData[], title: stri
 
 export default function SalaryAnalysisPage() {
     return (
-        <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-900 dark:text-gray-100 min-h-screen p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-700">
-            <div className="max-w-7xl mx-auto">
-                <header className="mb-8">
-                    <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                        Salary vs. Points (2024-2025)
-                    </h1>
-                    <p className="mt-2 text-lg text-gray-500 dark:text-gray-400">
-                        Putting the magnitude of NBA salaries into perspective.
-                    </p>
-                </header>
-
-                <article className="space-y-12">
+        <div className="space-y-12 text-slate-900 dark:text-gray-100">
                     <section>
                         <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white">The &quot;Dollars per Point&quot; Metric</h2>
                         <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -194,8 +183,6 @@ export default function SalaryAnalysisPage() {
                          </p>
                     </footer>
 
-                </article>
-            </div>
         </div>
     );
 }
