@@ -34,4 +34,5 @@ export const salaryData = [
     { season: '2022-2023', total_salary: 4551370996, average_salary: 7929218 },
     { season: '2023-2024', total_salary: 4926534999, average_salary: 8049894 },
     { season: '2024-2025', total_salary: 5268172365, average_salary: 8650529 },
+    { season: '2025-2026', total_salary: 5601328604, average_salary: 10430780 },
   ];
