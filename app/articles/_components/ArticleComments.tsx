@@ -37,6 +37,14 @@ function displayName(user: User): string {
   );
 }
 
+function errorMessage(e: unknown, fallback: string): string {
+  if (e instanceof Error) return e.message;
+  if (e && typeof e === 'object' && 'message' in e) {
+    return String((e as { message: unknown }).message);
+  }
+  return fallback;
+}
+
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString('en-US', {
     year: 'numeric',
@@ -54,6 +62,7 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
   const [newBody, setNewBody] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
@@ -116,9 +125,8 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
         setNewBody('');
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to post comment.';
       console.error('Comment post failed:', e);
-      alert(`Failed to post comment: ${message}`);
+      alert(`Failed to post comment: ${errorMessage(e, 'Failed to post comment.')}`);
     } finally {
       setSubmitting(false);
     }
@@ -126,16 +134,16 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
 
   const softDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('article_comments')
-        .update({ status: 'deleted', updated_at: new Date().toISOString() })
-        .eq('id', id);
+      const { error } = await supabase.rpc('soft_delete_own_comment', {
+        p_comment_id: id,
+      });
       if (error) throw error;
       setComments((prev) => prev.filter((c) => c.id !== id));
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to delete comment.';
       console.error('Comment delete failed:', e);
-      alert(`Failed to delete comment: ${message}`);
+      alert(`Failed to delete comment: ${errorMessage(e, 'Failed to delete comment.')}`);
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -168,15 +176,34 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
             {replyTo === c.id ? 'Cancel' : 'Reply'}
           </button>
         )}
-        {user?.id === c.user_id && (
-          <button
-            type="button"
-            onClick={() => softDelete(c.id)}
-            className="text-red-600 dark:text-red-400 hover:underline"
-          >
-            Delete
-          </button>
-        )}
+        {user?.id === c.user_id &&
+          (confirmDeleteId === c.id ? (
+            <span className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">Delete this?</span>
+              <button
+                type="button"
+                onClick={() => softDelete(c.id)}
+                className="text-red-600 dark:text-red-400 hover:underline"
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="text-gray-500 dark:text-gray-400 hover:underline"
+              >
+                No
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteId(c.id)}
+              className="text-red-600 dark:text-red-400 hover:underline"
+            >
+              Delete
+            </button>
+          ))}
       </div>
 
       {replyTo === c.id && user && (
