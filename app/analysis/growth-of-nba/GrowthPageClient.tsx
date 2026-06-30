@@ -232,16 +232,7 @@ export default function GrowthPage() {
 
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 w-full border border-gray-200 dark:border-gray-700">
-            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <header className="text-center mb-12">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
-                        The Growth of the NBA
-                    </h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-500 dark:text-slate-400">
-                        An analysis of the NBA&apos;s financial and nba finals viewership trends over the last three decades.
-                    </p>
-                </header>
+        <div className="space-y-16">
 
                 <section className="mb-16">
                     <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">Player Salaries Over Time</h2>
@@ -283,7 +274,6 @@ export default function GrowthPage() {
                         </p>
                     </div>
                 </section>
-            </div>
         </div>
     );
 }
