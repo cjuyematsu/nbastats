@@ -1,4 +1,6 @@
 export const viewershipData = [
+    { year: 2026, network: 'ABC', viewers: 22.64},
+    { year: 2025, network: 'ABC', viewers: 11.67},
     { year: 2024, network: 'ABC', viewers: 11.31 },
     { year: 2023, network: 'ABC', viewers: 11.64 },
     { year: 2022, network: 'ABC', viewers: 12.40 },
