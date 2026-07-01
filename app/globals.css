@@ -8,17 +8,20 @@
 }
 
 :root {
-  --header-height: 64px; 
-  --nav-container-padding: 12px; 
-  
-  --nav-actual-width: 256px; 
-  --nav-offset-left: calc(var(--nav-container-padding) + var(--nav-actual-width));
+  --header-height: 64px;
+  --page-inset-padding: 12px;
+  --navbar-header-gap: 12px;
+
+  --nav-actual-width: 256px;
+  --nav-offset-left: calc(var(--page-inset-padding) + var(--nav-actual-width) + var(--navbar-header-gap));
 }
 
 @media (max-width: 767px) {
   :root {
     --nav-actual-width: 0px;
     --nav-offset-left: 0px;
+    --page-inset-padding: 0px;
+    --navbar-header-gap: 0px;
   }
 }
 

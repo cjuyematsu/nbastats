@@ -79,10 +79,6 @@ const websiteSchema = {
   }
 };
 
-const DEFAULT_NAV_WIDTH_FOR_LAYOUT = 256;
-const PAGE_INSET_PADDING_PX = 12;
-const NAVBAR_HEADER_GAP_PX = 12;
-
 export default function RootLayout({
   children,
 }: {
@@ -102,25 +98,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo.png" />
-
-        <style dangerouslySetInnerHTML={{ __html: `
-          :root {
-            --header-height: 64px;
-            --page-inset-padding: ${PAGE_INSET_PADDING_PX}px;
-            --navbar-header-gap: ${NAVBAR_HEADER_GAP_PX}px;
-            --nav-actual-width: ${DEFAULT_NAV_WIDTH_FOR_LAYOUT}px;
-            --nav-offset-left: calc(var(--page-inset-padding) + ${DEFAULT_NAV_WIDTH_FOR_LAYOUT}px + var(--navbar-header-gap));
-          }
-
-          @media (max-width: 767px) {
-            :root {
-              --nav-actual-width: 0px;
-              --nav-offset-left: 0px;
-              --page-inset-padding: 0px;
-              --navbar-header-gap: 0px;
-            }
-          }
-        `}} />
       </head>
       <body className={`${inter.className} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
       <AuthProvider>
