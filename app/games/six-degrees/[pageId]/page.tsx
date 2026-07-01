@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { readDailyResult, writeDailyResult } from '@/lib/sixDegreesDaily';
 
 type AdjacencyList = {
   [playerId: string]: number[];
@@ -192,6 +193,19 @@ function SixDegreesGameContent() {
         }
     }, [path, guessHistory, feedbackMessage, puzzle, gameStatus, SESSION_STORAGE_KEY]);
 
+    // Mirror a finished daily into the shared record so the home-page teaser reflects it too.
+    useEffect(() => {
+        if (gameId !== 'daily' || !puzzle?.game_date) return;
+        if (gameStatus === 'won' || gameStatus === 'lost') {
+            writeDailyResult(puzzle.game_date, {
+                status: gameStatus,
+                path,
+                guessesUsed: guessHistory.length,
+                solutionPathNames: puzzle.solution_path_names,
+            });
+        }
+    }, [gameStatus, gameId, puzzle, path, guessHistory]);
+
     const resetGameState = useCallback(() => {
         setPath([]);
         setGuessHistory([]);
@@ -239,21 +253,39 @@ function SixDegreesGameContent() {
             
             setGameStatus('loading');
             
-            if (gameId === 'daily' && user) {
-                const { data: priorPlay, error: priorPlayError } = await supabase
-                    .from('six_degrees_scores')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .eq('game_date', new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'}))
-                    .single();
-                
-                if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
-                
-                if (priorPlay) {
-                    setPriorPlayResult(priorPlay as DailyScore);
+            if (gameId === 'daily') {
+                const todayLA = new Date().toLocaleDateString('en-CA', {timeZone: 'America/Los_Angeles'});
+                let priorResult: DailyScore | null = null;
+
+                if (user) {
+                    const { data: priorPlay, error: priorPlayError } = await supabase
+                        .from('six_degrees_scores')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .eq('game_date', todayLA)
+                        .single();
+
+                    if (priorPlayError && priorPlayError.code !== 'PGRST116') throw priorPlayError;
+                    if (priorPlay) priorResult = priorPlay as DailyScore;
+                }
+
+                // Fall back to the shared local record (covers guests and a home-page play).
+                if (!priorResult) {
+                    const local = readDailyResult(todayLA);
+                    if (local) {
+                        priorResult = {
+                            is_successful: local.status === 'won',
+                            guess_count: local.status === 'won' ? local.path.length - 1 : local.guessesUsed,
+                            solution_path_names: local.solutionPathNames ?? null,
+                        };
+                    }
+                }
+
+                if (priorResult) {
+                    setPriorPlayResult(priorResult);
                     setGameStatus('already_played');
-                    sessionStorage.removeItem(SESSION_STORAGE_KEY); 
-                    return; 
+                    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+                    return;
                 }
             }
             

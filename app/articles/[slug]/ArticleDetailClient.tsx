@@ -38,7 +38,7 @@ export default function ArticleDetailClient({ article }: { article: Article }) {
           href="/articles"
           className="text-sm text-sky-600 dark:text-sky-400 hover:underline"
         >
-          ← All articles
+          All articles
         </Link>
 
         <header className="mt-4 mb-6 max-w-3xl">
