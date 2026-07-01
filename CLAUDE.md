@@ -92,7 +92,10 @@ Static / hardcoded data:
 - `public/` — team logo PNGs and the Six Degrees graph JSON (`adjacency_list.json`,
   `player_map.json`).
 - `app/data/` — historical datasets used by the analysis pages
-  (`salaryData.ts`, `draftData.ts`, `viewershipData.ts`).
+  (`salaryData.ts`, `draftData.ts`, `viewershipData.ts`). `draftData.ts` is **generated**, not
+  hand-edited: run `npm run generate:draft-data` (script `scripts/generate-draft-data.ts`) to
+  recompute the top-5 career scorers per draft pick from `regularseasonstats` via the
+  `calculate_player_career_stats` RPC — rerun it after a new season lands in the DB.
 
 ## Conventions
 
