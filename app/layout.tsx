@@ -121,14 +121,13 @@ export default function RootLayout({
           <Header />
 
           <main
-            className="transition-all duration-300 ease-in-out"
             style={{
               paddingTop: `calc(var(--page-inset-padding) + var(--header-height))`,
               height: '100vh',
             }}
           >
             <div
-              className="transition-all duration-300 ease-in-out md:ml-[var(--nav-offset-left)] h-full"
+              className="transition-[margin] duration-300 ease-in-out md:ml-[var(--nav-offset-left)] h-full"
             >
               <div className="flex items-center h-full">
                 <div id="page-scroll-container" className="w-full max-h-full overflow-y-auto p-4 md:pt-[var(--navbar-header-gap)] md:pr-[var(--page-inset-padding)] md:pb-[var(--page-inset-padding)] md:pl-0">
