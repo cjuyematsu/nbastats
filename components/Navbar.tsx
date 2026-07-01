@@ -156,18 +156,30 @@ export default function Navbar() {
   }, [isMdScreen, isOpenOnMobile, lastExpandedDesktopWidth]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const pageInsetPadding = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-inset-padding').replace('px', '')) || 0;
-        const navbarHeaderGap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navbar-header-gap').replace('px', '')) || 0;
-        if (isMdScreen) {
-        document.documentElement.style.setProperty('--nav-actual-width', `${navWidth}px`);
-        document.documentElement.style.setProperty('--nav-offset-left', `${pageInsetPadding + navWidth + navbarHeaderGap}px`);
-        } else {
-        document.documentElement.style.setProperty('--nav-actual-width', isOpenOnMobile ? `${DEFAULT_NAV_WIDTH}px` : '0px');
-        document.documentElement.style.setProperty('--nav-offset-left', '0px');
-        }
+    const root = document.documentElement.style;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) {
+      root.setProperty('--nav-actual-width', `${navWidth}px`);
+      root.setProperty('--nav-offset-left', `calc(var(--page-inset-padding) + ${navWidth}px + var(--navbar-header-gap))`);
+    } else {
+      root.removeProperty('--nav-actual-width');
+      root.removeProperty('--nav-offset-left');
     }
   }, [navWidth, isMdScreen, isOpenOnMobile]);
+
+  // Keep the closed mobile drawer out of the tab/a11y tree.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (!isDesktop && !isOpenOnMobile) {
+      nav.setAttribute('inert', '');
+      nav.setAttribute('aria-hidden', 'true');
+    } else {
+      nav.removeAttribute('inert');
+      nav.removeAttribute('aria-hidden');
+    }
+  }, [isMdScreen, isOpenOnMobile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -186,7 +198,8 @@ export default function Navbar() {
   }, [isOpenOnMobile, isMdScreen]);
 
   const handleToggleNav = () => {
-    if (isMdScreen) {
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) {
       if (navWidth > MIN_NAV_WIDTH) {
         setLastExpandedDesktopWidth(navWidth);
         setNavWidth(MIN_NAV_WIDTH);
@@ -194,46 +207,21 @@ export default function Navbar() {
         setNavWidth(lastExpandedDesktopWidth > MIN_NAV_WIDTH ? lastExpandedDesktopWidth : DEFAULT_NAV_WIDTH);
       }
     } else {
-      setIsOpenOnMobile(!isOpenOnMobile);
+      setIsOpenOnMobile((open) => !open);
     }
   };
 
-  const showTextInNav = (isMdScreen && navWidth >= TEXT_VISIBILITY_THRESHOLD) || (!isMdScreen && isOpenOnMobile);
-
-  let navElementStyle: React.CSSProperties = {};
-  let navElementClasses = "flex flex-col pointer-events-auto ";
-  if (isMdScreen) {
-    navElementStyle = { width: `${navWidth}px`, transition: 'width 0.2s ease-in-out' };
-    navElementClasses += "relative h-full rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden";
-  } else {
-    navElementStyle = { width: `${DEFAULT_NAV_WIDTH}px` };
-    navElementClasses += `fixed top-0 left-0 h-screen z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}`;
-  }
-
-  const ToggleButtonIcon = isMdScreen
-      ? (navWidth > MIN_NAV_WIDTH ? CloseIcon : MenuIcon)
-      : (isOpenOnMobile ? CloseIcon : MenuIcon);
-
-  const hamburgerButtonStyle: React.CSSProperties = {
-    left: (() => {
-      if (!isMdScreen) {
-        return isOpenOnMobile ? '1.25rem' : '1rem';
-      }
-      return navWidth > MIN_NAV_WIDTH
-        ? `calc(var(--page-inset-padding) + 18px)`
-        : `calc(var(--page-inset-padding) + 20px)`;
-    })(),
-    top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))`,
-  };
+  const showTextInNav = navWidth >= TEXT_VISIBILITY_THRESHOLD || isOpenOnMobile;
 
   return (
     <>
       <button
         ref={toggleButtonRef}
         onClick={handleToggleNav}
-        style={hamburgerButtonStyle}
+        style={{ top: `calc(var(--page-inset-padding) + (var(--header-height) / 2))` }}
         className={`
           fixed z-[60] p-2 rounded-md transform -translate-y-1/2
+          left-4 md:left-[calc(var(--page-inset-padding)_+_18px)]
           text-gray-600 dark:text-gray-400
           hover:bg-gray-100 dark:hover:bg-gray-700
           hover:text-gray-800 dark:hover:text-gray-200
@@ -241,16 +229,13 @@ export default function Navbar() {
           transition-all duration-150 ease-in-out
           pointer-events-auto
         `}
-        aria-label={
-          isMdScreen
-            ? (navWidth > MIN_NAV_WIDTH ? "Collapse navigation" : "Expand navigation")
-            : (isOpenOnMobile ? "Close menu" : "Open menu")
-        }
+        aria-label="Toggle navigation"
       >
-        <ToggleButtonIcon/>
+        <span className="md:hidden">{isOpenOnMobile ? <CloseIcon /> : <MenuIcon />}</span>
+        <span className="hidden md:block">{navWidth > MIN_NAV_WIDTH ? <CloseIcon /> : <MenuIcon />}</span>
       </button>
 
-      {isOpenOnMobile && !isMdScreen && (
+      {isOpenOnMobile && (
         <div
           className="fixed inset-0 bg-black/50 dark:bg-black/70 z-[48] md:hidden pointer-events-auto"
           onClick={handleToggleNav}
@@ -258,16 +243,18 @@ export default function Navbar() {
         />
       )}
 
+      {/* Drawer below md, in-flow sidebar at md+ (CSS-driven so it paints without JS). */}
       <nav
         ref={navRef}
-        style={navElementStyle}
-        className={navElementClasses}
-        aria-hidden={!isMdScreen && !isOpenOnMobile}
+        style={{ ['--nav-w']: `${navWidth}px` } as React.CSSProperties}
+        className={`flex flex-col pointer-events-auto bg-white dark:bg-gray-800
+          fixed top-0 left-0 z-50 h-screen w-64 border-r border-gray-200 dark:border-gray-700
+          transform transition-transform duration-300 ease-in-out
+          ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:top-auto md:left-auto md:z-auto md:h-full md:w-[var(--nav-w)]
+          md:translate-x-0 md:rounded-lg md:border md:overflow-hidden md:transition-[width] md:duration-200`}
       >
-        {(isMdScreen || isOpenOnMobile) && (
-          <>
-            <div className={`h-[var(--header-height)] flex-shrink-0 flex items-center px-4 border-b border-gray-200 dark:border-gray-700`}>
-            </div>
+        <div className="h-[var(--header-height)] flex-shrink-0 flex items-center px-4 border-b border-gray-200 dark:border-gray-700" />
 
             <div className="flex-grow overflow-y-auto pb-40">
               <div className="flex flex-col space-y-1 p-4">
@@ -316,8 +303,6 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-          </>
-        )}
       </nav>
     </>
   );
