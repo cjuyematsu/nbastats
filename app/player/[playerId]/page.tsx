@@ -7,6 +7,7 @@ import { cache } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { CareerStatsData } from '@/types/stats';
 import { StatsTable } from './PlayerStatsTables';
+import { ViewTeammatesButton } from './ViewTeammatesButton';
 
 export const revalidate = 86400;
 
@@ -126,14 +127,16 @@ export default async function PlayerStatsPage({
             )}
           </div>
 
-          <StatsTable stats={regular} title="Regular Season Career Totals" statType="Totals" />
-          <StatsTable stats={regular} title="Regular Season Career Stats" statType="Averages" />
+          {teammates.length > 0 && <ViewTeammatesButton />}
 
-          <StatsTable stats={playoffs} title="Playoff Career Totals" statType="Totals" />
+          <StatsTable stats={regular} title="Regular Season Career Stats" statType="Averages" />
+          <StatsTable stats={regular} title="Regular Season Career Totals" statType="Totals" />
+
           <StatsTable stats={playoffs} title="Playoff Career Stats" statType="Averages" />
+          <StatsTable stats={playoffs} title="Playoff Career Totals" statType="Totals" />
 
           {teammates.length > 0 && (
-            <section className="mt-8">
+            <section id="teammates" className="mt-8 scroll-mt-4">
               <h2 className="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100 border-b border-gray-200 dark:border-slate-600 pb-2 transition-colors duration-200">
                 Most Frequent Teammates
               </h2>
