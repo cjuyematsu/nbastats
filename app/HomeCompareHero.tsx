@@ -8,6 +8,7 @@ import { debounce } from 'lodash';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, CareerStatsData } from '@/types/stats';
 import { getTodaysMatchup } from '@/app/data/featuredMatchups';
+import { findSlugForPair } from '@/app/data/compareMatchups';
 
 export interface HeroSide {
   name: string;
@@ -172,7 +173,7 @@ function StatBars({
         return (
           <div key={String(row.key)} className="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
             <div className="flex items-center justify-end gap-2">
-              <span className={`text-sm tabular-nums ${aWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+              <span className={`w-12 shrink-0 text-right text-sm tabular-nums ${aWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                 {fmt(va, row.isPct)}
               </span>
               <div className="h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden flex justify-end">
@@ -192,7 +193,7 @@ function StatBars({
                   style={{ width: `${bPct}%`, backgroundColor: COLOR_B }}
                 />
               </div>
-              <span className={`text-sm tabular-nums ${bWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+              <span className={`w-12 shrink-0 text-left text-sm tabular-nums ${bWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                 {fmt(vb, row.isPct)}
               </span>
             </div>
@@ -250,8 +251,10 @@ export default function HomeCompareHero({ initialA, initialB }: HomeCompareHeroP
 
   const nameA = sideA?.name ?? '';
   const nameB = sideB?.name ?? '';
-  const compareHref =
-    nameA && nameB
+  const curatedSlug = nameA && nameB ? findSlugForPair(nameA, nameB) : null;
+  const compareHref = curatedSlug
+    ? `/compare/${curatedSlug}`
+    : nameA && nameB
       ? `/compare?players=${encodeURIComponent(nameA)},${encodeURIComponent(nameB)}`
       : '/compare';
 
