@@ -549,7 +549,7 @@ function SixDegreesGameContent() {
     );
 
     if (gameStatus === 'loading' || authIsLoading) {
-        return <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}><p className={`text-xl ${loadingTextClasses}`}>Loading Game...</p></div>;
+        return <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}><p className={`text-xl animate-pulse ${loadingTextClasses}`}>Loading Game...</p></div>;
     }
     if (gameStatus === 'error') {
         return <div className={`flex justify-center rounded-lg items-center min-h-screen ${errorTextClasses} border border-gray-200 dark:border-gray-700`}><p>Error: {errorMsg}</p></div>;
@@ -574,7 +574,7 @@ function SixDegreesGameContent() {
 
         return (
             <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
-             <div className={`w-full p-4 text-center max-w-lg mx-auto ${alreadyPlayedContainer}`}>
+             <div className={`w-full p-4 text-center max-w-lg mx-auto animate-fadeIn ${alreadyPlayedContainer}`}>
                 <h1 className={`text-3xl font-bold ${highlightColor} mb-6`}>
                     Daily Challenge Complete{puzzleNumber ? ` (#${puzzleNumber})` : ''}
                 </h1>
@@ -663,7 +663,7 @@ function SixDegreesGameContent() {
 
             <div className="space-y-4 mb-6">
                 {path.map((player, index) => (
-                     <div key={`${player.id}-${index}`} className="flex flex-col items-center">
+                     <div key={`${player.id}-${index}`} className="flex flex-col items-center animate-fadeIn">
                         <div className={`w-full p-4 rounded-lg shadow-lg ${playerCardClasses}`}>
                             <p className={`text-sm ${highlightColor}`}>{index === 0 ? 'Start Player' : `Link #${index}`}</p>
                             <p className="text-2xl font-bold">{player.name}</p>
@@ -710,7 +710,7 @@ function SixDegreesGameContent() {
             )}
 
              {(gameStatus === 'won' || gameStatus === 'lost') && (
-                 <div className={`mt-6 p-4 rounded-lg ${gameStatus === 'won' ? (isDarkMode ? 'bg-green-900/50 border border-green-500' : 'bg-green-100 border border-green-400') : (isDarkMode ? 'bg-red-900/50 border border-red-500' : 'bg-red-100 border border-red-400')}`}>
+                 <div className={`mt-6 p-4 rounded-lg animate-fadeIn ${gameStatus === 'won' ? (isDarkMode ? 'bg-green-900/50 border border-green-500' : 'bg-green-100 border border-green-400') : (isDarkMode ? 'bg-red-900/50 border border-red-500' : 'bg-red-100 border border-red-400')}`}>
                      <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? (isDarkMode ? 'text-green-300' : 'text-green-800') : (isDarkMode ? 'text-red-300' : 'text-red-800')}`}>
                          {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
                      </h2>

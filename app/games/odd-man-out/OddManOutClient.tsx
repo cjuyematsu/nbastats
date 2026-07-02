@@ -315,7 +315,7 @@ export default function OddManOutGame() {
 
       <div className="h-28 flex items-center justify-center">
         {status === GameStatus.Answered && (
-          <div className="animate-fade-in">
+          <div className="animate-fadeIn">
             <p className="text-2xl font-bold mb-4">{message}</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
               {(() => {
@@ -330,7 +330,7 @@ export default function OddManOutGame() {
                     })}
                     game="odd_man_out"
                     surface="game_end"
-                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl"
+                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-8 rounded-lg transition-all text-xl"
                   />
                 ) : null;
               })()}

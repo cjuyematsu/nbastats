@@ -141,7 +141,7 @@ export default async function PlayerStatsPage({
                 {teammates.map((t) => (
                   <div
                     key={t.id}
-                    className="p-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:border-sky-400 transition-colors"
+                    className="p-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
                     <Link href={`/player/${t.id}`} className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
                       {t.name}

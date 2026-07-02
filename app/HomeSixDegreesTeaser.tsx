@@ -148,7 +148,7 @@ function PlayerSearch({
 function Chip({ name, color }: { name: string; color?: string }) {
   return (
     <span
-      className="inline-block rounded-full px-3 py-1 text-sm font-medium border"
+      className="inline-block rounded-full px-3 py-1 text-sm font-medium border animate-fadeIn"
       style={color ? { color, borderColor: color, backgroundColor: `${color}1a` } : undefined}
     >
       <span className={color ? '' : 'text-slate-700 dark:text-slate-200'}>{name}</span>
@@ -417,14 +417,14 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
           </div>
 
           {(status === 'won' || status === 'lost') && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3 animate-fadeIn">
               <div className="flex flex-wrap items-center gap-2">
                 {shareText && (
                   <ShareResult
                     shareText={shareText}
                     game="six_degrees"
                     surface="home_teaser"
-                    className="inline-flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 transition-all"
                   />
                 )}
                 <Link
