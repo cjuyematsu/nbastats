@@ -25,7 +25,7 @@ export default function Header() {
   }, []);
 
   const handlePlayerSelection = (player: PlayerSuggestion) => {
-    router.push(`/player/${player.personId}?name=${encodeURIComponent(player.firstName + " " + player.lastName)}`);
+    router.push(`/player/${player.personId}`);
   };
 
   const handleSignOut = async () => {
