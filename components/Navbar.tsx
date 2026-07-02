@@ -124,33 +124,10 @@ export default function Navbar() {
   const [navWidth, setNavWidth] = useState(DEFAULT_NAV_WIDTH);
   const [lastExpandedDesktopWidth, setLastExpandedDesktopWidth] = useState(DEFAULT_NAV_WIDTH);
   const [isMdScreen, setIsMdScreen] = useState(false);
-  const { session, isLoading: isAuthLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin } = useAuth();
 
   const navRef = useRef<HTMLElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Show the owner-only "Review" link only when signed in as ARTICLE_ADMIN_EMAIL.
-  useEffect(() => {
-    if (isAuthLoading) return;
-    const token = session?.access_token;
-    if (!token) {
-      setIsAdmin(false);
-      return;
-    }
-    let active = true;
-    fetch('/api/articles/is-admin', { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((j) => {
-        if (active) setIsAdmin(Boolean(j?.admin));
-      })
-      .catch(() => {
-        if (active) setIsAdmin(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [session, isAuthLoading]);
 
     useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
