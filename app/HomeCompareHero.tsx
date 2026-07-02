@@ -151,14 +151,20 @@ function PlayerSearchBox({ displayName, onSelect, accentColor }: SearchBoxProps)
   );
 }
 
+const StatSkeleton = () => (
+  <span className="inline-block h-4 w-9 rounded bg-slate-200 dark:bg-slate-700 animate-pulse align-middle" />
+);
+
 function StatBars({
   statsA,
   statsB,
-  loading,
+  loadingA,
+  loadingB,
 }: {
   statsA: CareerStatsData | null;
   statsB: CareerStatsData | null;
-  loading: boolean;
+  loadingA: boolean;
+  loadingB: boolean;
 }) {
   return (
     <div className="mt-5 space-y-3">
@@ -168,17 +174,17 @@ function StatBars({
         const max = Math.max(va ?? 0, vb ?? 0) || 1;
         const aPct = ((va ?? 0) / max) * 100;
         const bPct = ((vb ?? 0) / max) * 100;
-        const aWins = va !== null && vb !== null && va > vb;
-        const bWins = va !== null && vb !== null && vb > va;
+        const aWins = !loadingA && !loadingB && va !== null && vb !== null && va > vb;
+        const bWins = !loadingA && !loadingB && va !== null && vb !== null && vb > va;
         return (
           <div key={String(row.key)} className="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
             <div className="flex items-center justify-end gap-2">
               <span className={`w-12 shrink-0 text-right text-sm tabular-nums ${aWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                {fmt(va, row.isPct)}
+                {loadingA ? <StatSkeleton /> : fmt(va, row.isPct)}
               </span>
               <div className="h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden flex justify-end">
                 <div
-                  className={`h-full rounded-full ${loading ? 'animate-pulse' : ''}`}
+                  className={`h-full rounded-full transition-[width] duration-500 ease-out ${loadingA ? 'animate-pulse' : ''}`}
                   style={{ width: `${aPct}%`, backgroundColor: COLOR_A }}
                 />
               </div>
@@ -189,12 +195,12 @@ function StatBars({
             <div className="flex items-center gap-2">
               <div className="h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${loading ? 'animate-pulse' : ''}`}
+                  className={`h-full rounded-full transition-[width] duration-500 ease-out ${loadingB ? 'animate-pulse' : ''}`}
                   style={{ width: `${bPct}%`, backgroundColor: COLOR_B }}
                 />
               </div>
               <span className={`w-12 shrink-0 text-left text-sm tabular-nums ${bWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                {fmt(vb, row.isPct)}
+                {loadingB ? <StatSkeleton /> : fmt(vb, row.isPct)}
               </span>
             </div>
           </div>
@@ -233,7 +239,7 @@ export default function HomeCompareHero({ initialA, initialB }: HomeCompareHeroP
 
   const selectA = async (p: PlayerSuggestion) => {
     const name = playerName(p);
-    setSideA({ name, stats: null });
+    setSideA((prev) => ({ name, stats: prev?.stats ?? null }));
     setLoadingA(true);
     const stats = await fetchCareerStats(p.personId);
     setSideA({ name, stats });
@@ -242,7 +248,7 @@ export default function HomeCompareHero({ initialA, initialB }: HomeCompareHeroP
 
   const selectB = async (p: PlayerSuggestion) => {
     const name = playerName(p);
-    setSideB({ name, stats: null });
+    setSideB((prev) => ({ name, stats: prev?.stats ?? null }));
     setLoadingB(true);
     const stats = await fetchCareerStats(p.personId);
     setSideB({ name, stats });
@@ -287,7 +293,7 @@ export default function HomeCompareHero({ initialA, initialB }: HomeCompareHeroP
         </span>
       </div>
 
-      <StatBars statsA={sideA?.stats ?? null} statsB={sideB?.stats ?? null} loading={loadingA || loadingB} />
+      <StatBars statsA={sideA?.stats ?? null} statsB={sideB?.stats ?? null} loadingA={loadingA} loadingB={loadingB} />
 
       <div className="mt-6 text-center">
         <Link
