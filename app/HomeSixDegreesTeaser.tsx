@@ -4,12 +4,18 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
+import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { readDailyResult, writeDailyResult } from '@/lib/sixDegreesDaily';
+import { readDailyResult, writeDailyResult, readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
+import { computeSixDegreesStats, ScoreHistoryRecord } from '@/lib/sixDegreesStats';
+import { getLaDateString, getNextLaMidnightIso, sixDegreesPuzzleNumber } from '@/lib/dailyTime';
+import { GuessResult, buildSixDegreesShare, buildSixDegreesShareFromCount } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
+import CountdownTimer from '@/components/CountdownTimer';
 import { PlayerSuggestion } from '@/types/stats';
 
 const COLOR_A = '#00b060';
@@ -23,6 +29,7 @@ export interface SixDegreesPuzzle {
   player_b_id: number;
   player_b_name: string;
   solution_path_names: string[];
+  solution_path_ids?: number[] | null;
 }
 
 interface Guess {
@@ -166,6 +173,8 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
     puzzle ? [{ id: puzzle.player_a_id, name: puzzle.player_a_name }] : []
   );
   const [guessesUsed, setGuessesUsed] = useState(0);
+  const [guessResults, setGuessResults] = useState<GuessResult[]>([]);
+  const [streak, setStreak] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
   const [checking, setChecking] = useState(false);
   const router = useRouter();
@@ -180,19 +189,47 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
     setStatus(saved.status);
     setPath(saved.path);
     setGuessesUsed(saved.guessesUsed);
-    const links = saved.path.length - 1;
+    setGuessResults(saved.guessResults ?? []);
     setFeedback(
-      saved.status === 'won' ? `Solved in ${links} link${links === 1 ? '' : 's'}!` : 'Out of guesses.'
+      saved.status === 'won'
+        ? `Solved in ${saved.guessesUsed} guess${saved.guessesUsed === 1 ? '' : 'es'}!`
+        : 'Out of guesses.'
     );
   }, [puzzle]);
 
-  const persist = (s: 'won' | 'lost', p: Guess[], used: number) => {
+  // Streak for the end state and share text, computed the same way as the full game.
+  useEffect(() => {
+    if (!puzzle || (status !== 'won' && status !== 'lost')) return;
+    let cancelled = false;
+    const wonToday = status === 'won';
+    const load = async () => {
+      const todayLA = getLaDateString();
+      if (user) {
+        const { data } = await supabase.rpc('get_six_degrees_history', { p_user_id: user.id });
+        if (cancelled) return;
+        const records = (data ?? []) as ScoreHistoryRecord[];
+        const todayIncluded = records.some((r) => r.game_date === puzzle.game_date);
+        let current = computeSixDegreesStats(records, todayLA).currentStreak;
+        if (!todayIncluded) current = wonToday ? current + 1 : 0;
+        setStreak(current);
+      } else {
+        setStreak(computeSixDegreesStats(readAllLocalDailyResults(), todayLA).currentStreak);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, user, puzzle]);
+
+  const persist = (s: 'won' | 'lost', p: Guess[], used: number, results: GuessResult[]) => {
     if (!puzzle) return;
     writeDailyResult(puzzle.game_date, {
       status: s,
       path: p,
       guessesUsed: used,
       solutionPathNames: puzzle.solution_path_names,
+      guessResults: results,
     });
   };
 
@@ -214,7 +251,7 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
         user_id: user.id,
         game_date: puzzle.game_date,
         is_successful: isSuccess,
-        guess_count: isSuccess ? finalPath.length - 1 : used,
+        guess_count: used,
         solution_path_names: puzzle.solution_path_names,
         guessed_path_names: guessedNames,
       });
@@ -232,14 +269,17 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
     const linkOk = await areTeammates(last.id, g.id);
     const newUsed = guessesUsed + 1;
     setGuessesUsed(newUsed);
+    const newResults: GuessResult[] = [...guessResults, linkOk ? 'hit' : 'miss'];
+    setGuessResults(newResults);
 
     if (!linkOk) {
       setChecking(false);
       if (newUsed >= MAX_GUESSES) {
         setStatus('lost');
         setFeedback(`Out of guesses. ${g.name} was not a teammate of ${last.name}.`);
-        persist('lost', path, newUsed);
+        persist('lost', path, newUsed, newResults);
         saveDaily(false, path, newUsed);
+        track('daily_played', { game: 'six_degrees', surface: 'home_teaser', result: 'lost', guesses: newUsed });
       } else {
         setFeedback(`${g.name} was not a teammate of ${last.name}. Try again.`);
       }
@@ -251,23 +291,40 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
     const winOk = g.id === puzzle.player_b_id ? true : await areTeammates(g.id, puzzle.player_b_id);
     setChecking(false);
 
-    const links = newPath.length - 1;
     if (winOk) {
       setStatus('won');
-      setFeedback(`Solved in ${links} link${links === 1 ? '' : 's'}!`);
-      persist('won', newPath, newUsed);
+      setFeedback(`Solved in ${newUsed} guess${newUsed === 1 ? '' : 'es'}!`);
+      persist('won', newPath, newUsed, newResults);
       saveDaily(true, newPath, newUsed);
+      track('daily_played', { game: 'six_degrees', surface: 'home_teaser', result: 'won', guesses: newUsed });
     } else if (newUsed >= MAX_GUESSES) {
       setStatus('lost');
       setFeedback('Out of guesses!');
-      persist('lost', newPath, newUsed);
+      persist('lost', newPath, newUsed, newResults);
       saveDaily(false, newPath, newUsed);
+      track('daily_played', { game: 'six_degrees', surface: 'home_teaser', result: 'lost', guesses: newUsed });
     } else {
       setFeedback(`Linked! Now find a teammate of ${g.name}.`);
     }
   };
 
   const guessesLeft = MAX_GUESSES - guessesUsed;
+  const nextDailyIso = useMemo(() => getNextLaMidnightIso(), []);
+
+  const shareText = useMemo(() => {
+    if (!puzzle || (status !== 'won' && status !== 'lost')) return null;
+    const puzzleNumber = sixDegreesPuzzleNumber(puzzle.game_date);
+    const won = status === 'won';
+    if (guessResults.length > 0) {
+      return buildSixDegreesShare({ puzzleNumber, guessResults, won, streak: streak ?? undefined });
+    }
+    return buildSixDegreesShareFromCount({
+      puzzleNumber,
+      won,
+      guessCount: won ? Math.max(path.length - 1, 1) : guessesUsed,
+      streak: streak ?? undefined,
+    });
+  }, [puzzle, status, guessResults, path, guessesUsed, streak]);
 
   return (
     <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/60 shadow-sm p-5 sm:p-6">
@@ -360,16 +417,57 @@ export default function HomeSixDegreesTeaser({ initialPuzzle }: { initialPuzzle:
           </div>
 
           {(status === 'won' || status === 'lost') && (
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-sm text-slate-500 dark:text-slate-400">
-                Come back tomorrow for a new daily.
-              </span>
-              <button
-                onClick={() => router.push(`/games/six-degrees/${uuidv4()}`)}
-                className="inline-flex items-center gap-2 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-4 py-2 transition-colors w-fit"
-              >
-                Play a random game 
-              </button>
+            <div className="mt-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {shareText && (
+                  <ShareResult
+                    shareText={shareText}
+                    game="six_degrees"
+                    surface="home_teaser"
+                    className="inline-flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+                  />
+                )}
+                <Link
+                  href={`/compare?players=${encodeURIComponent(puzzle.player_a_name)},${encodeURIComponent(puzzle.player_b_name)}`}
+                  onClick={() => track('post_game_profile_click', { game: 'six_degrees', target: 'compare' })}
+                  className="inline-flex items-center gap-2 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+                >
+                  Compare {puzzle.player_a_name} vs {puzzle.player_b_name}
+                </Link>
+                <button
+                  onClick={() => router.push(`/games/six-degrees/${uuidv4()}`)}
+                  className="inline-flex items-center gap-2 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-4 py-2 transition-colors w-fit"
+                >
+                  Play a random game
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <CountdownTimer
+                  compact
+                  targetTimeIso={nextDailyIso}
+                  label="Next daily in"
+                  completedText="New daily available. Refresh to play!"
+                />
+                {streak !== null && streak > 0 && (
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    Streak: <span className="font-semibold">{streak}</span>
+                  </span>
+                )}
+                <Link
+                  href={`/player/${puzzle.player_a_id}?name=${encodeURIComponent(puzzle.player_a_name)}`}
+                  onClick={() => track('post_game_profile_click', { game: 'six_degrees', target: 'player' })}
+                  className="text-sm underline text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400"
+                >
+                  {puzzle.player_a_name} career stats
+                </Link>
+                <Link
+                  href={`/player/${puzzle.player_b_id}?name=${encodeURIComponent(puzzle.player_b_name)}`}
+                  onClick={() => track('post_game_profile_click', { game: 'six_degrees', target: 'player' })}
+                  className="text-sm underline text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400"
+                >
+                  {puzzle.player_b_name} career stats
+                </Link>
+              </div>
             </div>
           )}
         </>

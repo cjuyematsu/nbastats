@@ -62,7 +62,7 @@ async function loadDailySixDegrees(): Promise<SixDegreesPuzzle | null> {
     const gameDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
     const { data } = await supabase
       .from('daily_connection_games')
-      .select('game_date, player_a_id, player_a_name, player_b_id, player_b_name, solution_path_names')
+      .select('game_date, player_a_id, player_a_name, player_b_id, player_b_name, solution_path_names, solution_path_ids')
       .eq('game_date', gameDate)
       .maybeSingle();
     return (data as SixDegreesPuzzle) ?? null;

@@ -7,50 +7,15 @@ import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
-
-type ScoreHistoryRecord = {
-    game_date: string;
-    is_successful: boolean;
-    guess_count: number;
-};
+import { computeSixDegreesStats, ScoreHistoryRecord } from '@/lib/sixDegreesStats';
+import { readDailyResult, readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
+import { getLaDateString, getNextLaMidnightIso } from '@/lib/dailyTime';
+import CountdownTimer from '@/components/CountdownTimer';
 
 const MIN_LOADING_TIME_MS = 400;
 
 function StatsDisplay({ scores, isDarkMode }: { scores: ScoreHistoryRecord[]; isDarkMode: boolean }) {
-    const stats = useMemo(() => {
-        if (!scores || scores.length === 0) {
-            return { played: 0, winPercentage: 0, currentStreak: 0, maxStreak: 0, guessDistribution: [0, 0, 0, 0, 0, 0] };
-        }
-        const played = scores.length;
-        const wins = scores.filter(s => s.is_successful).length;
-        const winPercentage = played > 0 ? Math.round((wins / played) * 100) : 0;
-        let maxStreak = 0;
-        let tempStreak = 0;
-        for (const score of scores) {
-            if (score.is_successful) {
-                tempStreak++;
-            } else {
-                maxStreak = Math.max(maxStreak, tempStreak);
-                tempStreak = 0;
-            }
-        }
-        maxStreak = Math.max(maxStreak, tempStreak);
-        let currentStreak = 0;
-        for (let i = scores.length - 1; i >= 0; i--) {
-            if (scores[i].is_successful) {
-                currentStreak++;
-            } else {
-                break;
-            }
-        }
-        const guessDistribution = [0, 0, 0, 0, 0, 0];
-        scores.forEach(score => {
-            if (score.is_successful && score.guess_count >= 1 && score.guess_count <= 6) {
-                guessDistribution[score.guess_count - 1]++;
-            }
-        });
-        return { played, winPercentage, currentStreak, maxStreak, guessDistribution };
-    }, [scores]);
+    const stats = useMemo(() => computeSixDegreesStats(scores, getLaDateString()), [scores]);
 
     const maxDistributionCount = Math.max(...stats.guessDistribution, 1);
 
@@ -109,8 +74,13 @@ export default function SixDegreesLobby() {
     const { user, isLoading: authIsLoading, supabase } = useAuth();
     const [scoreHistory, setScoreHistory] = useState<ScoreHistoryRecord[]>([]);
     const [isLoadingPage, setIsLoadingPage] = useState(true);
-    
+    const [dailyDoneToday, setDailyDoneToday] = useState(false);
+
     const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        setDailyDoneToday(!!readDailyResult(getLaDateString()));
+    }, []);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -141,6 +111,8 @@ export default function SixDegreesLobby() {
                     } else if (data) {
                         setScoreHistory(data as ScoreHistoryRecord[]);
                     }
+                } else {
+                    setScoreHistory(readAllLocalDailyResults());
                 }
             } catch (err) {
                 console.error("Caught an exception while fetching score history", err);
@@ -197,8 +169,16 @@ export default function SixDegreesLobby() {
                         onClick={() => router.push('/games/six-degrees/daily')}
                         className="w-full px-8 py-4 bg-sky-500 dark:bg-sky-600 text-white text-lg font-semibold rounded-lg shadow-md dark:hover:bg-sky-700 hover:bg-sky-600 transition-transform hover:scale-105"
                     >
-                        Play Daily Challenge
+                        {dailyDoneToday ? "See Today's Result" : 'Play Daily Challenge'}
                     </button>
+                    {dailyDoneToday && (
+                        <CountdownTimer
+                            compact
+                            targetTimeIso={getNextLaMidnightIso()}
+                            label="Next daily in"
+                            completedText="New daily available. Refresh to play!"
+                        />
+                    )}
                     <button
                         onClick={handlePlayRandom}
                         className={`w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-md transition-transform hover:scale-105 ${randomButtonClasses}`}
@@ -211,9 +191,12 @@ export default function SixDegreesLobby() {
                     {user ? (
                         <StatsDisplay scores={scoreHistory} isDarkMode={isDarkMode} />
                     ) : (
-                        <p className={`mt-8 text-sm ${mutedTextClasses}`}>
-                            <Link href="/signin" className={linkClasses}>Sign in</Link> to save your daily stats and track your progress!
-                        </p>
+                        <>
+                            {scoreHistory.length > 0 && <StatsDisplay scores={scoreHistory} isDarkMode={isDarkMode} />}
+                            <p className={`mt-8 text-sm ${mutedTextClasses}`}>
+                                <Link href="/signin" className={linkClasses}>Sign in</Link> to keep your daily stats across devices!
+                            </p>
+                        </>
                     )}
                 </div>
             </div>
