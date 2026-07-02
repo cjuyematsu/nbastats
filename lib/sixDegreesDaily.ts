@@ -4,11 +4,15 @@
 // teaser and the full /games/six-degrees/daily page stay in sync for every user
 // (signed-in results also persist in six_degrees_scores; this covers guests too).
 
+import type { GuessResult } from '@/lib/shareText';
+import type { ScoreHistoryRecord } from '@/lib/sixDegreesStats';
+
 export interface DailyResult {
   status: 'won' | 'lost';
   path: { id: number; name: string }[];
   guessesUsed: number;
   solutionPathNames?: string[] | null;
+  guessResults?: GuessResult[];
 }
 
 const KEY = 'sixDegreesDaily_';
@@ -31,4 +35,27 @@ export function writeDailyResult(gameDate: string, result: DailyResult): void {
   } catch {
     // ignore storage failures
   }
+}
+
+// Rebuild a score history from local records so guests get the same stats and
+// streaks as signed-in users (feed the result to computeSixDegreesStats).
+export function readAllLocalDailyResults(): ScoreHistoryRecord[] {
+  const out: ScoreHistoryRecord[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const storageKey = localStorage.key(i);
+      if (!storageKey || !storageKey.startsWith(KEY)) continue;
+      const gameDate = storageKey.slice(KEY.length);
+      const rec = readDailyResult(gameDate);
+      if (!rec) continue;
+      out.push({
+        game_date: gameDate,
+        is_successful: rec.status === 'won',
+        guess_count: rec.guessesUsed,
+      });
+    }
+  } catch {
+    // ignore storage failures
+  }
+  return out.sort((a, b) => a.game_date.localeCompare(b.game_date));
 }
