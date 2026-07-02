@@ -9,7 +9,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -24,18 +23,6 @@ interface CommentRow {
 }
 
 const SELECT = 'id, parent_comment_id, user_id, author_name, body, status, created_at';
-
-function displayName(user: User): string {
-  const meta = user.user_metadata as
-    | { full_name?: string; name?: string; user_name?: string }
-    | undefined;
-  return (
-    meta?.full_name ||
-    meta?.name ||
-    meta?.user_name ||
-    (user.email ? user.email.split('@')[0] : 'User')
-  );
-}
 
 function errorMessage(e: unknown, fallback: string): string {
   if (e instanceof Error) return e.message;
@@ -56,7 +43,7 @@ function formatDateTime(value: string): string {
 }
 
 export default function ArticleComments({ articleId }: { articleId: string }) {
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [newBody, setNewBody] = useState('');
@@ -64,6 +51,9 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
   const [replyBody, setReplyBody] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [postError, setPostError] = useState<{ parentId: string | null; message: string } | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -100,24 +90,29 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
   }, [comments]);
 
   const post = async (parentId: string | null, text: string) => {
-    if (!user || submitting) return;
+    if (!user || !session || submitting) return;
     const body = text.trim();
     if (!body) return;
     setSubmitting(true);
+    setPostError(null);
     try {
-      const { data, error } = await supabase
-        .from('article_comments')
-        .insert({
-          article_id: articleId,
-          parent_comment_id: parentId,
-          user_id: user.id,
-          author_name: displayName(user),
-          body,
-        })
-        .select(SELECT)
-        .single();
-      if (error) throw error;
-      if (data) setComments((prev) => [...prev, data]);
+      const res = await fetch('/api/articles/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ articleId, parentCommentId: parentId, body }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        comment?: CommentRow;
+        error?: string;
+      };
+      if (!res.ok) {
+        setPostError({ parentId, message: json.error ?? 'Failed to post comment.' });
+        return;
+      }
+      if (json.comment) setComments((prev) => [...prev, json.comment!]);
       if (parentId) {
         setReplyBody('');
         setReplyTo(null);
@@ -126,7 +121,7 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
       }
     } catch (e) {
       console.error('Comment post failed:', e);
-      alert(`Failed to post comment: ${errorMessage(e, 'Failed to post comment.')}`);
+      setPostError({ parentId, message: errorMessage(e, 'Failed to post comment.') });
     } finally {
       setSubmitting(false);
     }
@@ -225,6 +220,9 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
               Reply
             </button>
           </div>
+          {postError?.parentId === c.id && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{postError.message}</p>
+          )}
         </div>
       )}
 
@@ -266,6 +264,9 @@ export default function ArticleComments({ articleId }: { articleId: string }) {
               Post comment
             </button>
           </div>
+          {postError?.parentId === null && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{postError.message}</p>
+          )}
         </div>
       )}
 
