@@ -212,7 +212,7 @@ const availableStats = [
     { value: 'TRB_total', label: 'Total Rebounds (Season)' },
 ];
 
-export default function PlayerComparisonChart() {
+export default function PlayerComparisonChart({ initialPlayerNames }: { initialPlayerNames?: string[] }) {
   const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(Array(MAX_PLAYERS).fill(null));
   const [selectedStat, setSelectedStat] = useState<string>(availableStats[0].value);
   const [seasonType, setSeasonType] = useState<'regular' | 'playoffs'>('regular');
@@ -222,12 +222,13 @@ export default function PlayerComparisonChart() {
   const [isDarkMode, setIsDarkMode] = useState(true); 
 
   const searchParams = useSearchParams();
+  const initialNamesKey = (initialPlayerNames ?? []).join(',');
 
   useEffect(() => {
-    const playersQuery = searchParams.get('players');
+    const playersQuery = searchParams.get('players') || initialNamesKey;
     if (playersQuery) {
       const playerNames = playersQuery.split(',').slice(0, MAX_PLAYERS);
-      
+
       const fetchInitialPlayers = async () => {
         setIsLoadingChart(true); 
         const newSelectedPlayers = Array(MAX_PLAYERS).fill(null);
@@ -260,7 +261,7 @@ export default function PlayerComparisonChart() {
 
       fetchInitialPlayers();
     }
-  }, [searchParams]); 
+  }, [searchParams, initialNamesKey]);
 
 
   useEffect(() => {

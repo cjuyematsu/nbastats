@@ -53,10 +53,10 @@ export default function ComparePlayersPage() {
           Check out some commonly debated matchups in NBA history. 
         </p>
         <div className="flex flex-wrap gap-4">
-            <Link href="/compare?players=LeBron+James,Michael+Jordan" className="text-sky-600 dark:text-sky-400 hover:underline">LeBron James vs Michael Jordan</Link>
-            <Link href="/compare?players=Kobe+Bryant,Tim+Duncan" className="text-sky-600 dark:text-sky-400 hover:underline">Kobe Bryant vs Tim Duncan</Link>
-            <Link href="/compare?players=Larry+Bird,Magic+Johnson" className="text-sky-600 dark:text-sky-400 hover:underline">Larry Bird vs Magic Johnson</Link>
-            <Link href="/compare?players=Shaquille+O'Neal,Hakeem+Olajuwon" className="text-sky-600 dark:text-sky-400 hover:underline">Shaquille O&apos;Neal vs Hakeem Olajuwon</Link>
+            <Link href="/compare/lebron-james-vs-michael-jordan" className="text-sky-600 dark:text-sky-400 hover:underline">LeBron James vs Michael Jordan</Link>
+            <Link href="/compare/kobe-bryant-vs-tim-duncan" className="text-sky-600 dark:text-sky-400 hover:underline">Kobe Bryant vs Tim Duncan</Link>
+            <Link href="/compare/larry-bird-vs-magic-johnson" className="text-sky-600 dark:text-sky-400 hover:underline">Larry Bird vs Magic Johnson</Link>
+            <Link href="/compare/shaquille-oneal-vs-hakeem-olajuwon" className="text-sky-600 dark:text-sky-400 hover:underline">Shaquille O&apos;Neal vs Hakeem Olajuwon</Link>
         </div>
       </section>
     </div>
