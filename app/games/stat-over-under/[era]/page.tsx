@@ -4,10 +4,17 @@
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
+import { buildStatOuShare } from '@/lib/shareText';
+import { getNextLocalMidnightIso } from '@/lib/dailyTime';
+import ShareResult from '@/components/ShareResult';
+import CountdownTimer from '@/components/CountdownTimer';
+
+const statOuStorageKey = (era: string, date: string) => `statOuDaily_${era}_${date}`;
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -158,6 +165,7 @@ function StatOverUnderEraGameContent() {
   const [pageFetchError, setPageFetchError] = useState<string | null>(null);
   const [statsHistory, setStatsHistory] = useState<StatHistoryRecord[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [savedResults, setSavedResults] = useState<boolean[] | null>(null);
   
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -234,6 +242,15 @@ function StatOverUnderEraGameContent() {
         const priorPlayData = await checkPriorPlay(user.id, currentDateISO, eraToLoad);
         if (priorPlayData && typeof priorPlayData.points === 'number') {
           setScore(priorPlayData.points);
+          try {
+            const raw = localStorage.getItem(statOuStorageKey(eraToLoad, currentDateISO));
+            if (raw) {
+              const rec = JSON.parse(raw);
+              if (Array.isArray(rec.results)) setSavedResults(rec.results);
+            }
+          } catch {
+            // ignore malformed storage
+          }
           setGameStatus('already_played');
           return;
         }
@@ -336,6 +353,15 @@ function StatOverUnderEraGameContent() {
     const isFinalRound = currentRoundIndex === challenges.length - 1;
 
     if (isFinalRound) {
+        try {
+          localStorage.setItem(
+            statOuStorageKey(gameEraFromParam, todayDateISO),
+            JSON.stringify({ score: updatedScore, results: updatedUserAnswers.map(a => !!a.is_correct) })
+          );
+        } catch {
+          // ignore storage failures
+        }
+        track('daily_played', { game: 'stat_over_under', era: gameEraFromParam, score: updatedScore });
         setGameStatus('saving_results');
         setTimeout(async () => {
             if (user) {
@@ -438,12 +464,34 @@ function StatOverUnderEraGameContent() {
   if (gameStatus === 'already_played' || gameStatus === 'completed') {
     const isCompleted = gameStatus === 'completed';
     const potentialPoints = isCompleted ? challenges.length : 10;
+    const resultsForShare = isCompleted ? userAnswers.map(a => !!a.is_correct) : savedResults ?? [];
+    const shareText = buildStatOuShare({
+      eraLabel: eraName.replace(/\s*\(.*\)$/, ''),
+      results: resultsForShare,
+      correct: score,
+      total: potentialPoints,
+    });
     return (
       <div className={`w-full rounded-lg min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md ${cardBg}`}>
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
-            <p className={`text-xl mb-6 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
+            <p className={`text-xl mb-4 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
+            <div className="mb-2 flex justify-center">
+              <ShareResult
+                shareText={shareText}
+                game="stat_over_under"
+                surface={isCompleted ? 'game_end' : 'already_played'}
+              />
+            </div>
+            <div className="mb-4">
+              <CountdownTimer
+                compact
+                targetTimeIso={getNextLocalMidnightIso()}
+                label="Next challenge in"
+                completedText="New challenge available. Refresh to play!"
+              />
+            </div>
             {isLoadingStats ? ( <p className={mutedText}>Loading your stats...</p> ) :
              user ? ( <EraStatsDisplay allScores={statsHistory} era={gameEraFromParam} eraName={eraName} isDarkMode={isDarkMode}/> ) :
              !isCompleted ? null :

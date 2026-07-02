@@ -3,7 +3,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext'; 
+import { useAuth } from '@/app/contexts/AuthContext';
+import { buildStreakShare } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
 
 interface Player {
   FirstName: string;
@@ -26,6 +28,23 @@ const GAME_SESSION_CACHE_KEY = 'oddManOutGameSession_v1';
 const GUEST_STREAK_CACHE_KEY = 'oddManOutGuestStreak_v1';
 const MIN_LOADING_TIME_MS = 400;
 
+// Guest streaks moved from sessionStorage to localStorage so they survive
+// closing the tab; the old sessionStorage record is migrated once if present.
+function readGuestStreakRecord(): string | null {
+  const local = localStorage.getItem(GUEST_STREAK_CACHE_KEY);
+  if (local) return local;
+  const legacy = sessionStorage.getItem(GUEST_STREAK_CACHE_KEY);
+  if (legacy) {
+    try {
+      localStorage.setItem(GUEST_STREAK_CACHE_KEY, legacy);
+    } catch {
+      // ignore storage failures
+    }
+    sessionStorage.removeItem(GUEST_STREAK_CACHE_KEY);
+  }
+  return legacy;
+}
+
 export default function OddManOutGame() {
   const { supabase, user, isLoading: authIsLoading } = useAuth(); 
 
@@ -38,6 +57,7 @@ export default function OddManOutGame() {
   const [maxStreak, setMaxStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalIncorrect, setTotalIncorrect] = useState(0);
+  const [endedStreak, setEndedStreak] = useState<number | null>(null);
 
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -69,7 +89,7 @@ export default function OddManOutGame() {
         setTotalIncorrect(0);
       }
     } else {
-      const cachedStreakData = sessionStorage.getItem(GUEST_STREAK_CACHE_KEY);
+      const cachedStreakData = readGuestStreakRecord();
       if (cachedStreakData) {
         try {
           const { current_streak, max_streak, total_correct, total_incorrect } = JSON.parse(cachedStreakData);
@@ -78,7 +98,7 @@ export default function OddManOutGame() {
           setTotalCorrect(total_correct || 0);
           setTotalIncorrect(total_incorrect || 0);
         } catch {
-          sessionStorage.removeItem(GUEST_STREAK_CACHE_KEY);
+          localStorage.removeItem(GUEST_STREAK_CACHE_KEY);
           setCurrentStreak(0);
           setMaxStreak(0);
           setTotalCorrect(0);
@@ -162,7 +182,8 @@ export default function OddManOutGame() {
       const newStreak = currentStreak + 1;
       const newMax = Math.max(maxStreak, newStreak);
       const newCorrect = totalCorrect + 1;
-      
+
+      setEndedStreak(null);
       setCurrentStreak(newStreak);
       setMaxStreak(newMax);
       setTotalCorrect(newCorrect);
@@ -180,11 +201,16 @@ export default function OddManOutGame() {
           total_correct: newCorrect,
           total_incorrect: totalIncorrect
         };
-        sessionStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
+        try {
+          localStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
+        } catch {
+          // ignore storage failures
+        }
       }
     } else {
       const newIncorrect = totalIncorrect + 1;
-      
+
+      setEndedStreak(currentStreak);
       setCurrentStreak(0);
       setTotalIncorrect(newIncorrect);
       setMessage(`The connection was ${gameData.connectionName}.`);
@@ -201,7 +227,11 @@ export default function OddManOutGame() {
           total_correct: totalCorrect,
           total_incorrect: newIncorrect
         };
-        sessionStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
+        try {
+          localStorage.setItem(GUEST_STREAK_CACHE_KEY, JSON.stringify(guestStreakData));
+        } catch {
+          // ignore storage failures
+        }
       }
     }
   };
@@ -242,9 +272,9 @@ export default function OddManOutGame() {
             <div className="text-center p-3 mb-4">
             <div className={`font-bold text-xl flex justify-center space-x-6 ${streakTextClasses}`}>
                 <p>Current Streak: {currentStreak}</p>
-                {user && <p>Max Streak: {maxStreak}</p>}
+                <p>Max Streak: {maxStreak}</p>
             </div>
-            {user && totalGames > 0 && (
+            {totalGames > 0 && (
                 <div className={`text-sm mt-2 flex justify-center space-x-4 ${mutedTextClasses}`}>
                   <span>W-L: {totalCorrect}-{totalIncorrect}</span>
                   <span>Win %: {winPercentage.toFixed(1)}%</span>
@@ -287,12 +317,30 @@ export default function OddManOutGame() {
         {status === GameStatus.Answered && (
           <div className="animate-fade-in">
             <p className="text-2xl font-bold mb-4">{message}</p>
-            <button
-              onClick={handleNextRound}
-              className="bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
-            >
-              Next Round
-            </button>
+            <div className="flex flex-wrap justify-center items-center gap-3">
+              {(() => {
+                const wasCorrect = !!gameData && userGuessName === gameData.oddManOutName;
+                const shareStreak = wasCorrect ? currentStreak : endedStreak ?? 0;
+                return shareStreak > 0 ? (
+                  <ShareResult
+                    shareText={buildStreakShare({
+                      gameLabel: 'Odd Man Out',
+                      streak: shareStreak,
+                      url: 'hoopsdata.net/games/odd-man-out',
+                    })}
+                    game="odd_man_out"
+                    surface="game_end"
+                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl"
+                  />
+                ) : null;
+              })()}
+              <button
+                onClick={handleNextRound}
+                className="bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
+              >
+                Next Round
+              </button>
+            </div>
           </div>
         )}
       </div>

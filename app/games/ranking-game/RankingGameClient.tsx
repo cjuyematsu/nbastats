@@ -6,6 +6,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { PostgrestError } from '@supabase/supabase-js';
+import { buildStreakShare } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
 
 interface Player {
   personId: number;
@@ -32,6 +34,34 @@ enum GameStatus {
 
 const MIN_LOADING_TIME_MS = 500;
 const GAME_SESSION_CACHE_KEY = 'rankingGameSession_v1';
+const GUEST_STREAK_KEY = 'rankingGameGuestStreak_v1';
+
+type GuestStreak = {
+    current_streak: number;
+    max_streak: number;
+    total_correct: number;
+    total_incorrect: number;
+};
+
+function readGuestStreak(): GuestStreak | null {
+    try {
+        const raw = localStorage.getItem(GUEST_STREAK_KEY);
+        if (!raw) return null;
+        const d = JSON.parse(raw);
+        if (typeof d.current_streak === 'number') return d as GuestStreak;
+    } catch {
+        // ignore malformed storage
+    }
+    return null;
+}
+
+function writeGuestStreak(s: GuestStreak): void {
+    try {
+        localStorage.setItem(GUEST_STREAK_KEY, JSON.stringify(s));
+    } catch {
+        // ignore storage failures
+    }
+}
 
 /**
  * Custom Hook: useThemeDetector
@@ -65,15 +95,17 @@ export default function RankingGame() {
   const [maxStreak, setMaxStreak] = useState<number>(0);
   const [totalCorrect, setTotalCorrect] = useState<number>(0);
   const [totalIncorrect, setTotalIncorrect] = useState<number>(0);
+  const [endedStreak, setEndedStreak] = useState<number | null>(null);
 
   const isDarkMode = useThemeDetector();
 
   const fetchUserStreak = useCallback(async () => {
     if (!user) {
-        setCurrentStreak(0);
-        setMaxStreak(0);
-        setTotalCorrect(0);
-        setTotalIncorrect(0);
+        const guest = readGuestStreak();
+        setCurrentStreak(guest?.current_streak ?? 0);
+        setMaxStreak(guest?.max_streak ?? 0);
+        setTotalCorrect(guest?.total_correct ?? 0);
+        setTotalIncorrect(guest?.total_incorrect ?? 0);
         return;
     }
     const { data } = await supabase
@@ -189,6 +221,7 @@ export default function RankingGame() {
       const newStreak = currentStreak + 1;
       const newMax = Math.max(maxStreak, newStreak);
       const newCorrect = totalCorrect + 1;
+      setEndedStreak(null);
       setCurrentStreak(newStreak);
       setMaxStreak(newMax);
       setTotalCorrect(newCorrect);
@@ -198,9 +231,12 @@ export default function RankingGame() {
           user_id: user.id, current_streak: newStreak, max_streak: newMax, is_active: true,
           total_correct: newCorrect, total_incorrect: totalIncorrect, updated_at: new Date().toISOString()
         });
+      } else {
+        writeGuestStreak({ current_streak: newStreak, max_streak: newMax, total_correct: newCorrect, total_incorrect: totalIncorrect });
       }
     } else {
       const newIncorrect = totalIncorrect + 1;
+      setEndedStreak(currentStreak);
       setCurrentStreak(0);
       setTotalIncorrect(newIncorrect);
       setMessage(`Sorry, the correct category was ${categoryName}.`);
@@ -209,6 +245,8 @@ export default function RankingGame() {
           user_id: user.id, current_streak: 0, is_active: false,
           total_correct: totalCorrect, total_incorrect: newIncorrect, updated_at: new Date().toISOString()
         });
+      } else {
+        writeGuestStreak({ current_streak: 0, max_streak: maxStreak, total_correct: totalCorrect, total_incorrect: newIncorrect });
       }
     }
     setStatus(GameStatus.Finished);
@@ -245,9 +283,9 @@ export default function RankingGame() {
           {correctOrder.length > 0 && <p className="text-lg">{correctOrder[0].SeasonYear} Regular Season</p>}
           <div className="flex justify-center space-x-6">
               <p>Current Streak: {currentStreak}</p>
-              {user && <p>Max Streak: {maxStreak}</p>}
+              <p>Max Streak: {maxStreak}</p>
           </div>
-          {user && totalGames > 0 && (
+          {totalGames > 0 && (
             <div className={`text-sm mt-2 flex justify-center space-x-4 ${mutedTextClasses}`}>
               <span>W-L: {totalCorrect}-{totalIncorrect}</span>
               <span>Win %: {winPercentage.toFixed(1)}%</span>
@@ -322,12 +360,26 @@ export default function RankingGame() {
                     ))}
                 </div>
             )}
-            <button
-              onClick={handlePlayAgain}
-              className={`mt-6 ${playAgainButtonClasses}`}
-            >
-              Play Again
-            </button>
+            <div className="mt-6 flex flex-wrap justify-center items-center gap-3">
+              {(() => {
+                const shareStreak = message.startsWith('Correct') ? currentStreak : endedStreak ?? 0;
+                return shareStreak > 0 ? (
+                  <ShareResult
+                    shareText={buildStreakShare({
+                      gameLabel: 'the NBA Ranking Game',
+                      streak: shareStreak,
+                      url: 'hoopsdata.net/games/ranking-game',
+                    })}
+                    game="ranking_game"
+                    surface="game_end"
+                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                  />
+                ) : null;
+              })()}
+              <button onClick={handlePlayAgain} className={playAgainButtonClasses}>
+                Play Again
+              </button>
+            </div>
           </div>
         )}
       </div>
