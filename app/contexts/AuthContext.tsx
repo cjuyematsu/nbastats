@@ -11,6 +11,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -51,6 +53,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Admin status (drives the owner-only "Review" link) is looked up once per
+  // set of credentials and shared via context, rather than refetched by every
+  // consumer. Keyed on the access token so it only re-runs on a real
+  // sign-in / token change, not on every new session object reference.
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    fetch('/api/articles/is-admin', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((j) => {
+        if (active) setIsAdmin(Boolean(j?.admin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [session?.access_token]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -59,8 +85,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     session,
     user,
     isLoading,
+    isAdmin,
     signOut,
-    supabase, 
+    supabase,
   };
 
   return (
