@@ -5,6 +5,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
+import { readCachedAdmin, writeCachedAdmin, readPersistedUserId } from '@/lib/adminCache';
 
 interface AuthContextType {
   supabase: SupabaseClient;
@@ -21,7 +22,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Optimistically seed from the last-known cached value so a returning admin's
+  // "Review" link renders on first paint instead of popping in after the fetch.
+  const [isAdmin, setIsAdmin] = useState<boolean>(() =>
+    readCachedAdmin(readPersistedUserId())
+  );
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -59,7 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // sign-in / token change, not on every new session object reference.
   useEffect(() => {
     const token = session?.access_token;
-    if (!token) {
+    const userId = session?.user?.id;
+    if (!token || !userId) {
       setIsAdmin(false);
       return;
     }
@@ -67,7 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetch('/api/articles/is-admin', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((j) => {
-        if (active) setIsAdmin(Boolean(j?.admin));
+        const admin = Boolean(j?.admin);
+        writeCachedAdmin(userId, admin);
+        if (active) setIsAdmin(admin);
       })
       .catch(() => {
         if (active) setIsAdmin(false);
@@ -75,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       active = false;
     };
-  }, [session?.access_token]);
+  }, [session?.access_token, session?.user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
