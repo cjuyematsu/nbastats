@@ -6,6 +6,7 @@ import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Header from '@/components/Header';
 import { AuthProvider } from '../app/contexts/AuthContext';
+import ScrollRestoration from '@/components/ScrollRestoration';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -152,12 +153,13 @@ export default function RootLayout({
               className="transition-all duration-300 ease-in-out md:ml-[var(--nav-offset-left)] h-full"
             >
               <div className="flex items-center h-full">
-                <div className="w-full max-h-full overflow-y-auto p-4 md:pt-[var(--navbar-header-gap)] md:pr-[var(--page-inset-padding)] md:pb-[var(--page-inset-padding)] md:pl-0">
+                <div id="page-scroll-container" className="w-full max-h-full overflow-y-auto p-4 md:pt-[var(--navbar-header-gap)] md:pr-[var(--page-inset-padding)] md:pb-[var(--page-inset-padding)] md:pl-0">
                     {children}
                 </div>
               </div>
             </div>
           </main>
+          <ScrollRestoration />
         </AuthProvider>
 
         <Analytics />
