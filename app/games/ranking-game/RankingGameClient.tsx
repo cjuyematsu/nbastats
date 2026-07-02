@@ -348,7 +348,7 @@ export default function RankingGame() {
         )}
 
         {status === GameStatus.Finished && (
-          <div className="text-center mt-6">
+          <div className="text-center mt-6 animate-fadeIn">
             <p className="text-xl font-semibold mb-4">{message}</p>
             {correctOrder.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -372,7 +372,7 @@ export default function RankingGame() {
                     })}
                     game="ranking_game"
                     surface="game_end"
-                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-all"
                   />
                 ) : null;
               })()}

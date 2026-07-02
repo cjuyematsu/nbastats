@@ -455,7 +455,7 @@ function StatOverUnderEraGameContent() {
     return (
         <div className={`flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses}`}>
             <div className={`text-center p-6 rounded-xl`}>
-                <h2 className={`text-2xl font-bold mb-4 ${highlightColor}`}>Finalizing your results...</h2>
+                <h2 className={`text-2xl font-bold mb-4 animate-pulse ${highlightColor}`}>Finalizing your results...</h2>
                 <p className={`text-lg ${mutedText}`}>Updating your stats, please wait.</p>
             </div>
         </div>
@@ -473,7 +473,7 @@ function StatOverUnderEraGameContent() {
     });
     return (
       <div className={`w-full rounded-lg min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
-        <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md ${cardBg}`}>
+        <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md animate-fadeIn ${cardBg}`}>
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
             <p className={`text-xl mb-4 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>

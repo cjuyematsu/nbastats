@@ -237,9 +237,11 @@ export default function DuosClient() {
   }, [a, b]);
 
   const pickFamousDuo = async (nameA: string, nameB: string) => {
+    setStatus('loading');
     const [pa, pb] = await Promise.all([resolveName(nameA), resolveName(nameB)]);
     if (pa) setA(pa);
     if (pb) setB(pb);
+    if (!pa || !pb) setStatus('idle');
   };
 
   const record = parseRecord(duo?.SharedGamesRecord ?? null);
@@ -270,7 +272,7 @@ export default function DuosClient() {
           <button
             key={`${na}-${nb}`}
             onClick={() => pickFamousDuo(na, nb)}
-            className="text-xs sm:text-sm px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-slate-600 dark:text-slate-300 hover:border-sky-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+            className="text-xs sm:text-sm px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-slate-600 dark:text-slate-300 hover:border-sky-400 hover:text-sky-600 dark:hover:text-sky-400 active:scale-95 transition-all"
           >
             {na.split(' ').slice(-1)} &amp; {nb.split(' ').slice(-1)}
           </button>
@@ -278,17 +280,36 @@ export default function DuosClient() {
       </div>
 
       {status === 'loading' && (
-        <div className="text-center py-10 text-slate-500 dark:text-slate-400">Looking up the duo...</div>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60 p-6">
+          <div className="flex justify-center mb-2">
+            <div className="h-7 w-64 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          </div>
+          <div className="flex justify-center mb-6">
+            <div className="h-4 w-44 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          </div>
+          <div className="flex flex-wrap justify-around text-center gap-6 mb-6">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="h-8 w-20 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center gap-3">
+            <div className="h-10 w-40 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+            <div className="h-10 w-40 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          </div>
+        </div>
       )}
 
       {status === 'same_player' && (
-        <div className="text-center py-10 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-10 text-slate-500 dark:text-slate-400 animate-fadeIn">
           Pick two different players.
         </div>
       )}
 
       {status === 'not_teammates' && a && b && (
-        <div className="text-center py-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60">
+        <div className="text-center py-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60 animate-fadeIn">
           <p className="text-lg text-slate-700 dark:text-slate-200 font-semibold mb-2">
             {a.name} and {b.name} never played together.
           </p>
@@ -305,7 +326,7 @@ export default function DuosClient() {
       )}
 
       {status === 'found' && duo && a && b && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60 p-6">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60 p-6 animate-fadeIn">
           <h2 className="text-xl sm:text-2xl font-bold text-center text-slate-900 dark:text-slate-100 mb-1">
             <Link href={`/player/${a.id}`} className="hover:underline" style={{ color: COLOR_A }}>
               {a.name}
