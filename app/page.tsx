@@ -131,12 +131,12 @@ export default async function HomePage() {
                 Compare player stats side-by-side. Settle debates on who is the better player based on hard data.
               </p>
             </Link>
-            <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">Player Profiles</h4>
+            <Link href="/duos" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
+              <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">NBA Duos</h4>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Use the search bar above to view complete career statistics for any NBA player.
+                Pick two teammates and see their games, win-loss record, and teams together.
               </p>
-            </div>
+            </Link>
             <Link href="/degrees-of-separation" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
               <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">Teammate Connections</h4>
               <p className="text-slate-600 dark:text-slate-400 text-sm">

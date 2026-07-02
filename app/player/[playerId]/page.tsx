@@ -139,16 +139,23 @@ export default async function PlayerStatsPage({
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {teammates.map((t) => (
-                  <Link
+                  <div
                     key={t.id}
-                    href={`/player/${t.id}`}
-                    className="block p-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:border-sky-400 transition-colors"
+                    className="p-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:border-sky-400 transition-colors"
                   >
-                    <span className="font-semibold text-sky-600 dark:text-sky-400">{t.name}</span>
-                    <span className="block text-sm text-slate-500 dark:text-slate-400">
+                    <Link href={`/player/${t.id}`} className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
+                      {t.name}
+                    </Link>
+                    <span className="block text-sm text-slate-500 dark:text-slate-400 mb-1.5">
                       {t.games.toLocaleString()} games together
                     </span>
-                  </Link>
+                    <Link
+                      href={`/duos?players=${encodeURIComponent(name)},${encodeURIComponent(t.name)}`}
+                      className="inline-block text-xs font-bold px-3 py-1.5 rounded-full bg-sky-500 text-white hover:bg-sky-400 dark:bg-sky-600 dark:hover:bg-sky-500 shadow-sm hover:shadow-md hover:scale-105 transition-all"
+                    >
+                      See their record
+                    </Link>
+                  </div>
                 ))}
               </div>
             </section>
