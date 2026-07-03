@@ -7,6 +7,7 @@ import { PlayerSuggestion } from '@/types/stats';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import HeaderSearchBar from '@/components/HeaderSearchBar';
+import DailyPill from '@/components/DailyPill';
 import { useAuth } from '../app/contexts/AuthContext';
 import Image from 'next/image';
 
@@ -82,6 +83,8 @@ export default function Header() {
         <div className={`flex-grow min-w-0 ${isMobile ? 'mx-2' : ''}`}>
           <HeaderSearchBar onPlayerSelected={handlePlayerSelection} />
         </div>
+
+        <DailyPill />
 
         {/* --- Auth Button --- */}
         {/* UPDATED: Adjusted margin to avoid doubling up on mobile */}
