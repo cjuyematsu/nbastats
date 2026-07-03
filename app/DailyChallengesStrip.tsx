@@ -9,6 +9,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import CountdownTimer from '@/components/CountdownTimer';
 import { getLaDateString, getNextLaMidnightIso } from '@/lib/dailyTime';
 import {
+  DAILY_GAMES,
   DAILY_PROGRESS_EVENT,
   DailyGame,
   DailyProgress,
@@ -21,12 +22,13 @@ import { readAllLocalStatOuDates } from '@/lib/statOuDaily';
 import { readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
 import { computeSixDegreesStats } from '@/lib/sixDegreesStats';
 
-const GAMES: { game: DailyGame; label: string; href: string }[] = [
+const GAMES: { game: DailyGame; label: string; href: string; cta?: string }[] = [
   { game: 'sixDegrees', label: 'Six Degrees', href: '/games/six-degrees/daily' },
   { game: 'statOu', label: 'Stat Over/Under', href: '/games/stat-over-under' },
   { game: 'ranking', label: 'Guess the Ranking', href: '/games/ranking-game' },
   { game: 'oddManOut', label: 'Odd Man Out', href: '/games/odd-man-out' },
   { game: 'draftQuiz', label: 'Name That Pick', href: '/games/draft-quiz/daily' },
+  { game: 'top100Vote', label: 'Top 100 Vote', href: '/top-100-players', cta: 'Vote' },
 ];
 
 function readRunStreak(key: string): number {
@@ -83,7 +85,7 @@ export default function DailyChallengesStrip() {
       {!mounted || !progress ? (
         <>
           <div className="h-7 w-64 mb-3 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
-          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-5">
+          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-3 lg:grid-cols-6">
             {GAMES.map((g) => (
               <div
                 key={g.game}
@@ -99,7 +101,7 @@ export default function DailyChallengesStrip() {
               <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200">
                 Today&apos;s Challenges
               </h2>
-              <span className="text-sm font-bold text-sky-600 dark:text-sky-400">{done}/5</span>
+              <span className="text-sm font-bold text-sky-600 dark:text-sky-400">{done}/{DAILY_GAMES.length}</span>
               {siteStreak > 1 && (
                 <span className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 rounded-full px-2 py-0.5">
                   {siteStreak} day streak
@@ -113,8 +115,8 @@ export default function DailyChallengesStrip() {
               completedText="New challenges are live. Refresh!"
             />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
-            {GAMES.map(({ game, label, href }) => {
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible sm:pb-0">
+            {GAMES.map(({ game, label, href, cta }) => {
               const isDone = progress[game];
               const streak = gameStreaks[game] ?? 0;
               return (
@@ -143,7 +145,7 @@ export default function DailyChallengesStrip() {
                       <span className="text-xs font-medium text-green-700 dark:text-green-300">Done</span>
                     ) : (
                       <span className="text-xs font-semibold text-white bg-sky-500 dark:bg-sky-600 rounded-full px-2 py-0.5">
-                        Play
+                        {cta ?? 'Play'}
                       </span>
                     )}
                     {streak > 1 && (

@@ -5,9 +5,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
-import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { getAnonymousId } from '@/lib/anonymousIdentifier';
+import { resolveVoteIdentity, writeTop100Vote } from '@/lib/top100Votes';
 
 export interface QuickVoteRow {
   personId: number;
@@ -33,34 +32,9 @@ export default function HomeTop100QuickVote({ rows }: { rows: QuickVoteRow[] }) 
     if (next) setHasVoted(true);
     track('top100_quick_vote', { player: playerId, vote: next ?? 0 });
     try {
-      const userId = user ? user.id : null;
-      const anonymousId = userId ? null : getAnonymousId();
-      const matchFilter = userId
-        ? { player_id: playerId, user_id: userId }
-        : { player_id: playerId, anonymous_id: anonymousId! };
-      if (!next) {
-        await supabase.from('playervotes').delete().match(matchFilter);
-      } else {
-        let existingQuery = supabase.from('playervotes').select('player_id').eq('player_id', playerId);
-        existingQuery = userId
-          ? existingQuery.eq('user_id', userId)
-          : existingQuery.eq('anonymous_id', anonymousId!);
-        const { data: existing } = await existingQuery.maybeSingle();
-        if (existing) {
-          const nowIso = new Date().toISOString();
-          await supabase
-            .from('playervotes')
-            .update({ vote_type: next, created_at: nowIso, updated_at: nowIso })
-            .match(matchFilter);
-        } else {
-          await supabase.from('playervotes').insert({
-            player_id: playerId,
-            user_id: userId,
-            anonymous_id: anonymousId,
-            vote_type: next,
-          });
-        }
-      }
+      const identity = resolveVoteIdentity(user?.id);
+      const result = await writeTop100Vote(identity, playerId, next ?? 0);
+      if (!result.ok) throw new Error(result.message);
     } catch {
       setVotes((v) => ({ ...v, [playerId]: prev }));
     } finally {
