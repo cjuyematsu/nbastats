@@ -19,13 +19,20 @@ function laUtcOffset(at: Date): string {
   return offset || '-08:00';
 }
 
+// UTC instant of 00:00 America/Los_Angeles on the given LA calendar date. The
+// second pass re-reads the offset at the candidate instant so DST switch days
+// (spring-forward / fall-back) resolve correctly.
+export function laMidnightIso(laDate: string): string {
+  const noonUtc = new Date(`${laDate}T12:00:00Z`);
+  const firstPass = new Date(`${laDate}T00:00:00${laUtcOffset(noonUtc)}`);
+  return new Date(`${laDate}T00:00:00${laUtcOffset(firstPass)}`).toISOString();
+}
+
 export function getNextLaMidnightIso(now: Date = new Date()): string {
   const tomorrow = new Date(Date.parse(`${getLaDateString(now)}T00:00:00Z`) + 86_400_000)
     .toISOString()
     .slice(0, 10);
-  // Second pass re-reads the offset at the candidate instant so DST switch days resolve correctly.
-  const firstPass = new Date(`${tomorrow}T00:00:00${laUtcOffset(now)}`);
-  return new Date(`${tomorrow}T00:00:00${laUtcOffset(firstPass)}`).toISOString();
+  return laMidnightIso(tomorrow);
 }
 
 export function sixDegreesPuzzleNumber(gameDate: string): number {
