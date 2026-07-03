@@ -10,7 +10,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Top 100 NBA Players 2026: Vote To Change Rankings',
-  description: 'View and vote on the Top 100 NBA player rankings for 2026. No sign-in required! Compare NBA player stats, nominate players, and see who rises to the top. Reshuffled every 3 days based on fan votes.',
+  description: 'Vote on the Top 100 NBA player rankings for 2026, no sign-in required. Nominate players, compare stats, see who rises. Reshuffled every 3 days by fan votes.',
   keywords: [
     'top 100 nba players',
     'top 100 nba players 2026',

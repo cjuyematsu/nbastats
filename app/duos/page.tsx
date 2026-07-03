@@ -7,7 +7,7 @@ import DuosClient from './DuosClient';
 export const metadata: Metadata = {
   title: 'NBA Duos: Games, Record & Teams Together',
   description:
-    'Pick any two NBA teammates and see how they performed together: games played side by side, their win-loss record as a duo, shared teams, and years together.',
+    'See how any two NBA teammates performed together: games played side by side, their win-loss record as a duo, shared teams, and years together.',
   keywords: ['nba duos', 'nba teammates record', 'games played together nba', 'best nba duos', 'nba duo stats'],
   alternates: {
     canonical: '/duos',

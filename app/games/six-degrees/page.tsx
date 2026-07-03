@@ -6,7 +6,7 @@ import SixDegreesLobbyClient from './SixDegreesLobbyClient';
 
 export const metadata: Metadata = {
   title: 'Six Degrees of NBA | The Ultimate Player Connection Game',
-  description: 'Play the Six Degrees of NBA daily challenge or a random game. Test your basketball trivia knowledge by connecting any two NBA players through a chain of their former teammates. Track your stats and see how you rank!',
+  description: 'Play Six Degrees of NBA: connect any two players through a chain of former teammates. Try the daily challenge or a random game and track your stats.',
   keywords: [
     'six degrees of separation',
     'six degrees game',

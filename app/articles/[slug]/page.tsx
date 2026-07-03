@@ -18,6 +18,17 @@ const getArticle = cache(async (slug: string): Promise<Article | null> => {
   return data;
 });
 
+// Cap the meta description at a word boundary so it can never exceed the
+// ~160-char search-engine limit, no matter how long an article's summary is.
+function clampDescription(text: string | null | undefined): string | undefined {
+  if (!text) return undefined;
+  const MAX = 155;
+  if (text.length <= MAX) return text;
+  const slice = text.slice(0, MAX - 1);
+  const lastSpace = slice.lastIndexOf(' ');
+  return `${(lastSpace > 60 ? slice.slice(0, lastSpace) : slice).trimEnd()}…`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -26,7 +37,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) return { title: 'Article not found' };
-  const description = article.summary ?? article.dek ?? undefined;
+  const description = clampDescription(article.summary ?? article.dek);
   const url = `/articles/${slug}`;
   return {
     title: article.title,
@@ -58,7 +69,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
-    description: article.summary ?? article.dek ?? undefined,
+    description: clampDescription(article.summary ?? article.dek),
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
     author: { '@type': 'Person', name: article.author || 'Hoops Data Staff' },
