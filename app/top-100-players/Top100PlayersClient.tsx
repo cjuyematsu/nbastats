@@ -1,24 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import CountdownTimer from '@/components/CountdownTimer';
+import ShareResult from '@/components/ShareResult';
 import Image from 'next/image';
 import { TopPlayer } from './types';
 import { getAnonymousId } from '@/lib/anonymousIdentifier';
-
-function getNextRearrangementISO(): string {
-  const now = new Date();
-  const candidate = new Date(Date.UTC(
-    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
-  ));
-  while (candidate.getTime() <= now.getTime() || candidate.getUTCDate() % 2 === 0) {
-    candidate.setUTCDate(candidate.getUTCDate() + 1);
-  }
-  return candidate.toISOString();
-}
+import { getNextRearrangementIso } from '@/lib/top100Time';
+import { buildTop100Share } from '@/lib/shareText';
 
 
 interface CurrentWeekPlayerVoteCountsRow {
@@ -122,7 +114,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({
   };
 
   return (
-    <div className={`relative bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-col h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div id={`player-card-${player.personId}`} className={`relative scroll-mt-24 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg flex flex-col h-full overflow-hidden transition-all duration-300 hover:border-sky-500/60 hover:shadow-sky-500/10 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <Image
         width="1000"
         height="500"
@@ -167,7 +159,7 @@ const PlayerBox: React.FC<PlayerBoxProps> = ({
                     </span>
                   )}
                   {player.seasonYear === 2025 && (
-                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-50 dark:bg-sky-900/20 text-white-700 dark:text-white-400 border border-sky-200 dark:border-sky-800">
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                       2025 Stats
                     </span>
                   )}
@@ -255,6 +247,58 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
   const [playerRankingData] = useState<Map<number, { history: RankingHistoryData[], weeklyChange: number }>>(
     () => new Map(Object.entries(initialRankingData).map(([id, v]) => [Number(id), v]))
   );
+  const [bubblePlayers, setBubblePlayers] = useState<
+    { personId: number; firstName: string; lastName: string; nominations: number }[]
+  >([]);
+
+  // Players outside the 100 with nomination upvotes this cycle.
+  const loadBubblePlayers = useCallback(async () => {
+    try {
+      const { data: votes } = await supabase
+        .from('playervotes')
+        .select('player_id, vote_type')
+        .gte('created_at', lastRearrangementTimeISO);
+      if (!votes) return;
+      const inList = new Set(playersRef.current.map(p => p.personId));
+      const counts = new Map<number, number>();
+      votes.forEach(v => {
+        if (v.vote_type === 1 && !inList.has(v.player_id)) {
+          counts.set(v.player_id, (counts.get(v.player_id) || 0) + 1);
+        }
+      });
+      const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+      if (top.length === 0) {
+        setBubblePlayers([]);
+        return;
+      }
+      const { data: names } = await supabase
+        .from('regularseasonstats')
+        .select('personId, firstName, lastName')
+        .in('personId', top.map(([id]) => id))
+        .order('SeasonYear', { ascending: false })
+        .limit(60);
+      const nameById = new Map<number, { firstName: string; lastName: string }>();
+      (names || []).forEach(n => {
+        if (!nameById.has(n.personId)) {
+          nameById.set(n.personId, { firstName: n.firstName ?? '', lastName: n.lastName ?? '' });
+        }
+      });
+      setBubblePlayers(
+        top
+          .map(([personId, nominations]) => {
+            const name = nameById.get(personId);
+            return name ? { personId, ...name, nominations } : null;
+          })
+          .filter((b): b is { personId: number; firstName: string; lastName: string; nominations: number } => b !== null)
+      );
+    } catch {
+      // best effort panel; ignore failures
+    }
+  }, [lastRearrangementTimeISO]);
+
+  useEffect(() => {
+    if (!authIsLoading) loadBubblePlayers();
+  }, [authIsLoading, loadBubblePlayers]);
 
   const loadVoteDataInternal = useCallback(async (weekStartISO: string) => {
     const currentPlayers = playersRef.current;
@@ -311,7 +355,7 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
 
   useEffect(() => {
     if (!nextRearrangementTime) {
-        setNextRearrangementTime(getNextRearrangementISO());
+        setNextRearrangementTime(getNextRearrangementIso());
     }
   }, [nextRearrangementTime]);
 
@@ -388,8 +432,11 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
         if (selectError) throw selectError;
 
         if (existing) {
+          // Refresh timestamps so a changed vote counts as a new one for the
+          // rearrangement's recency window.
+          const nowIso = new Date().toISOString();
           const { error: updateError } = await supabase.from('playervotes')
-            .update({ vote_type: newVoteType })
+            .update({ vote_type: newVoteType, created_at: nowIso, updated_at: nowIso })
             .match(matchFilter);
           if (updateError) throw updateError;
         } else {
@@ -446,10 +493,17 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
           setNominationSuggestions([]); return;
         }
         const currentTop100Ids = new Set(players.map(p => p.personId));
-        const filteredSuggestions = (data || []).filter(
-          (suggestion: PlayerSuggestion) => !currentTop100Ids.has(suggestion.personId)
+        const allSuggestions = (data || []) as PlayerSuggestion[];
+        const filteredSuggestions = allSuggestions.filter(
+          (suggestion) => !currentTop100Ids.has(suggestion.personId)
         );
-        setNominationSuggestions(filteredSuggestions as PlayerSuggestion[]);
+        if (filteredSuggestions.length === 0 && allSuggestions.length > 0) {
+          const ranked = players.find(p => p.personId === allSuggestions[0].personId);
+          setNominationMessage(
+            `${allSuggestions[0].firstName} ${allSuggestions[0].lastName} is already ranked${ranked ? ` #${ranked.rankNumber}` : ''}.`
+          );
+        }
+        setNominationSuggestions(filteredSuggestions);
       } catch (err) { 
         let message = "Exception fetching nomination suggestions.";
         if (err instanceof Error) message = err.message;
@@ -507,7 +561,10 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
         const matchFilter = userId
           ? { player_id: playerToNominate.personId, user_id: userId }
           : { player_id: playerToNominate.personId, anonymous_id: anonymousId };
-        const { error: updateError } = await supabase.from('playervotes').update({ vote_type: 1 }).match(matchFilter);
+        const nowIso = new Date().toISOString();
+        const { error: updateError } = await supabase.from('playervotes')
+          .update({ vote_type: 1, created_at: nowIso, updated_at: nowIso })
+          .match(matchFilter);
         if (updateError) throw updateError;
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       } else {
@@ -521,6 +578,7 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
         setNominationMessage(`${playerToNominate.firstName} ${playerToNominate.lastName} nominated successfully! This counts as an upvote.`);
       }
       setNominationSearchTerm(''); setNominationSuggestions([]);
+      loadBubblePlayers();
     } catch (error: unknown) {
       let message = "Failed to nominate player.";
       if (error instanceof Error) message = error.message;
@@ -535,7 +593,17 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
 
 
   const pageTitle = "Top 100 Players";
-  const pageSubtitle = "Give your opinion on how players should be moved";
+  const pageSubtitle = "The fan-voted NBA Top 100. Rankings reshuffle every 3 days.";
+
+  const movers = useMemo(() => {
+    const rows = players
+      .map(p => ({ player: p, change: playerRankingData.get(p.personId)?.weeklyChange ?? 0 }))
+      .filter(r => r.change !== 0);
+    return {
+      risers: rows.filter(r => r.change > 0).sort((a, b) => b.change - a.change).slice(0, 3),
+      fallers: rows.filter(r => r.change < 0).sort((a, b) => a.change - b.change).slice(0, 3),
+    };
+  }, [players, playerRankingData]);
 
   const LoadingErrorDisplay = ({ children }: { children: React.ReactNode }) => (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg text-slate-800 dark:text-slate-100 p-4 md:p-6 text-center flex-grow">
@@ -554,8 +622,8 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
   }
   if (!isLoadingPlayers && players.length === 0) {
     return <LoadingErrorDisplay>
-      <p className="text-slate-700 dark:text-slate-300">No player data is currently available for this week&apos;s ranking.</p>
-      <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Ranks are updated weekly on Sunday at midnight.</p>
+      <p className="text-slate-700 dark:text-slate-300">No player data is currently available for the ranking.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Rankings reshuffle every 3 days based on fan votes.</p>
     </LoadingErrorDisplay>;
   }
 
@@ -568,14 +636,59 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
         {/* Voting Open Announcement */}
         <div className="mt-4 mb-4 p-4 bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-200 dark:border-sky-800 rounded-lg">
           <p className="text-center text-sky-700 dark:text-sky-300 font-semibold text-lg">
-            Voting is now open to everyone! No sign-in required.
+            Voting is open to everyone. No sign-in required.
           </p>
           <p className="text-center text-sky-600 dark:text-sky-400 text-sm mt-1">
-            Nominate new players to be added to the ranking to be included on next week&apos;s ranking
+            Vote players up or down, or{' '}
+            <a href="#nominate" className="underline font-semibold hover:text-sky-800 dark:hover:text-sky-200">
+              nominate someone new
+            </a>
+            . Votes are applied at every reshuffle.
           </p>
         </div>
 
+        {(movers.risers.length > 0 || movers.fallers.length > 0) && (
+          <div className="max-w-3xl mx-auto mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            {movers.risers.length > 0 && (
+              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/15 border border-green-200 dark:border-green-800">
+                <p className="font-bold text-green-700 dark:text-green-300 uppercase text-xs tracking-wide mb-1.5">Rising</p>
+                {movers.risers.map(({ player, change }) => (
+                  <a key={player.personId} href={`#player-card-${player.personId}`} className="flex justify-between py-0.5 hover:underline">
+                    <span className="text-slate-700 dark:text-slate-200">#{player.rankNumber} {player.firstName} {player.lastName}</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">▲ {change}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+            {movers.fallers.length > 0 && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/15 border border-red-200 dark:border-red-800">
+                <p className="font-bold text-red-700 dark:text-red-300 uppercase text-xs tracking-wide mb-1.5">Falling</p>
+                {movers.fallers.map(({ player, change }) => (
+                  <a key={player.personId} href={`#player-card-${player.personId}`} className="flex justify-between py-0.5 hover:underline">
+                    <span className="text-slate-700 dark:text-slate-200">#{player.rankNumber} {player.firstName} {player.lastName}</span>
+                    <span className="font-bold text-red-500 dark:text-red-400">▼ {Math.abs(change)}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
+        {players.length >= 5 && (
+          <div className="flex justify-center mt-2">
+            <ShareResult
+              shareText={buildTop100Share({
+                topFive: [...players]
+                  .sort((a, b) => a.rankNumber - b.rankNumber)
+                  .slice(0, 5)
+                  .map((p) => `${p.firstName} ${p.lastName}`),
+              })}
+              game="top_100"
+              surface="rankings"
+            />
+          </div>
+        )}
         {!user && !authIsLoading && (
           <p className="text-center text-sky-600 dark:text-sky-400 my-6 font-semibold">
             <Link href="/signin" className="underline hover:text-sky-700 dark:hover:text-sky-300">Sign in</Link> to save your vote history across devices!
@@ -612,8 +725,39 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
                       ))}
                     </ul>
                   )}
-                  {nominationMessage && ( <p className={`mt-3 text-sm text-center ${ nominationMessage.includes('Error:') || nominationMessage.includes('Failed') || nominationMessage.includes('already in') || nominationMessage.includes('already been upvoted') ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{nominationMessage}</p> )}
+                  {nominationMessage && ( <p className={`mt-3 text-sm text-center ${ nominationMessage.includes('Error:') || nominationMessage.includes('Failed') || nominationMessage.includes('already') ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{nominationMessage}</p> )}
                 </div>
+                {bubblePlayers.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-600">
+                    <p className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-center mb-3">
+                      On the bubble this cycle
+                    </p>
+                    <ul className="max-w-md mx-auto space-y-2">
+                      {bubblePlayers.map((b) => (
+                        <li key={b.personId} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-slate-700 dark:text-slate-200">
+                            <Link href={`/player/${b.personId}`} className="font-medium hover:underline">
+                              {b.firstName} {b.lastName}
+                            </Link>
+                            <span className="text-slate-500 dark:text-slate-400 ml-2">
+                              {b.nominations} nomination{b.nominations === 1 ? '' : 's'}
+                            </span>
+                          </span>
+                          <button
+                            onClick={() => handleNominatePlayer({ personId: b.personId, firstName: b.firstName, lastName: b.lastName })}
+                            disabled={isNominating || isSubmittingVoteForPlayer[b.personId]}
+                            className="flex-none px-3 py-1 text-xs font-bold rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+                          >
+                            +1
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center mt-3">
+                      Nominated players join the Top 100 at the next reshuffle.
+                    </p>
+                  </div>
+                )}
             </div>
           </div>
     </div>

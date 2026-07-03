@@ -29,6 +29,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/top-100-players`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/degrees-of-separation`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -63,6 +69,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/games/draft-quiz/daily`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/games/odd-man-out`,

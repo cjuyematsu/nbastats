@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabaseClient';
+import { getLastRearrangementIso } from '@/lib/top100Time';
 import Top100PlayersClient, { type RankingHistoryData } from './Top100PlayersClient';
 import type { RpcRankedPlayerData, TopPlayer } from './types';
 
@@ -52,17 +53,6 @@ interface AggregatedVotesRPCRow {
   sameSpotVotes: number;
 }
 
-function getLastRearrangementISO(): string {
-  const now = new Date();
-  const candidate = new Date(Date.UTC(
-    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7, 0, 0, 0,
-  ));
-  while (candidate.getTime() > now.getTime() || candidate.getUTCDate() % 2 === 0) {
-    candidate.setUTCDate(candidate.getUTCDate() - 1);
-  }
-  return candidate.toISOString();
-}
-
 function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
   const gamesPlayed = p.G ?? 0;
   const points = p.PTS_total ?? 0;
@@ -102,7 +92,7 @@ async function getInitialTop100Data(): Promise<{
   rankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }>;
   weekStartISO: string;
 }> {
-  const weekStartISO = getLastRearrangementISO();
+  const weekStartISO = getLastRearrangementIso();
 
   const { data: rpcData, error: rpcError } = await supabase.rpc('get_current_ranking_with_details');
   if (rpcError || !rpcData) {
