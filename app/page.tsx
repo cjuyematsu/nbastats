@@ -108,7 +108,7 @@ export default async function HomePage() {
 
         <DailyChallengesStrip />
 
-        <div className="grid gap-5 mb-12">
+        <div className="grid grid-cols-1 gap-5 mb-12">
           <HomeCompareHero initialA={initialA} initialB={initialB} />
           <HomeSixDegreesTeaser initialPuzzle={dailySixDegrees} />
           <HomeTop100Teaser />
