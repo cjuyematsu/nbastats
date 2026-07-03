@@ -187,19 +187,13 @@ export default async function HomePage() {
             Analysis &amp; Community
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link href="/analysis/salary-vs-points" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
-              <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">Salary vs. Performance</h4>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Analyze the relationship between player salaries and their on-court production.
-              </p>
-            </Link>
-            <Link href="/analysis/growth-of-nba" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
+            <Link href="/articles/growth-of-nba" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
               <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">NBA Growth Trends</h4>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Explore how the NBA has evolved over time through statistical trends.
               </p>
             </Link>
-            <Link href="/analysis/draft-points" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
+            <Link href="/articles/draft-points" className="block bg-slate-50 dark:bg-slate-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all hover:border-sky-400 hover:shadow-md">
               <h4 className="font-semibold text-sky-600 dark:text-sky-400 mb-1">Points Leaders</h4>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 View points leaders at each draft position.
