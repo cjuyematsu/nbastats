@@ -985,6 +985,27 @@ export type Database = {
           weeklyMovementScore: number
         }[]
       }
+      get_draft_daily_challenge: {
+        Args: { p_date: string }
+        Returns: {
+          year: number
+          round: number
+          pick: number
+          firstName: string | null
+          lastName: string | null
+          team: string | null
+          school: string | null
+        }[]
+      }
+      get_odd_man_out_daily: {
+        Args: { p_date: string }
+        Returns: {
+          players: Json
+          oddManOutName: string
+          connectionName: string
+          question: string
+        }[]
+      }
       get_odd_man_out_game_data: {
         Args: never
         Returns: {
@@ -1049,6 +1070,18 @@ export type Database = {
           player_id: number
           ranking_history: Json
           weekly_change: number
+        }[]
+      }
+      get_ranking_daily_challenge: {
+        Args: { p_date: string }
+        Returns: {
+          personId: number
+          firstName: string | null
+          lastName: string | null
+          SeasonYear: number
+          statValue: number
+          categoryName: string
+          categoryOptions: string[]
         }[]
       }
       get_ranking_game_data: {
