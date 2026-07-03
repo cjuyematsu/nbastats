@@ -67,8 +67,9 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
 - `app/api/quiz/save/route.ts` — upserts draft-quiz progress into `quiz_attempts`. It reads
   the `Authorization: Bearer <token>` header, verifies the user with Supabase, then writes as
   that user.
-- `app/api/cron/weekly-rankings/route.ts` — Vercel Cron target (`vercel.json`, daily at
-  **07:00 and 08:00 UTC** — the two UTC instants of LA midnight across DST; the route only
+- `app/api/cron/weekly-rankings/route.ts` — Vercel Cron target (`vercel.json`, once daily at
+  **08:00 UTC** — LA midnight in winter, ~1h after it in summer; a single run because Hobby
+  allows only one cron/day. The route only
   rearranges every third day at the **LA-midnight boundary** via `isRearrangementDay()` +
   the run-instant gate in `lib/top100Time.ts`, which also drives the page countdowns and now
   lines the reshuffle up with the daily games/comparison rotation; `?force=1` runs off-cycle).
@@ -80,10 +81,10 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
   ending cycle's vote timestamps to **boundary minus 1s**, because the RPC only counts votes
   from roughly the last 48 hours and that stamp keeps them out of the NEW cycle's counts and
   highlight reads (`?force=1` stamps `now` instead so mid-cycle counts survive); (3) calls
-  the RPC. Non-force runs act only within a **[-5min, +45min] window of the LA-midnight run
-  instant** (`getRunInstantIso`): the off-season cron hour is ~1h away and refused, as is any
-  early/late manual curl that would rearrange off-instant and mis-stamp the live cycle's votes
-  (a mistimed curl did exactly this on 2026-07-03; 111 rows had to be repaired). Vote writers
+  the RPC. Non-force runs act only within a **[-5min, +90min] window of the LA-midnight run
+  instant** (`getRunInstantIso`): the summer run lands ~60min after the instant and still acts,
+  while any stray early/late manual curl that would rearrange off-instant and mis-stamp the live
+  cycle's votes is refused (a mistimed curl did exactly this on 2026-07-03; 111 rows had to be repaired). Vote writers
   also reset `created_at` when a user changes an existing vote so re-votes count as new.
 
 ### Anonymous identity for guests

@@ -46,7 +46,8 @@ recent archived week) + `current_rank` from `currentweeklyrankings` +
 
 ## Scheduling (as of 2026-07-03)
 
-- Vercel cron (`vercel.json`): daily 07:00 UTC -> `/api/cron/weekly-rankings`,
+- Vercel cron (`vercel.json`): daily 08:00 UTC (LA midnight in winter, ~1h after
+  in summer; Hobby allows one run/day) -> `/api/cron/weekly-rankings`,
   which self-gates to every 3rd day (epoch 2026-07-03), clears the history
   bucket, freshens vote timestamps, then calls the RPC. This is the ONLY
   scheduler that should call the RPC.

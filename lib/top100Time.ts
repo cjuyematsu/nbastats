@@ -2,10 +2,10 @@
 //
 // Top 100 rearrangements run at midnight America/Los_Angeles every third day,
 // anchored to REARRANGE_EPOCH, so the reshuffle lands on the same LA-midnight
-// boundary as the daily games/comparison. The Vercel cron fires at both 07:00
-// and 08:00 UTC (the two UTC instants LA midnight takes across DST); the route
-// acts only at the boundary of a rearrangement day, so the countdown and the
-// cron always agree.
+// boundary as the daily games/comparison. The Vercel cron fires once daily at
+// 08:00 UTC (LA midnight in winter/PST, ~1h after it in summer/PDT — Hobby only
+// allows one run per day); the route acts only at the boundary of a
+// rearrangement day, so the countdown and the cron always agree.
 
 import { getLaDateString, laMidnightIso } from '@/lib/dailyTime';
 import { dayNumber } from '@/lib/dailySeed';
