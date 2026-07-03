@@ -12,6 +12,7 @@ import { markDailyPlayed } from '@/lib/dailyProgress';
 import { buildDraftDailyShare } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
+import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 
 interface DailyPick {
   compositeKey: string;
@@ -336,6 +337,9 @@ export default function DraftDailyClient() {
               <Link href="/games/draft-quiz" className="text-sky-600 dark:text-sky-400 underline hover:text-sky-700">
                 All draft quizzes
               </Link>
+            </div>
+            <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+              <DailyChallengesStrip className="" />
             </div>
           </div>
         )}

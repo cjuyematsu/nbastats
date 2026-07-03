@@ -30,18 +30,9 @@ const GAMES: { game: DailyGame; label: string; href: string }[] = [
   { game: 'draftQuiz', label: 'Name That Pick', href: '/games/draft-quiz/daily' },
 ];
 
-function readRunStreak(key: string): number {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return 0;
-    const rec = JSON.parse(raw);
-    return typeof rec.current_streak === 'number' ? rec.current_streak : 0;
-  } catch {
-    return 0;
-  }
-}
-
-export default function DailyChallengesStrip() {
+export default function DailyChallengesStrip({
+  className = 'mb-10 scroll-mt-24',
+}: { className?: string } = {}) {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState<DailyProgress | null>(null);
@@ -57,10 +48,6 @@ export default function DailyChallengesStrip() {
         sixDegrees: computeSixDegreesStats(readAllLocalDailyResults(), getLaDateString()).currentStreak,
         statOu: computeDailyStreak(readAllLocalStatOuDates()),
       };
-      if (!user) {
-        streaks.ranking = readRunStreak('rankingGameGuestStreak_v1');
-        streaks.oddManOut = readRunStreak('oddManOutGuestStreak_v1');
-      }
       setGameStreaks(streaks);
     };
     refresh();
@@ -80,7 +67,7 @@ export default function DailyChallengesStrip() {
   const done = progress ? countCompleted(progress) : 0;
 
   return (
-    <section id="daily" className="mb-10 scroll-mt-24 text-left">
+    <section id="daily" className={`text-left ${className}`}>
       {!mounted || !progress ? (
         <>
           <div className="h-7 w-64 mb-3 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />

@@ -8,6 +8,7 @@ import { buildStreakShare } from '@/lib/shareText';
 import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
 import { generateOddManOutDaily } from '@/lib/oddManOutDaily';
 import ShareResult from '@/components/ShareResult';
+import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 
 interface Player {
   FirstName: string;
@@ -371,6 +372,11 @@ export default function OddManOutGame() {
           </div>
         )}
       </div>
+      {status === GameStatus.Answered && isDailyRound && (
+        <div className="mt-2 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 pb-4 text-left">
+          <DailyChallengesStrip className="" />
+        </div>
+      )}
     </div>
   );
 }
