@@ -4,7 +4,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/app/contexts/AuthContext'; 
+import { useAuth } from '@/app/contexts/AuthContext';
+import { dailyDraftSlots, DraftDailySlot } from '@/lib/dailySeed';
 
 type QuizProgress = {
   year: number;
@@ -13,10 +14,15 @@ type QuizProgress = {
 };
 
 export default function DraftQuizLobby() {
-  const { supabase, user } = useAuth(); 
+  const { supabase, user } = useAuth();
   const [progressData, setProgressData] = useState<QuizProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dailySlots, setDailySlots] = useState<DraftDailySlot[] | null>(null);
+
+  useEffect(() => {
+    setDailySlots(dailyDraftSlots());
+  }, []);
 
   const getLobbyData = useCallback(async () => {
     if (progressData.length === 0) {
@@ -85,7 +91,18 @@ export default function DraftQuizLobby() {
   return (
     <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
       <h1 className="text-3xl font-bold mb-6 text-center text-slate-900 dark:text-slate-100 transition-colors duration-200">NBA Draft Quiz</h1>
-      <p className="text-center mb-8 text-slate-500 dark:text-slate-400 transition-colors duration-200">Select a year and see how many you know</p>
+      <p className="text-center mb-6 text-slate-500 dark:text-slate-400 transition-colors duration-200">Select a year and see how many you know</p>
+      {dailySlots !== null && (
+        <Link
+          href="/games/draft-quiz/daily"
+          className="block mb-8 p-4 rounded-lg bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-300 dark:border-sky-700 hover:border-sky-500 transition-colors text-center"
+        >
+          <span className="text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300">Daily Challenge</span>
+          <span className="block text-xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+            Name That Pick: {dailySlots.map((s) => `${s.year} #${s.pick}`).join(', ')}
+          </span>
+        </Link>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ">
         {progressData.map(item => {
           const progressPercentage = item.total_count > 0 

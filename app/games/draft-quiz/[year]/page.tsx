@@ -5,6 +5,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { buildDraftQuizShare } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +23,27 @@ type DraftPick = {
 
 const createCompositeKey = (pick: { Year: number; Round: number; Pick: number }): string => {
   return `${pick.Year}-${pick.Round}-${pick.Pick}`;
+};
+
+const guestQuizKey = (year: number) => `draftQuizGuest_${year}`;
+
+const readGuestQuiz = (year: number): string[] => {
+  try {
+    const raw = localStorage.getItem(guestQuizKey(year));
+    if (!raw) return [];
+    const ids = JSON.parse(raw);
+    return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeGuestQuiz = (year: number, ids: string[]): void => {
+  try {
+    localStorage.setItem(guestQuizKey(year), JSON.stringify(ids));
+  } catch {
+    // ignore storage failures
+  }
 };
 
 export default function DraftQuizPage() {
@@ -94,12 +117,14 @@ export default function DraftQuizPage() {
         const picksWithKeys = picksData.map((p) => ({ ...p, compositeKey: createCompositeKey(p) }));
         setDraftPicks(picksWithKeys);
       }
+      const localIds = readGuestQuiz(year);
       if (user) {
         const { data: attemptData } = await supabase.from('quiz_attempts').select('guessed_ids').eq('user_id', user.id).eq('draft_year', year).single();
-        if (attemptData) {
-            const initialGuessedIds = new Set(attemptData.guessed_ids as string[]);
-            setGuessedIds(initialGuessedIds);
-        }
+        const savedIds = attemptData ? (attemptData.guessed_ids as string[]) : [];
+        const merged = new Set([...savedIds, ...localIds]);
+        if (merged.size > 0) setGuessedIds(merged);
+      } else if (localIds.length > 0) {
+        setGuessedIds(new Set(localIds));
       }
       setIsLoading(false);
     }
@@ -126,7 +151,9 @@ export default function DraftQuizPage() {
     });
 
     if (playersToReveal.size > 0) {
-      setGuessedIds(prev => new Set([...prev, ...playersToReveal]));
+      const next = new Set([...guessedIds, ...playersToReveal]);
+      setGuessedIds(next);
+      if (!user) writeGuestQuiz(year, Array.from(next));
     }
     setInputValue('');
   };
@@ -165,7 +192,17 @@ export default function DraftQuizPage() {
           <h1 className="text-3xl font-bold text-center">{year}</h1>
         </div>
 
-        <div className="text-center mb-4 text-xl">Score: {guessedIds.size} / {draftPicks.length}</div>
+        <div className="text-center mb-4 text-xl flex items-center justify-center gap-3">
+          <span>Score: {guessedIds.size} / {draftPicks.length}</span>
+          {guessedIds.size > 0 && draftPicks.length > 0 && (
+            <ShareResult
+              shareText={buildDraftQuizShare({ year, correct: guessedIds.size, total: draftPicks.length })}
+              game="draft_quiz"
+              surface="quiz_header"
+              className="inline-flex items-center justify-center rounded-md bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white text-sm font-semibold px-3 py-1 transition-all"
+            />
+          )}
+        </div>
         <form onSubmit={handleGuessSubmit} className="mb-2">
           <input
             type="text"
