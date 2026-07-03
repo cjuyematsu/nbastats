@@ -93,8 +93,8 @@ some game records key on either `user_id` (signed in) or this anonymous id.
 The page is a compact leaderboard: `Top100PlayersClient.tsx` is the container,
 `PlayerRow`/`RecapStrip`/`NominateSection` live beside it. All vote writes go through
 `lib/top100Votes.ts` (select-then-insert/update on `playervotes`, delete on un-vote; upsert
-breaks anonymous identities) — the home quick-vote and nominations use it too, and it marks
-the `top100Vote` daily-hub task. "Your vote" reads MUST be cycle-scoped
+breaks anonymous identities) — the home quick-vote and nominations use it too. Voting is
+deliberately NOT a daily-hub task (user decision). "Your vote" reads MUST be cycle-scoped
 (`.gte('created_at', cycle start)`) to match the aggregated counts; unscoped reads re-light
 vote buttons from prior cycles. The rearrangement RPC **consumes** (deletes) the votes it
 counts. Full RPC internals + the pg_cron history: `docs/top-100-rpcs.md`. Only the Vercel
