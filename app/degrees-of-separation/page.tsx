@@ -6,7 +6,7 @@ import DegreesOfSeparationClient from './DegreesOfSeparationClient';
 
 export const metadata: Metadata = {
   title: 'NBA Six Degrees of Separation | Player Connection Analysis Tool',
-  description: "An analytics tool to explore the connections between any two NBA players through their shared teammates. Visualize the path and discover the 'Degrees of Separation' in the NBA network.",
+  description: 'Explore how any two NBA players are connected through shared teammates. Visualize the path and find their degrees of separation in the NBA network.',
   keywords: [
     'degrees of separation',
     'six degrees',

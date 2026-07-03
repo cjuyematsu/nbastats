@@ -6,7 +6,7 @@ import RankingGameClient from './RankingGameClient';
 
 export const metadata: Metadata = {
   title: 'NBA Player Ranking Game | Guess the Stat Trivia',
-  description: 'Play the NBA Ranking Game! Drag and drop players to rank them by a secret statistical category, then guess what the category was. A fun and challenging trivia game for basketball stats fans.',
+  description: 'Play the NBA Ranking Game. Drag and drop players to rank them by a secret stat category, then guess the category. A fun trivia game for basketball fans.',
   keywords: [
     'nba ranking game',
     'nba player rankings',

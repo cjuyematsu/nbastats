@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: 'NBA Player Comparison Tool & Stats | HoopsData',
     template: '%s | HoopsData',
   },
-  description: 'Free NBA player comparison tool. Compare any NBA players side-by-side, view Top 100 rankings, play basketball trivia games, and explore NBA stats and analytics.',
+  description: 'Free NBA player comparison tool. Compare players side-by-side, view Top 100 rankings, play basketball trivia, and explore NBA stats and analytics.',
   keywords: ['nba player comparison', 'compare nba players', 'nba player comparison tool', 'nba stats', 'nba player stats', 'basketball stats', 'compare nba player stats', 'nba stat comparison', 'top 100 nba players', 'nba trivia'],
   metadataBase: new URL('https://hoopsdata.net'),
   alternates: {

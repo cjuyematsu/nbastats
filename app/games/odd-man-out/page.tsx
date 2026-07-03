@@ -6,7 +6,7 @@ import OddManOutClient from './OddManOutClient';
 
 export const metadata: Metadata = {
   title: 'NBA Odd Man Out | Basketball Trivia Game',
-  description: "Play Odd Man Out, the NBA trivia game! Three players share a common bond from before their draft—can you spot the one who doesn't belong? Test your basketball knowledge and build your streak.",
+  description: "Play Odd Man Out, the NBA trivia game. Three players share a pre-draft bond. Can you spot the one who doesn't belong? Test your knowledge and build a streak.",
   keywords: [
     'nba odd one out',
     'nba trivia game',
