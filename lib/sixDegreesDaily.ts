@@ -6,6 +6,8 @@
 
 import type { GuessResult } from '@/lib/shareText';
 import type { ScoreHistoryRecord } from '@/lib/sixDegreesStats';
+import { getLaDateString } from '@/lib/dailyTime';
+import { markDailyPlayed } from '@/lib/dailyProgress';
 
 export interface DailyResult {
   status: 'won' | 'lost';
@@ -35,6 +37,7 @@ export function writeDailyResult(gameDate: string, result: DailyResult): void {
   } catch {
     // ignore storage failures
   }
+  if (gameDate === getLaDateString()) markDailyPlayed('sixDegrees');
 }
 
 // Rebuild a score history from local records so guests get the same stats and

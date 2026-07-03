@@ -76,14 +76,17 @@ export function buildStatOuShare({
   results,
   correct,
   total,
+  streak,
 }: {
   eraLabel: string;
   results: boolean[];
   correct: number;
   total: number;
+  streak?: number;
 }): string {
   const lines = [`NBA Stat Over/Under (${eraLabel}) ${correct}/${total}`];
   if (results.length > 0) lines.push(results.map((r) => (r ? HIT : MISS)).join(''));
+  if (streak && streak > 0) lines.push(`Streak: ${streak}`);
   lines.push('hoopsdata.net/games/stat-over-under');
   return lines.join('\n');
 }
@@ -98,4 +101,57 @@ export function buildStreakShare({
   url: string;
 }): string {
   return [`I hit a streak of ${streak} in ${gameLabel}. Beat that:`, url].join('\n');
+}
+
+export function buildDraftDailyShare({
+  slotLabels,
+  correct,
+  total,
+  results,
+}: {
+  slotLabels: string[];
+  correct: number;
+  total: number;
+  results: boolean[];
+}): string {
+  const lines = [`NBA Draft Daily (${slotLabels.join(', ')}) ${correct}/${total}`];
+  if (results.length > 0) lines.push(results.map((r) => (r ? HIT : MISS)).join(''));
+  lines.push('hoopsdata.net/games/draft-quiz/daily');
+  return lines.join('\n');
+}
+
+export function buildDraftQuizShare({
+  year,
+  correct,
+  total,
+}: {
+  year: number;
+  correct: number;
+  total: number;
+}): string {
+  return [
+    `I named ${correct}/${total} picks from the ${year} NBA Draft. Try it:`,
+    'hoopsdata.net/games/draft-quiz',
+  ].join('\n');
+}
+
+export function buildTop100Share({ topFive }: { topFive: string[] }): string {
+  return [
+    'Fan-voted NBA Top 100 right now:',
+    ...topFive.map((name, i) => `${i + 1}. ${name}`),
+    'Do you agree? Vote:',
+    'hoopsdata.net/top-100-players',
+  ].join('\n');
+}
+
+export function buildCompareShare({
+  nameA,
+  nameB,
+  url,
+}: {
+  nameA: string;
+  nameB: string;
+  url: string;
+}): string {
+  return [`${nameA} vs ${nameB}: settle it with the numbers.`, url].join('\n');
 }

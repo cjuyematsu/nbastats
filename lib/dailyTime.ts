@@ -28,10 +28,6 @@ export function getNextLaMidnightIso(now: Date = new Date()): string {
   return new Date(`${tomorrow}T00:00:00${laUtcOffset(firstPass)}`).toISOString();
 }
 
-export function getNextLocalMidnightIso(now: Date = new Date()): string {
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-}
-
 export function sixDegreesPuzzleNumber(gameDate: string): number {
   const days =
     (Date.parse(`${gameDate}T00:00:00Z`) - Date.parse(`${SIX_DEGREES_EPOCH}T00:00:00Z`)) /
