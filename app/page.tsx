@@ -22,11 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Re-resolve the featured matchup and article window hourly.
+// Re-resolve the featured matchup and article hourly.
 export const revalidate = 3600;
-
-// How long a freshly published article stays featured at the top of the home page.
-const FEATURED_ARTICLE_MAX_AGE_DAYS = 3;
 
 async function loadFeaturedArticle(): Promise<FeaturedArticle | null> {
   try {
@@ -44,8 +41,6 @@ async function loadFeaturedArticle(): Promise<FeaturedArticle | null> {
       .filter((r) => r.published_at)
       .sort((a, b) => new Date(b.published_at!).getTime() - new Date(a.published_at!).getTime())[0];
     if (!newest?.published_at) return null;
-    const ageMs = Date.now() - new Date(newest.published_at).getTime();
-    if (ageMs > FEATURED_ARTICLE_MAX_AGE_DAYS * 86_400_000) return null;
     return {
       slug: newest.slug,
       title: newest.title,
@@ -109,9 +104,9 @@ export default async function HomePage() {
           </h2>
         </header>
 
-        <DailyChallengesStrip />
-
         <HomeFeaturedArticle article={featuredArticle} />
+
+        <DailyChallengesStrip />
 
         <div className="grid gap-5 mb-12">
           <HomeCompareHero initialA={initialA} initialB={initialB} />
