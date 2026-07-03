@@ -297,9 +297,9 @@ export default function Navbar() {
                 </div>
 
                 <div className="pt-2">
-                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Articles</h3>}
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Forum</NavLink>
+                  <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Articles</NavLink>
                   {isAdmin && (
                     <NavLink href="/articles/review" icon={<ReviewIcon />} showText={showTextInNav}>Review</NavLink>
                   )}
