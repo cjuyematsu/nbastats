@@ -7,7 +7,7 @@
 import { getLaDateString } from '@/lib/dailyTime';
 import { supabase } from '@/lib/supabaseClient';
 
-export type DailyGame = 'sixDegrees' | 'statOu' | 'ranking' | 'oddManOut' | 'draftQuiz' | 'top100Vote';
+export type DailyGame = 'sixDegrees' | 'statOu' | 'ranking' | 'oddManOut' | 'draftQuiz';
 
 export interface DailyProgress {
   sixDegrees: boolean;
@@ -15,11 +15,10 @@ export interface DailyProgress {
   ranking: boolean;
   oddManOut: boolean;
   draftQuiz: boolean;
-  top100Vote: boolean;
 }
 
 export const DAILY_PROGRESS_EVENT = 'hd:daily-progress';
-export const DAILY_GAMES: DailyGame[] = ['sixDegrees', 'statOu', 'ranking', 'oddManOut', 'draftQuiz', 'top100Vote'];
+export const DAILY_GAMES: DailyGame[] = ['sixDegrees', 'statOu', 'ranking', 'oddManOut', 'draftQuiz'];
 
 const KEY = 'hd:dailyProgress_';
 const LOOKBACK_DAYS = 60;
@@ -31,7 +30,6 @@ const emptyProgress = (): DailyProgress => ({
   ranking: false,
   oddManOut: false,
   draftQuiz: false,
-  top100Vote: false,
 });
 
 const dayBefore = (isoDate: string) =>
@@ -67,7 +65,7 @@ function withLegacyRecords(date: string, progress: DailyProgress): DailyProgress
 }
 
 function anyPlayed(p: DailyProgress): boolean {
-  return p.sixDegrees || p.statOu || p.ranking || p.oddManOut || p.draftQuiz || p.top100Vote;
+  return p.sixDegrees || p.statOu || p.ranking || p.oddManOut || p.draftQuiz;
 }
 
 export function countCompleted(p: DailyProgress): number {
