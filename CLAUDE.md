@@ -75,14 +75,31 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
   `perform_weekly_player_rearrangement` RPC archives under that stamp and two runs in one
   ISO week otherwise poison the next run with a `uq_history_year_week_player` violation
   (this is what silently killed reranking 2026-04-25 to 2026-07-02); (2) freshens the
-  timestamps of votes cast during the current cycle, because the RPC only counts votes from
-  roughly the last 48 hours; (3) calls the RPC. Vote writers also reset `created_at` when a
-  user changes an existing vote so re-votes count as new.
+  ending cycle's vote timestamps to **boundary minus 1s**, because the RPC only counts votes
+  from roughly the last 48 hours and that stamp keeps them out of the NEW cycle's counts and
+  highlight reads (`?force=1` stamps `now` instead so mid-cycle counts survive); (3) calls
+  the RPC. Non-force runs are also gated until the day's 07:00 UTC instant: earlier the same
+  UTC day, `getLastRearrangementIso()` returns the PREVIOUS boundary and the freshen would
+  mis-stamp the live cycle's votes (a manual pre-07:00 curl did exactly this on 2026-07-03;
+  111 rows had to be repaired). Vote writers also reset `created_at` when a user changes an
+  existing vote so re-votes count as new.
 
 ### Anonymous identity for guests
 `lib/anonymousIdentifier.ts` (`getAnonymousId`) mints/stores a localStorage `anon_*` id with
 a **7-day expiry** so guests can vote / track game streaks without an account. Voting and
 some game records key on either `user_id` (signed in) or this anonymous id.
+
+### Top 100 voting model
+The page is a compact leaderboard: `Top100PlayersClient.tsx` is the container,
+`PlayerRow`/`RecapStrip`/`NominateSection` live beside it. All vote writes go through
+`lib/top100Votes.ts` (select-then-insert/update on `playervotes`, delete on un-vote; upsert
+breaks anonymous identities) — the home quick-vote and nominations use it too, and it marks
+the `top100Vote` daily-hub task. "Your vote" reads MUST be cycle-scoped
+(`.gte('created_at', cycle start)`) to match the aggregated counts; unscoped reads re-light
+vote buttons from prior cycles. The rearrangement RPC **consumes** (deletes) the votes it
+counts. Full RPC internals + the pg_cron history: `docs/top-100-rpcs.md`. Only the Vercel
+cron route may call `perform_weekly_player_rearrangement`; a direct pg_cron job doing so
+was the source of the flaky-reranking era.
 
 ## Data & schema
 
