@@ -97,7 +97,7 @@ export default async function HomePage() {
       <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="text-center pt-8 mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-            <span className="block text-sky-600 dark:text-sky-400">The Ultimate Hub for NBA Stats</span>
+            <span className="block text-sky-600 dark:text-sky-400">A Hub for NBA Stats</span>
           </h1>
           <h2 className="mt-2 text-base sm:text-lg text-slate-600 dark:text-slate-300">
             Explore NBA Player Stats, NBA Player Comparisons, and NBA Trivia
