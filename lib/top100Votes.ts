@@ -6,7 +6,6 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { getAnonymousId } from '@/lib/anonymousIdentifier';
-import { markDailyPlayed } from '@/lib/dailyProgress';
 
 export interface VoteIdentity {
   userId: string | null;
@@ -72,7 +71,6 @@ export async function writeTop100Vote(
       if (error) throw error;
     }
 
-    markDailyPlayed('top100Vote');
     return { ok: true };
   } catch (error: unknown) {
     return { ok: false, message: errorMessage(error) };
