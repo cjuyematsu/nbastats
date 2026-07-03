@@ -15,7 +15,7 @@ import { getTodaysMatchup } from './data/featuredMatchups';
 
 export const metadata: Metadata = {
   title: 'NBA Player Comparison Tool, Stats & Trivia | HoopsData',
-  description: 'Free NBA player comparison tool. Compare any two NBA players side-by-side, vote on Top 100 player rankings, and play basketball trivia games. The ultimate hub for NBA stats and analytics.',
+  description: 'Free NBA player comparison tool. Compare players side-by-side, vote on the Top 100 rankings, and play basketball trivia. The hub for NBA stats & analytics.',
   keywords: ['nba player comparison', 'compare nba players', 'nba player comparison tool', 'nba stats', 'nba player stats', 'nba trivia', 'top 100 nba players', 'basketball stats', 'nba analytics'],
   alternates: {
     canonical: '/',
