@@ -1,5 +1,16 @@
 //app/top-100-players/types.ts
 
+export interface RankingHistoryData {
+  week_of_year: number;
+  rank_position: number;
+  archived_at: string;
+}
+
+export interface PlayerRankingInfo {
+  history: RankingHistoryData[];
+  weeklyChange: number;
+}
+
 export interface RpcRankedPlayerData {
     rankNumber: number;
     personId: number;

@@ -3,14 +3,14 @@
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabaseClient';
 import { getLastRearrangementIso } from '@/lib/top100Time';
-import Top100PlayersClient, { type RankingHistoryData } from './Top100PlayersClient';
-import type { RpcRankedPlayerData, TopPlayer } from './types';
+import Top100PlayersClient from './Top100PlayersClient';
+import type { PlayerRankingInfo, RpcRankedPlayerData, TopPlayer } from './types';
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Top 100 NBA Players 2026: Vote To Change Rankings',
-  description: 'View and vote on the Top 100 NBA player rankings for 2026. No sign-in required! Compare NBA player stats, nominate players, and see who rises to the top. Updated weekly based on fan votes.',
+  description: 'View and vote on the Top 100 NBA player rankings for 2026. No sign-in required! Compare NBA player stats, nominate players, and see who rises to the top. Reshuffled every 3 days based on fan votes.',
   keywords: [
     'top 100 nba players',
     'top 100 nba players 2026',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Top 100 NBA Players 2026 | Fan-Voted Rankings',
-    description: 'Vote on the Top 100 NBA players for 2026. No sign-in required. Rankings update weekly based on fan votes.',
+    description: 'Vote on the Top 100 NBA players for 2026. No sign-in required. Rankings reshuffle every 3 days based on fan votes.',
     url: '/top-100-players',
   },
 };
@@ -89,7 +89,7 @@ function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
 
 async function getInitialTop100Data(): Promise<{
   players: TopPlayer[];
-  rankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }>;
+  rankingData: Record<number, PlayerRankingInfo>;
   weekStartISO: string;
 }> {
   const weekStartISO = getLastRearrangementIso();
@@ -104,7 +104,7 @@ async function getInitialTop100Data(): Promise<{
   const players = ranked.map(rpcRowToTopPlayer);
   const playerIds = ranked.map((p) => p.personId);
 
-  const rankingData: Record<number, { history: RankingHistoryData[]; weeklyChange: number }> = {};
+  const rankingData: Record<number, PlayerRankingInfo> = {};
 
   const [historyResult, voteCountsResult] = await Promise.all([
     playerIds.length > 0
