@@ -43,3 +43,13 @@ export function getLastRearrangementIso(now: Date = new Date()): string {
   }
   return runInstantIso(day);
 }
+
+export function getPreviousRearrangementIso(now: Date = new Date()): string {
+  const last = Date.parse(getLastRearrangementIso(now));
+  return new Date(last - CYCLE_DAYS * MS_PER_DAY).toISOString();
+}
+
+// The 07:00 UTC run instant of the calendar day `now` falls on.
+export function getRunInstantIso(now: Date = new Date()): string {
+  return runInstantIso(utcDayNumber(now));
+}
