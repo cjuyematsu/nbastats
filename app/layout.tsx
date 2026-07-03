@@ -2,6 +2,7 @@
 
 import './globals.css';
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Header from '@/components/Header';
@@ -162,6 +163,15 @@ export default function RootLayout({
           <ScrollRestoration />
         </AuthProvider>
 
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            id="adsense"
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+          />
+        )}
         <Analytics />
         <SpeedInsights />
       </body>

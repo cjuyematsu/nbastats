@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { CareerStatsData } from '@/types/stats';
 import { StatsTable } from './PlayerStatsTables';
 import { ViewTeammatesButton } from './ViewTeammatesButton';
+import AdSlot from '@/components/AdSlot';
 
 export const revalidate = 86400;
 
@@ -134,6 +135,8 @@ export default async function PlayerStatsPage({
 
           <StatsTable stats={playoffs} title="Playoff Career Stats" statType="Averages" />
           <StatsTable stats={playoffs} title="Playoff Career Totals" statType="Totals" />
+
+          <AdSlot slot="player-page" className="mt-8" />
 
           {teammates.length > 0 && (
             <section id="teammates" className="mt-8 scroll-mt-4">

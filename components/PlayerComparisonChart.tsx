@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
+import { findSlugForPair } from '@/app/data/compareMatchups';
+import { buildCompareShare } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
 import { debounce } from 'lodash';
 import { Line } from 'react-chartjs-2';
 import {
@@ -212,7 +215,7 @@ const availableStats = [
     { value: 'TRB_total', label: 'Total Rebounds (Season)' },
 ];
 
-export default function PlayerComparisonChart({ initialPlayerNames }: { initialPlayerNames?: string[] }) {
+export default function PlayerComparisonChart({ initialPlayerNames, showShare }: { initialPlayerNames?: string[]; showShare?: boolean }) {
   const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(Array(MAX_PLAYERS).fill(null));
   const [selectedStat, setSelectedStat] = useState<string>(availableStats[0].value);
   const [seasonType, setSeasonType] = useState<'regular' | 'playoffs'>('regular');
@@ -504,6 +507,15 @@ export default function PlayerComparisonChart({ initialPlayerNames }: { initialP
       : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
   }`;
 
+  const activeNames = selectedPlayers
+    .filter((p): p is SelectedPlayerForComparison => p !== null)
+    .map((p) => `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim())
+    .filter((n) => n.length > 0);
+  const shareSlug = activeNames.length === 2 ? findSlugForPair(activeNames[0], activeNames[1]) : null;
+  const shareUrl = shareSlug
+    ? `hoopsdata.net/compare/${shareSlug}`
+    : `hoopsdata.net/compare?players=${encodeURIComponent(activeNames.join(','))}`;
+
   return (
     <div className={mainContainerClasses}>
       <div className="p-4 md:px-4 md:py-6">
@@ -569,6 +581,15 @@ export default function PlayerComparisonChart({ initialPlayerNames }: { initialP
             </div>
         )}
       </div>
+      {showShare && activeNames.length >= 2 && (
+        <div className="mt-4 flex justify-center">
+          <ShareResult
+            shareText={buildCompareShare({ nameA: activeNames[0], nameB: activeNames[1], url: shareUrl })}
+            game="compare"
+            surface="tool"
+          />
+        </div>
+      )}
       </div>
     </div>
   );
