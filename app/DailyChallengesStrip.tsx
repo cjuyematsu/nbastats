@@ -110,18 +110,18 @@ export default function DailyChallengesStrip({
                   key={game}
                   href={href}
                   onClick={() => track('daily_hub_click', { game })}
-                  className={`min-w-[9rem] shrink-0 sm:min-w-0 p-4 rounded-lg border transition-all hover:shadow-md ${
+                  className={`min-w-[9rem] shrink-0 sm:min-w-0 p-3 sm:p-4 rounded-lg border transition-all hover:shadow-md ${
                     isDone
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 hover:border-green-400'
                       : 'bg-slate-50 dark:bg-slate-800 border-gray-200 dark:border-gray-700 hover:border-sky-400'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1">
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <span className="min-w-0 break-words text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {label}
                     </span>
                     {isDone && (
-                      <span className="text-green-600 dark:text-green-400 font-bold" aria-label="Done">
+                      <span className="shrink-0 leading-none text-green-600 dark:text-green-400 font-bold" aria-label="Done">
                         ✓
                       </span>
                     )}
