@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import {
+  DAILY_GAMES,
   DAILY_PROGRESS_EVENT,
   countCompleted,
   readTodayProgress,
@@ -38,7 +39,7 @@ export default function DailyPill() {
       href="/#daily"
       className="ml-4 hidden md:inline-block flex-none whitespace-nowrap text-xs font-semibold rounded-full px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
     >
-      Today: {done}/5{done >= 5 ? ' ✓' : ''}
+      Today: {done}/{DAILY_GAMES.length}{done >= DAILY_GAMES.length ? ' ✓' : ''}
     </Link>
   );
 }
