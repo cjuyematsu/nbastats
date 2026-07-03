@@ -19,6 +19,7 @@ import {
 } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
+import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 
 type AdjacencyList = {
   [playerId: string]: number[];
@@ -573,7 +574,7 @@ function SixDegreesGameContent() {
             : null;
 
         return (
-            <div className={`flex justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
+            <div className={`flex flex-col justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
              <div className={`w-full p-4 text-center max-w-lg mx-auto animate-fadeIn ${alreadyPlayedContainer}`}>
                 <h1 className={`text-3xl font-bold ${highlightColor} mb-6`}>
                     Daily Challenge Complete{puzzleNumber ? ` (#${puzzleNumber})` : ''}
@@ -619,6 +620,9 @@ function SixDegreesGameContent() {
                 />
 
                 {funnelRow}
+            </div>
+            <div className="mt-8 w-full max-w-3xl px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <DailyChallengesStrip className="" />
             </div>
             </div>
         );
@@ -747,6 +751,11 @@ function SixDegreesGameContent() {
                  </div>
              )}
         </div>
+        {gameId === 'daily' && (gameStatus === 'won' || gameStatus === 'lost') && (
+            <div className="max-w-3xl mx-auto px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <DailyChallengesStrip className="" />
+            </div>
+        )}
         </div>
     );
 }

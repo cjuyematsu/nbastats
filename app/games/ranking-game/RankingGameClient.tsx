@@ -10,6 +10,7 @@ import { buildStreakShare } from '@/lib/shareText';
 import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
 import { generateRankingDaily } from '@/lib/rankingDaily';
 import ShareResult from '@/components/ShareResult';
+import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 
 interface Player {
   personId: number;
@@ -409,6 +410,11 @@ export default function RankingGame() {
                 Play Again
               </button>
             </div>
+            {isDailyRound && (
+              <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <DailyChallengesStrip className="" />
+              </div>
+            )}
           </div>
         )}
       </div>

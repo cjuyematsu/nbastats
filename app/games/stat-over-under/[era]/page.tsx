@@ -16,6 +16,7 @@ import { computeDailyStreak } from '@/lib/dailyStreak';
 import { markDailyPlayed } from '@/lib/dailyProgress';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
+import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -464,7 +465,7 @@ function StatOverUnderEraGameContent() {
       streak: dailyStreak ?? undefined,
     });
     return (
-      <div className={`w-full rounded-lg min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
+      <div className={`w-full rounded-lg min-h-screen flex flex-col items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md animate-fadeIn ${cardBg}`}>
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
@@ -498,6 +499,9 @@ function StatOverUnderEraGameContent() {
                 </div>
               </div>)}
             <button onClick={handlePlayDifferentEra} className={`mt-8 inline-block px-6 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105 ${buttonSecondary} ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Play Different Era</button>
+        </div>
+        <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+          <DailyChallengesStrip className="" />
         </div>
       </div>
     );
