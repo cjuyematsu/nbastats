@@ -3,18 +3,19 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
 import { buildStatOuShare } from '@/lib/shareText';
-import { getNextLocalMidnightIso } from '@/lib/dailyTime';
+import { getLaDateString, getNextLaMidnightIso } from '@/lib/dailyTime';
+import { statOuStorageKey, readAllLocalStatOuDates } from '@/lib/statOuDaily';
+import { computeDailyStreak } from '@/lib/dailyStreak';
+import { markDailyPlayed } from '@/lib/dailyProgress';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
-
-const statOuStorageKey = (era: string, date: string) => `statOuDaily_${era}_${date}`;
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -151,8 +152,6 @@ function StatOverUnderEraGameContent() {
   const { user, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
-  const action = useMemo(() => searchParams.get('action'), [searchParams]);
   const gameEraFromParam = params.era as string;
 
   const [challenges, setChallenges] = useState<GameChallenge[]>([]);
@@ -166,6 +165,7 @@ function StatOverUnderEraGameContent() {
   const [statsHistory, setStatsHistory] = useState<StatHistoryRecord[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [savedResults, setSavedResults] = useState<boolean[] | null>(null);
+  const [dailyStreak, setDailyStreak] = useState<number | null>(null);
   
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -234,8 +234,7 @@ function StatOverUnderEraGameContent() {
     setGameStatus('fetching_challenges');
     setPageFetchError(null);
     resetGameState();
-    const today = new Date();
-    const currentDateISO = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+    const currentDateISO = getLaDateString();
     setTodayDateISO(currentDateISO);
     try {
       if (user) {
@@ -300,37 +299,34 @@ function StatOverUnderEraGameContent() {
       router.replace('/games/stat-over-under');
       return;
     }
-    if (user && action === 'saveGuestResult') {
-      const guestResultRaw = sessionStorage.getItem(`guestGameResult_${gameEraFromParam}`);
-      if (guestResultRaw) {
-        try {
-          const guestResult = JSON.parse(guestResultRaw) as { score: number };
-          const guestChallengesRaw = sessionStorage.getItem(`guestGameChallenges_${gameEraFromParam}`);
-          const challengesForSave: GameChallenge[] = guestChallengesRaw ? JSON.parse(guestChallengesRaw) : [];
-          if (challengesForSave.length > 0) {
-            const todayForSave = new Date();
-            const currentDateISOForSave = `${todayForSave.getFullYear()}-${(todayForSave.getMonth() + 1).toString().padStart(2, '0')}-${todayForSave.getDate().toString().padStart(2, '0')}`;
-            saveGameResult(guestResult.score, gameEraFromParam, currentDateISOForSave, challengesForSave.length)
-              .finally(() => {
-                sessionStorage.removeItem(`guestGameResult_${gameEraFromParam}`);
-                sessionStorage.removeItem(`guestGameChallenges_${gameEraFromParam}`);
-                router.replace(`/games/stat-over-under/${gameEraFromParam}`, { scroll: false });
-                loadGameForEra(gameEraFromParam);
-            });
-          } else {
-             loadGameForEra(gameEraFromParam);
-          }
-        } catch (err) {
-          console.error("Error processing guest result:", err);
-          loadGameForEra(gameEraFromParam);
-        }
+    loadGameForEra(gameEraFromParam);
+  }, [authIsLoading, gameEraFromParam, loadGameForEra, router]);
+
+  useEffect(() => {
+    if (gameStatus !== 'completed' && gameStatus !== 'already_played') return;
+    let cancelled = false;
+    const compute = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('gamescores')
+          .select('played_on_date')
+          .eq('user_id', user.id)
+          .like('game_id', 'STAT_OVER_UNDER_DAILY_V1_%');
+        if (cancelled) return;
+        const dates = (data ?? [])
+          .map((r) => r.played_on_date)
+          .filter((d): d is string => typeof d === 'string');
+        if (todayDateISO && !dates.includes(todayDateISO)) dates.push(todayDateISO);
+        setDailyStreak(computeDailyStreak(dates));
       } else {
-        loadGameForEra(gameEraFromParam);
+        setDailyStreak(computeDailyStreak(readAllLocalStatOuDates()));
       }
-    } else {
-      loadGameForEra(gameEraFromParam);
-    }
-  }, [user, authIsLoading, gameEraFromParam, action, loadGameForEra, router, saveGameResult]);
+    };
+    compute();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameStatus, user, todayDateISO]);
 
   const handleGuess = useCallback(async (guess: 'over' | 'under') => {
     if (gameStatus !== 'playing' || currentRoundIndex >= challenges.length) return;
@@ -350,48 +346,43 @@ function StatOverUnderEraGameContent() {
     setUserAnswers(updatedUserAnswers);
     setScore(updatedScore);
     setFeedbackMessage(`Your guess: ${guess.toUpperCase()}. Actual: ${currentChallenge.actual_stat_value.toFixed(currentChallenge.stat_category.includes('_PCT') ? 3 : 1)}. You were ${isCorrect ? 'Correct!' : 'Incorrect.'}`);
-    const isFinalRound = currentRoundIndex === challenges.length - 1;
+    setGameStatus('round_feedback');
+    setIsFeedbackVisible(true);
+  }, [gameStatus, currentRoundIndex, challenges, score, userAnswers]);
 
-    if (isFinalRound) {
-        try {
-          localStorage.setItem(
-            statOuStorageKey(gameEraFromParam, todayDateISO),
-            JSON.stringify({ score: updatedScore, results: updatedUserAnswers.map(a => !!a.is_correct) })
-          );
-        } catch {
-          // ignore storage failures
-        }
-        track('daily_played', { game: 'stat_over_under', era: gameEraFromParam, score: updatedScore });
-        setGameStatus('saving_results');
-        setTimeout(async () => {
-            if (user) {
-                try { 
-                    await saveGameResult(updatedScore, gameEraFromParam, todayDateISO, challenges.length); 
-                    const { data, error } = await supabase.rpc('get_stat_ou_history', { p_user_id: user.id });
-                    if (error) console.error("Could not refresh stats after game.", error);
-                    else if (data) setStatsHistory(data as StatHistoryRecord[]);
-                }
-                catch (err) { 
-                    console.error("Caught error during game finalization:", err);
-                    setPageFetchError("Failed to save final score and update stats.");
-                } finally {
-                    setGameStatus('completed');
-                }
-            } else {
-                sessionStorage.setItem(`guestGameResult_${gameEraFromParam}`, JSON.stringify({ score: updatedScore, userAnswers: updatedUserAnswers }));
-                sessionStorage.setItem(`guestGameChallenges_${gameEraFromParam}`, JSON.stringify(challenges));
-                setGameStatus('completed');
-            }
-        }, 1500); 
-
-    } else {
-        setGameStatus('round_feedback');
-        setIsFeedbackVisible(true);
+  const finalizeGame = useCallback(() => {
+    try {
+      localStorage.setItem(
+        statOuStorageKey(gameEraFromParam, todayDateISO),
+        JSON.stringify({ score, results: userAnswers.map(a => !!a.is_correct) })
+      );
+    } catch {
+      // ignore storage failures
     }
-  }, [gameStatus, currentRoundIndex, challenges, score, userAnswers, user, saveGameResult, gameEraFromParam, todayDateISO]);
-  
+    track('daily_played', { game: 'stat_over_under', era: gameEraFromParam, score });
+    markDailyPlayed('statOu');
+    setGameStatus('saving_results');
+    setTimeout(async () => {
+      if (user) {
+        try {
+          await saveGameResult(score, gameEraFromParam, todayDateISO, challenges.length);
+          const { data, error } = await supabase.rpc('get_stat_ou_history', { p_user_id: user.id });
+          if (error) console.error("Could not refresh stats after game.", error);
+          else if (data) setStatsHistory(data as StatHistoryRecord[]);
+        } catch (err) {
+          console.error("Caught error during game finalization:", err);
+          setPageFetchError("Failed to save final score and update stats.");
+        } finally {
+          setGameStatus('completed');
+        }
+      } else {
+        setGameStatus('completed');
+      }
+    }, 800);
+  }, [score, userAnswers, user, saveGameResult, gameEraFromParam, todayDateISO, challenges.length]);
+
   const handleNextRound = useCallback(() => {
-    setIsImageLoaded(false); 
+    setIsImageLoaded(false);
     setIsFeedbackVisible(false);
 
     setTimeout(() => {
@@ -400,10 +391,10 @@ function StatOverUnderEraGameContent() {
         setCurrentRoundIndex(prev => prev + 1);
         setGameStatus('playing');
       } else {
-        setGameStatus('completed'); 
+        finalizeGame();
       }
     }, 500);
-  }, [currentRoundIndex, challenges.length]);
+  }, [currentRoundIndex, challenges.length, finalizeGame]);
   
   const handlePlayDifferentEra = () => {
     router.push('/games/stat-over-under'); 
@@ -470,14 +461,18 @@ function StatOverUnderEraGameContent() {
       results: resultsForShare,
       correct: score,
       total: potentialPoints,
+      streak: dailyStreak ?? undefined,
     });
     return (
       <div className={`w-full rounded-lg min-h-screen flex items-center justify-center py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className={`max-w-lg w-full mx-auto p-6 sm:p-8 rounded-xl shadow-2xl text-center backdrop-blur-md animate-fadeIn ${cardBg}`}>
             <h1 className={`text-3xl font-bold mb-2 ${highlightColor}`}>{isCompleted ? 'Game Over!' : 'Game Already Played!'}</h1>
             <h2 className={`text-xl font-medium mb-2 ${mutedText}`}>{eraName} - {todayDateISO}</h2>
-            <p className={`text-xl mb-4 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
-            <div className="mb-2 flex justify-center">
+            <p className={`text-xl mb-1 ${mutedText}`}>Your score: <span className={`font-bold ${strongText}`}>{score} / {potentialPoints}</span></p>
+            {dailyStreak !== null && dailyStreak > 0 && (
+              <p className={`text-sm mb-4 font-semibold uppercase tracking-wide ${amberText}`}>{dailyStreak} day streak</p>
+            )}
+            <div className="mt-3 mb-2 flex justify-center">
               <ShareResult
                 shareText={shareText}
                 game="stat_over_under"
@@ -487,7 +482,7 @@ function StatOverUnderEraGameContent() {
             <div className="mb-4">
               <CountdownTimer
                 compact
-                targetTimeIso={getNextLocalMidnightIso()}
+                targetTimeIso={getNextLaMidnightIso()}
                 label="Next challenge in"
                 completedText="New challenge available. Refresh to play!"
               />

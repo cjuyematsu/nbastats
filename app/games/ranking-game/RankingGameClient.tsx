@@ -7,6 +7,8 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useAuth } from '@/app/contexts/AuthContext';
 import { PostgrestError } from '@supabase/supabase-js';
 import { buildStreakShare } from '@/lib/shareText';
+import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
+import { generateRankingDaily } from '@/lib/rankingDaily';
 import ShareResult from '@/components/ShareResult';
 
 interface Player {
@@ -96,6 +98,7 @@ export default function RankingGame() {
   const [totalCorrect, setTotalCorrect] = useState<number>(0);
   const [totalIncorrect, setTotalIncorrect] = useState<number>(0);
   const [endedStreak, setEndedStreak] = useState<number | null>(null);
+  const [isDailyRound, setIsDailyRound] = useState(false);
 
   const isDarkMode = useThemeDetector();
 
@@ -132,7 +135,27 @@ export default function RankingGame() {
     await fetchUserStreak();
 
     let gameLoaded = false;
-    const cachedGameDataString = sessionStorage.getItem(GAME_SESSION_CACHE_KEY);
+
+    let dailyPending = false;
+    try {
+      dailyPending = !readTodayProgress().ranking;
+    } catch {
+      // storage unavailable; fall through to a random round
+    }
+    if (dailyPending) {
+      const daily = await generateRankingDaily();
+      if (daily) {
+        setCorrectOrder(daily.correctOrder);
+        setPlayers(daily.players);
+        setCategoryName(daily.correctOrder[0].categoryName);
+        setCategoryOptions(daily.correctOrder[0].categoryOptions);
+        setIsDailyRound(true);
+        gameLoaded = true;
+      }
+    }
+    if (!gameLoaded) setIsDailyRound(false);
+
+    const cachedGameDataString = gameLoaded ? null : sessionStorage.getItem(GAME_SESSION_CACHE_KEY);
     if (cachedGameDataString) {
         try {
             const cachedGame = JSON.parse(cachedGameDataString);
@@ -249,6 +272,7 @@ export default function RankingGame() {
         writeGuestStreak({ current_streak: 0, max_streak: maxStreak, total_correct: totalCorrect, total_incorrect: newIncorrect });
       }
     }
+    if (isDailyRound) markDailyPlayed('ranking');
     setStatus(GameStatus.Finished);
   };
 
@@ -280,6 +304,11 @@ export default function RankingGame() {
         <h1 className="text-3xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h1>
         <h2 className="text-sm font-bold text-center mb-2">Green means the player is in the correct ranking and yellow means they are one away</h2>
         <div className={`text-center mb-4 p-3 rounded-lg ${statsContainerClasses}`}>
+          {isDailyRound && (
+            <span className="inline-block mb-1 text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/40 border border-sky-300 dark:border-sky-700 rounded-full px-3 py-0.5">
+              Daily Challenge
+            </span>
+          )}
           {correctOrder.length > 0 && <p className="text-lg">{correctOrder[0].SeasonYear} Regular Season</p>}
           <div className="flex justify-center space-x-6">
               <p>Current Streak: {currentStreak}</p>

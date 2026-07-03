@@ -5,6 +5,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { buildStreakShare } from '@/lib/shareText';
+import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
+import { generateOddManOutDaily } from '@/lib/oddManOutDaily';
 import ShareResult from '@/components/ShareResult';
 
 interface Player {
@@ -16,6 +18,7 @@ interface GameData {
   players: Player[];
   oddManOutName: string;
   connectionName: string;
+  question?: string;
 }
 
 enum GameStatus {
@@ -58,6 +61,7 @@ export default function OddManOutGame() {
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalIncorrect, setTotalIncorrect] = useState(0);
   const [endedStreak, setEndedStreak] = useState<number | null>(null);
+  const [isDailyRound, setIsDailyRound] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -122,8 +126,25 @@ export default function OddManOutGame() {
 
     await fetchUserStreak();
 
-    let gameLoadedFromCache = false;
-    const cachedDataString = sessionStorage.getItem(GAME_SESSION_CACHE_KEY);
+    let dailyLoaded = false;
+    let dailyPending = false;
+    try {
+      dailyPending = !readTodayProgress().oddManOut;
+    } catch {
+      // storage unavailable; fall through to a random round
+    }
+    if (dailyPending) {
+      const daily = await generateOddManOutDaily();
+      if (daily) {
+        setGameData(daily);
+        setIsDailyRound(true);
+        dailyLoaded = true;
+      }
+    }
+    if (!dailyLoaded) setIsDailyRound(false);
+
+    let gameLoadedFromCache = dailyLoaded;
+    const cachedDataString = dailyLoaded ? null : sessionStorage.getItem(GAME_SESSION_CACHE_KEY);
     if (cachedDataString) {
         try {
             const cachedData = JSON.parse(cachedDataString) as GameData;
@@ -176,6 +197,7 @@ export default function OddManOutGame() {
     const guessedPlayerName = `${guessedPlayer.FirstName} ${guessedPlayer.LastName}`;
     setUserGuessName(guessedPlayerName);
     setStatus(GameStatus.Answered);
+    if (isDailyRound) markDailyPlayed('oddManOut');
     const isCorrect = guessedPlayerName === gameData.oddManOutName;
     
     if (isCorrect) {
@@ -267,7 +289,12 @@ export default function OddManOutGame() {
 
         <div>
             <h1 className="text-3xl font-bold mb-2 text-sky-600">Odd Man Out</h1>
-            <p className="text-lg mb-2">Three of these players played for the same program prior to being drafted. Pick the odd one out... </p>
+            {isDailyRound && (
+              <span className="inline-block mb-2 text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/40 border border-sky-300 dark:border-sky-700 rounded-full px-3 py-0.5">
+                Daily Challenge
+              </span>
+            )}
+            <p className="text-lg mb-2">{gameData?.question ?? 'Three of these players played for the same program prior to being drafted. Pick the odd one out... '}</p>
             
             <div className="text-center p-3 mb-4">
             <div className={`font-bold text-xl flex justify-center space-x-6 ${streakTextClasses}`}>
