@@ -9,7 +9,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getLastRearrangementIso, isRearrangementDay } from '@/lib/top100Time';
+import { getLastRearrangementIso, getPreviousRearrangementIso, getRunInstantIso, isRearrangementDay } from '@/lib/top100Time';
 import type { Database } from '@/types/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +23,15 @@ export async function GET(request: Request) {
   const force = new URL(request.url).searchParams.get('force') === '1';
   if (!force && !isRearrangementDay()) {
     return NextResponse.json({ ok: true, skipped: 'not a rearrangement day' });
+  }
+  // Scheduled runs settle the cycle ending at TODAY's 07:00 boundary, even
+  // if the scheduler fires a few minutes off. Runs earlier in the UTC day
+  // (e.g. a manual curl) are refused: they would rearrange hours early and,
+  // without the pinned boundary, mis-stamp the live cycle's votes (happened
+  // 2026-07-03, 111 rows repaired).
+  const boundaryIso = force ? getLastRearrangementIso() : getRunInstantIso();
+  if (!force && Date.now() < Date.parse(boundaryIso) - 5 * 60_000) {
+    return NextResponse.json({ ok: true, skipped: 'before the 07:00 UTC run instant' });
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -59,15 +68,24 @@ export async function GET(request: Request) {
   }
 
   // The RPC only counts votes from roughly the last 48 hours (it was built
-  // for a 2-day cadence). Refresh the timestamps of every vote cast or
-  // changed during the current cycle so a 3-day cycle's votes all land
-  // inside that window.
-  const cycleStart = getLastRearrangementIso();
-  const nowIso = new Date().toISOString();
+  // for a 2-day cadence). Refresh the timestamps of every vote from the
+  // cycle being applied so a full 3-day cycle's votes land inside that
+  // window. Boundary runs stamp them just before the boundary (never in the
+  // future, in case the RPC's window is capped at now()) so they stay out
+  // of the new cycle's counts and highlight queries. A force run mid-cycle
+  // stamps now instead, so the current cycle's UI counts survive the
+  // rerank. (A late same-day non-force catch-up absorbs any post-boundary
+  // votes into the old cycle; acceptable, the window is minutes.)
+  const windowStartIso = force
+    ? boundaryIso
+    : getPreviousRearrangementIso(new Date(Date.parse(boundaryIso)));
+  const stampIso = force
+    ? new Date().toISOString()
+    : new Date(Math.min(Date.now(), Date.parse(boundaryIso) - 1000)).toISOString();
   const { error: freshenError } = await admin
     .from('playervotes')
-    .update({ created_at: nowIso, updated_at: nowIso })
-    .or(`created_at.gte.${cycleStart},updated_at.gte.${cycleStart}`);
+    .update({ created_at: stampIso, updated_at: stampIso })
+    .or(`created_at.gte.${windowStartIso},updated_at.gte.${windowStartIso}`);
   if (freshenError) {
     return NextResponse.json({ error: freshenError.message }, { status: 500 });
   }
@@ -77,5 +95,5 @@ export async function GET(request: Request) {
     console.error('weekly-rankings cron failed:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, result: data });
+  return NextResponse.json({ ok: true, mode: force ? 'forced' : 'boundary', result: data });
 }
