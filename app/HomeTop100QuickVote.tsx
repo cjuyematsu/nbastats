@@ -102,7 +102,7 @@ export default function HomeTop100QuickVote({ rows }: { rows: QuickVoteRow[] }) 
           href="/top-100-players"
           className="inline-block px-4 py-2 bg-sky-500 dark:bg-sky-600 hover:bg-sky-600 dark:hover:bg-sky-700 text-white text-sm font-semibold rounded-lg transition-colors"
         >
-          See all 100 + nominate
+          See Top 100
         </Link>
         {hasVoted && (
           <span className="text-sm text-green-600 dark:text-green-400 font-medium">
