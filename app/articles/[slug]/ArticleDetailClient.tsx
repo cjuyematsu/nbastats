@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 import ArticleEngagement from '@/app/articles/_components/ArticleEngagement';
+import AdSlot from '@/components/AdSlot';
 import { formatDate, relativeTime } from '@/lib/articleDates';
 
 export interface Article {
@@ -73,6 +74,8 @@ export default function ArticleDetailClient({ article }: { article: Article }) {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.body_markdown}</ReactMarkdown>
           </div>
         )}
+
+        <AdSlot slot="article-page" className="mt-8" />
 
         <ArticleEngagement articleId={article.id} />
       </div>

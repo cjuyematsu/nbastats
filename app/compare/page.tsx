@@ -36,7 +36,7 @@ export default function ComparePlayersPage() {
       </header>
 
       <Suspense fallback={<div className="text-center p-10">Loading Comparison Chart...</div>}>
-        <PlayerComparisonChart />
+        <PlayerComparisonChart showShare />
       </Suspense>
 
       <section className="mt-12 text-left max-w-4xl mx-auto">

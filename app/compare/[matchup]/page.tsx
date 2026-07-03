@@ -6,7 +6,10 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import PlayerComparisonChart from '@/components/PlayerComparisonChart';
+import ShareResult from '@/components/ShareResult';
+import AdSlot from '@/components/AdSlot';
 import { COMPARE_MATCHUPS, findMatchup, relatedMatchups } from '@/app/data/compareMatchups';
+import { buildCompareShare } from '@/lib/shareText';
 import { CareerStatsData, PlayerSuggestion } from '@/types/stats';
 
 export const revalidate = 86400;
@@ -133,8 +136,20 @@ export default async function CompareMatchupPage({
           <PlayerComparisonChart initialPlayerNames={[a, b]} />
         </Suspense>
 
+        <AdSlot slot="matchup-page" className="mt-8 max-w-4xl mx-auto" />
+
         <section className="mt-12 text-left max-w-4xl mx-auto">
-          <div className="flex flex-wrap gap-4 mb-8">
+          <div className="flex flex-wrap items-center gap-4 mb-8">
+            <ShareResult
+              shareText={buildCompareShare({
+                nameA: a,
+                nameB: b,
+                url: `hoopsdata.net/compare/${found.matchup.slug}`,
+              })}
+              game="compare"
+              surface="matchup_page"
+              className="inline-flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white text-sm font-semibold px-4 py-1.5 transition-all"
+            />
             {pa && (
               <Link href={`/player/${pa.suggestion.personId}`} className="text-sky-600 dark:text-sky-400 hover:underline">
                 {a} career stats
