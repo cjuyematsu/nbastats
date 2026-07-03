@@ -26,10 +26,26 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) return { title: 'Article not found' };
+  const description = article.summary ?? article.dek ?? undefined;
+  const url = `/articles/${slug}`;
   return {
     title: article.title,
-    description: article.summary ?? article.dek ?? undefined,
-    alternates: { canonical: `/articles/${slug}` },
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      url,
+      title: article.title,
+      description,
+      publishedTime: article.published_at ?? undefined,
+      modifiedTime: article.updated_at,
+      authors: [article.author || 'Hoops Data Staff'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description,
+    },
   };
 }
 
@@ -37,5 +53,31 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) notFound();
-  return <ArticleDetailClient article={article} />;
+
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.summary ?? article.dek ?? undefined,
+    datePublished: article.published_at ?? undefined,
+    dateModified: article.updated_at,
+    author: { '@type': 'Person', name: article.author || 'Hoops Data Staff' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'HoopsData',
+      logo: { '@type': 'ImageObject', url: 'https://hoopsdata.net/logo.png' },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://hoopsdata.net/articles/${slug}` },
+    image: 'https://hoopsdata.net/logo.png',
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <ArticleDetailClient article={article} />
+    </>
+  );
 }
