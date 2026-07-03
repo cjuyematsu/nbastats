@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, CareerStatsData } from '@/types/stats';
 import HomeCompareHero, { HeroSide } from './HomeCompareHero';
 import HomeSixDegreesTeaser, { SixDegreesPuzzle } from './HomeSixDegreesTeaser';
+import DailyChallengesStrip from './DailyChallengesStrip';
+import HomeTop100Teaser from './HomeTop100Teaser';
 import HomeForumLatest from './HomeForumLatest';
 import HomeFeaturedArticle, { FeaturedArticle } from './HomeFeaturedArticle';
 import { getTodaysMatchup } from './data/featuredMatchups';
@@ -107,11 +109,14 @@ export default async function HomePage() {
           </h2>
         </header>
 
+        <DailyChallengesStrip />
+
         <HomeFeaturedArticle article={featuredArticle} />
 
         <div className="grid gap-5 mb-12">
           <HomeCompareHero initialA={initialA} initialB={initialB} />
           <HomeSixDegreesTeaser initialPuzzle={dailySixDegrees} />
+          <HomeTop100Teaser />
         </div>
 
         <section className="mb-12 text-left">
