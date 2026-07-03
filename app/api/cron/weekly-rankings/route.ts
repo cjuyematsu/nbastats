@@ -1,11 +1,12 @@
 // app/api/cron/weekly-rankings/route.ts
 //
-// Vercel Cron target (see vercel.json): fires daily at 07:00 UTC, but only
-// rearranges the Top 100 every third day (lib/top100Time.ts keeps the page
-// countdown on the same clock). Applies accumulated votes by calling the
-// perform_weekly_player_rearrangement RPC as service role. Vercel sends
-// Authorization: Bearer <CRON_SECRET> automatically when the env var is set.
-// Pass ?force=1 to rearrange off-cycle (manual catch-up).
+// Vercel Cron target (see vercel.json): fires daily at 07:00 AND 08:00 UTC (the
+// two UTC instants of LA midnight across DST), but only rearranges the Top 100
+// at the LA-midnight boundary of every third day (lib/top100Time.ts keeps the
+// page countdown on the same clock, aligned with the daily games). Applies
+// accumulated votes by calling the perform_weekly_player_rearrangement RPC as
+// service role. Vercel sends Authorization: Bearer <CRON_SECRET> automatically
+// when the env var is set. Pass ?force=1 to rearrange off-cycle (manual catch-up).
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -21,17 +22,21 @@ export async function GET(request: Request) {
   }
 
   const force = new URL(request.url).searchParams.get('force') === '1';
-  if (!force && !isRearrangementDay()) {
-    return NextResponse.json({ ok: true, skipped: 'not a rearrangement day' });
-  }
-  // Scheduled runs settle the cycle ending at TODAY's 07:00 boundary, even
-  // if the scheduler fires a few minutes off. Runs earlier in the UTC day
-  // (e.g. a manual curl) are refused: they would rearrange hours early and,
-  // without the pinned boundary, mis-stamp the live cycle's votes (happened
-  // 2026-07-03, 111 rows repaired).
+  // Scheduled runs settle the cycle ending at TODAY's LA-midnight boundary. The
+  // cron fires at both 07:00 and 08:00 UTC (LA midnight is one or the other by
+  // season); only the invocation at the boundary acts. The off-season hour sits
+  // an hour away and is refused, as is any early or late manual curl: rearranging
+  // off-instant would mis-stamp the live cycle's votes (happened 2026-07-03, 111
+  // rows repaired).
   const boundaryIso = force ? getLastRearrangementIso() : getRunInstantIso();
-  if (!force && Date.now() < Date.parse(boundaryIso) - 5 * 60_000) {
-    return NextResponse.json({ ok: true, skipped: 'before the 07:00 UTC run instant' });
+  if (!force) {
+    if (!isRearrangementDay()) {
+      return NextResponse.json({ ok: true, skipped: 'not a rearrangement day' });
+    }
+    const drift = Date.now() - Date.parse(boundaryIso);
+    if (drift < -5 * 60_000 || drift > 45 * 60_000) {
+      return NextResponse.json({ ok: true, skipped: 'not the LA-midnight run instant' });
+    }
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

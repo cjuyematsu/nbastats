@@ -1,55 +1,65 @@
 // lib/top100Time.ts
 //
-// Top 100 rearrangements run at 07:00 UTC every third day, anchored to
-// REARRANGE_EPOCH. The cron fires daily; the route only rearranges when
-// isRearrangementDay() is true, so the countdown and the cron always agree.
+// Top 100 rearrangements run at midnight America/Los_Angeles every third day,
+// anchored to REARRANGE_EPOCH, so the reshuffle lands on the same LA-midnight
+// boundary as the daily games/comparison. The Vercel cron fires at both 07:00
+// and 08:00 UTC (the two UTC instants LA midnight takes across DST); the route
+// acts only at the boundary of a rearrangement day, so the countdown and the
+// cron always agree.
+
+import { getLaDateString, laMidnightIso } from '@/lib/dailyTime';
+import { dayNumber } from '@/lib/dailySeed';
 
 const MS_PER_DAY = 86_400_000;
-const RUN_HOUR_UTC = 7;
 const CYCLE_DAYS = 3;
-const REARRANGE_EPOCH_DAY = Date.UTC(2026, 6, 3) / MS_PER_DAY;
+const REARRANGE_EPOCH_DAY = dayNumber('2026-07-03');
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-function utcDayNumber(at: Date): number {
-  return Math.floor(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()) / MS_PER_DAY);
+// LA calendar day number (epoch-day of the LA date), matching the daily games.
+function laDayNumber(at: Date): number {
+  return dayNumber(getLaDateString(at));
 }
 
-function runInstantIso(dayNumber: number): string {
-  return new Date(dayNumber * MS_PER_DAY + RUN_HOUR_UTC * 3_600_000).toISOString();
+function laDateForDay(dayNum: number): string {
+  return new Date(dayNum * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+// UTC instant of LA midnight starting the given LA day number.
+function runInstantIso(dayNum: number): string {
+  return laMidnightIso(laDateForDay(dayNum));
 }
 
 function latestCycleDay(at: Date): number {
-  const day = utcDayNumber(at);
+  const day = laDayNumber(at);
   return day - mod(day - REARRANGE_EPOCH_DAY, CYCLE_DAYS);
 }
 
+function lastRunDay(now: Date): number {
+  let day = latestCycleDay(now);
+  while (Date.parse(runInstantIso(day)) > now.getTime()) day -= CYCLE_DAYS;
+  return day;
+}
+
 export function isRearrangementDay(now: Date = new Date()): boolean {
-  return mod(utcDayNumber(now) - REARRANGE_EPOCH_DAY, CYCLE_DAYS) === 0;
+  return mod(laDayNumber(now) - REARRANGE_EPOCH_DAY, CYCLE_DAYS) === 0;
 }
 
 export function getNextRearrangementIso(now: Date = new Date()): string {
   let day = latestCycleDay(now);
-  while (day * MS_PER_DAY + RUN_HOUR_UTC * 3_600_000 <= now.getTime()) {
-    day += CYCLE_DAYS;
-  }
+  while (Date.parse(runInstantIso(day)) <= now.getTime()) day += CYCLE_DAYS;
   return runInstantIso(day);
 }
 
 export function getLastRearrangementIso(now: Date = new Date()): string {
-  let day = latestCycleDay(now);
-  while (day * MS_PER_DAY + RUN_HOUR_UTC * 3_600_000 > now.getTime()) {
-    day -= CYCLE_DAYS;
-  }
-  return runInstantIso(day);
+  return runInstantIso(lastRunDay(now));
 }
 
 export function getPreviousRearrangementIso(now: Date = new Date()): string {
-  const last = Date.parse(getLastRearrangementIso(now));
-  return new Date(last - CYCLE_DAYS * MS_PER_DAY).toISOString();
+  return runInstantIso(lastRunDay(now) - CYCLE_DAYS);
 }
 
-// The 07:00 UTC run instant of the calendar day `now` falls on.
+// LA-midnight run instant of the LA day `now` falls on.
 export function getRunInstantIso(now: Date = new Date()): string {
-  return runInstantIso(utcDayNumber(now));
+  return runInstantIso(laDayNumber(now));
 }

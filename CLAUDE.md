@@ -68,8 +68,10 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
   the `Authorization: Bearer <token>` header, verifies the user with Supabase, then writes as
   that user.
 - `app/api/cron/weekly-rankings/route.ts` — Vercel Cron target (`vercel.json`, daily at
-  07:00 UTC; the route only rearranges every third day via `isRearrangementDay()` in
-  `lib/top100Time.ts`, which also drives the page countdowns; `?force=1` runs off-cycle).
+  **07:00 and 08:00 UTC** — the two UTC instants of LA midnight across DST; the route only
+  rearranges every third day at the **LA-midnight boundary** via `isRearrangementDay()` +
+  the run-instant gate in `lib/top100Time.ts`, which also drives the page countdowns and now
+  lines the reshuffle up with the daily games/comparison rotation; `?force=1` runs off-cycle).
   Auths `Authorization: Bearer <CRON_SECRET>`, then, as service role: (1) clears the
   `rankinghistory` bucket matching the incoming rankings' (year, week) stamp, because the
   `perform_weekly_player_rearrangement` RPC archives under that stamp and two runs in one
@@ -78,11 +80,11 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
   ending cycle's vote timestamps to **boundary minus 1s**, because the RPC only counts votes
   from roughly the last 48 hours and that stamp keeps them out of the NEW cycle's counts and
   highlight reads (`?force=1` stamps `now` instead so mid-cycle counts survive); (3) calls
-  the RPC. Non-force runs are also gated until the day's 07:00 UTC instant: earlier the same
-  UTC day, `getLastRearrangementIso()` returns the PREVIOUS boundary and the freshen would
-  mis-stamp the live cycle's votes (a manual pre-07:00 curl did exactly this on 2026-07-03;
-  111 rows had to be repaired). Vote writers also reset `created_at` when a user changes an
-  existing vote so re-votes count as new.
+  the RPC. Non-force runs act only within a **[-5min, +45min] window of the LA-midnight run
+  instant** (`getRunInstantIso`): the off-season cron hour is ~1h away and refused, as is any
+  early/late manual curl that would rearrange off-instant and mis-stamp the live cycle's votes
+  (a mistimed curl did exactly this on 2026-07-03; 111 rows had to be repaired). Vote writers
+  also reset `created_at` when a user changes an existing vote so re-votes count as new.
 
 ### Anonymous identity for guests
 `lib/anonymousIdentifier.ts` (`getAnonymousId`) mints/stores a localStorage `anon_*` id with
