@@ -269,7 +269,7 @@ export default function Navbar() {
                 <div className="pt-2">
                   {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Tools</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  {/* <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>               */}
+                  <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>
                   <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
                   <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
                   <NavLink href="/duos" icon={<UsersIcon />} showText={showTextInNav}>Duos</NavLink>
@@ -299,7 +299,6 @@ export default function Navbar() {
                 <div className="pt-2">
                   {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Articles</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  {/* <NavLink href="/top-100-players" icon={<UsersIcon />} showText={showTextInNav}>Top 100</NavLink>               */}
                   <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Forum</NavLink>
                   {isAdmin && (
                     <NavLink href="/articles/review" icon={<ReviewIcon />} showText={showTextInNav}>Review</NavLink>
