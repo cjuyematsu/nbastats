@@ -46,11 +46,19 @@ recent archived week) + `current_rank` from `currentweeklyrankings` +
 
 ## Scheduling (as of 2026-07-03)
 
-- Vercel cron (`vercel.json`): daily 08:00 UTC (LA midnight in winter, ~1h after
-  in summer; Hobby allows one run/day) -> `/api/cron/weekly-rankings`,
-  which self-gates to every 3rd day (epoch 2026-07-03), clears the history
-  bucket, freshens vote timestamps, then calls the RPC. This is the ONLY
-  scheduler that should call the RPC.
+- Vercel cron (`vercel.json`): daily 08:00 UTC (Hobby allows one run/day; fires
+  can be ~1h late) -> `/api/cron/weekly-rankings`. The route acts when the
+  board's `ranked_at` predates the last LA-midnight cycle boundary (every 3rd
+  day, epoch 2026-07-03) and skips otherwise, so late or missed fires self-heal
+  at the next daily fire instead of losing the cycle (a [-5min, +90min] window
+  gate did exactly that on 2026-07-03). It clears the history bucket, freshens
+  the ending cycle's vote timestamps, then calls the RPC. This is the ONLY
+  scheduler that should call the RPC. The run/skip decision and freshen math
+  are pure (`planRearrangement` in `lib/top100Cron.ts`); `npm test` proves the
+  invariants under simulated schedules (tests/top100CronSimulation.test.ts):
+  every boundary applies exactly once with fires up to 2 days late, no vote is
+  counted twice, and votes are lost ONLY if zero fires happen for an entire
+  3-day cycle (they then remain as harmless dead rows).
 - pg_cron job 12 `weekly-player-rearrangement` (`0 7 */2 * *`, odd days of
   month) called the RPC DIRECTLY, bypassing the bucket-clear and freshen. It
   was the root cause of the flaky era: same-ISO-week double runs aborted on the

@@ -5,15 +5,19 @@
 
 export const SIX_DEGREES_EPOCH = '2025-06-10';
 
+// Constructing Intl.DateTimeFormat is ~1000x the cost of formatting; reuse.
+const laDateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' });
+const laOffsetFormat = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  timeZoneName: 'longOffset',
+});
+
 export function getLaDateString(d: Date = new Date()): string {
-  return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  return laDateFormat.format(d);
 }
 
 function laUtcOffset(at: Date): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles',
-    timeZoneName: 'longOffset',
-  }).formatToParts(at);
+  const parts = laOffsetFormat.formatToParts(at);
   const name = parts.find((p) => p.type === 'timeZoneName')?.value ?? 'GMT-08:00';
   const offset = name.replace('GMT', '');
   return offset || '-08:00';

@@ -20,10 +20,13 @@ npm run dev      # next dev   — primary dev workflow (http://localhost:3000)
 npm run build    # next build — production build; this is also how you catch type errors
 npm start        # next start — serve a production build
 npm run lint     # next lint  — ESLint 9 flat config (next/core-web-vitals + next/typescript)
+npm test         # tsx --test tests/*.test.ts — node:test via tsx (no jest/vitest installed)
 ```
 
-There is **no test script and no separate typecheck script** — type errors surface in the
-editor and at `next build`. Don't reference `npm test`/`jest`; none is installed.
+Tests cover the Top 100 cycle clock (`lib/top100Time.ts`), the cron run/skip planner
+(`lib/top100Cron.ts`), and a simulation of the vote/rearrangement lifecycle under late,
+missed, and forced cron fires. Run them for ANY change touching that logic. There is **no
+separate typecheck script** — type errors surface in the editor and at `next build`.
 
 ## Architecture
 
@@ -68,24 +71,28 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
   the `Authorization: Bearer <token>` header, verifies the user with Supabase, then writes as
   that user.
 - `app/api/cron/weekly-rankings/route.ts` — Vercel Cron target (`vercel.json`, once daily at
-  **08:00 UTC** — LA midnight in winter, ~1h after it in summer; a single run because Hobby
-  allows only one cron/day. The route only
-  rearranges every third day at the **LA-midnight boundary** via `isRearrangementDay()` +
-  the run-instant gate in `lib/top100Time.ts`, which also drives the page countdowns and now
-  lines the reshuffle up with the daily games/comparison rotation; `?force=1` runs off-cycle).
-  Auths `Authorization: Bearer <CRON_SECRET>`, then, as service role: (1) clears the
-  `rankinghistory` bucket matching the incoming rankings' (year, week) stamp, because the
-  `perform_weekly_player_rearrangement` RPC archives under that stamp and two runs in one
-  ISO week otherwise poison the next run with a `uq_history_year_week_player` violation
-  (this is what silently killed reranking 2026-04-25 to 2026-07-02); (2) freshens the
-  ending cycle's vote timestamps to **boundary minus 1s**, because the RPC only counts votes
-  from roughly the last 48 hours and that stamp keeps them out of the NEW cycle's counts and
+  **08:00 UTC**; Hobby allows one cron/day and fires can be **up to ~1h late**, so never gate
+  on a tight time window — a late-refused fire on 2026-07-03 silently lost a whole cycle.
+  Scheduled runs instead gate on an **unapplied boundary**: if the board's `ranked_at`
+  predates `getLastRearrangementIso()` (LA-midnight boundary every third day,
+  `lib/top100Time.ts`, which also drives the page countdowns), a rearrangement is owed and
+  the run settles it however late; otherwise it skips. Missed fires self-heal the next day;
+  `?force=1` rearranges off-cycle. The gate + freshen math is the pure
+  `planRearrangement` in `lib/top100Cron.ts`, exercised by `npm test`). Auths
+  `Authorization: Bearer <CRON_SECRET>`, then, as
+  service role: (1) clears the `rankinghistory` bucket matching the incoming rankings'
+  (year, week) stamp, because the `perform_weekly_player_rearrangement` RPC archives under
+  that stamp and two runs in one ISO week otherwise poison the next run with a
+  `uq_history_year_week_player` violation (this is what silently killed reranking
+  2026-04-25 to 2026-07-02); (2) freshens the ending cycle's vote timestamps (bounded to
+  [prev boundary, boundary) so late catch-ups don't drag new votes backward) to
+  **boundary minus 1s** (floored at now minus 47h), because the RPC only counts votes from
+  roughly the last 48 hours and that stamp keeps them out of the NEW cycle's counts and
   highlight reads (`?force=1` stamps `now` instead so mid-cycle counts survive); (3) calls
-  the RPC. Non-force runs act only within a **[-5min, +90min] window of the LA-midnight run
-  instant** (`getRunInstantIso`): the summer run lands ~60min after the instant and still acts,
-  while any stray early/late manual curl that would rearrange off-instant and mis-stamp the live
-  cycle's votes is refused (a mistimed curl did exactly this on 2026-07-03; 111 rows had to be repaired). Vote writers
-  also reset `created_at` when a user changes an existing vote so re-votes count as new.
+  the RPC. The Top 100 page opens its vote window at the board's **`ranked_at`** (last
+  APPLIED rearrangement), not the theoretical boundary, so votes stay visible until a run
+  actually consumes them. Vote writers also reset `created_at` when a user changes an
+  existing vote so re-votes count as new.
 
 ### Anonymous identity for guests
 `lib/anonymousIdentifier.ts` (`getAnonymousId`) mints/stores a localStorage `anon_*` id with
@@ -150,8 +157,9 @@ Static / hardcoded data:
 
 ## Gotchas
 
-- **No test framework** is installed yet. If you add one, keep new logic in pure, importable
-  functions (e.g. the BFS path-building, scoring/streak math) so it's unit-testable.
+- **Tests are node:test via tsx** (`tests/*.test.ts`, `npm test`) — no jest/vitest. Keep new
+  logic in pure, importable functions (like `lib/top100Cron.ts`) so it's testable this way;
+  the BFS path-building and scoring/streak math are still untested candidates.
 - **Schema drift**: a Supabase change that isn't reflected in `types/supabase.ts` will pass
   the editor but produce wrong/`any` types — regenerate after schema edits.
 - `migrations/` being empty is **intentional** — don't treat it as missing setup.
