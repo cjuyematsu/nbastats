@@ -58,8 +58,3 @@ export function getLastRearrangementIso(now: Date = new Date()): string {
 export function getPreviousRearrangementIso(now: Date = new Date()): string {
   return runInstantIso(lastRunDay(now) - CYCLE_DAYS);
 }
-
-// LA-midnight run instant of the LA day `now` falls on.
-export function getRunInstantIso(now: Date = new Date()): string {
-  return runInstantIso(laDayNumber(now));
-}

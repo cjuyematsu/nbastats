@@ -1,18 +1,19 @@
 // app/api/cron/weekly-rankings/route.ts
 //
 // Vercel Cron target (see vercel.json): fires once daily at 08:00 UTC (Hobby
-// allows only one run per day). That instant is LA midnight in winter/PST and
-// ~1h after it in summer/PDT, but always the same LA calendar day, so the route
-// only rearranges the Top 100 at the LA-midnight boundary of every third day
-// (lib/top100Time.ts keeps the page countdown on the same clock, aligned with
-// the daily games). Applies accumulated votes by calling the
-// perform_weekly_player_rearrangement RPC as service role. Vercel sends
-// Authorization: Bearer <CRON_SECRET> automatically when the env var is set.
-// Pass ?force=1 to rearrange off-cycle (manual catch-up).
+// allows only one run per day, and fires can be late by up to ~an hour).
+// The run/skip decision and vote-freshen math live in lib/top100Cron.ts
+// (planRearrangement), which is covered by `npm test`: if the current board's
+// ranked_at predates the last LA-midnight cycle boundary, a rearrangement is
+// owed and this run settles it, no matter how late the fire is. A missed or
+// refused fire self-heals at the next daily fire. Applies accumulated votes
+// by calling the perform_weekly_player_rearrangement RPC as service role.
+// Vercel sends Authorization: Bearer <CRON_SECRET> automatically when the
+// env var is set. Pass ?force=1 to rearrange off-cycle (manual escape hatch).
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getLastRearrangementIso, getPreviousRearrangementIso, getRunInstantIso, isRearrangementDay } from '@/lib/top100Time';
+import { planRearrangement } from '@/lib/top100Cron';
 import type { Database } from '@/types/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -24,23 +25,6 @@ export async function GET(request: Request) {
   }
 
   const force = new URL(request.url).searchParams.get('force') === '1';
-  // Scheduled runs settle the cycle ending at TODAY's LA-midnight boundary. The
-  // cron fires once daily at 08:00 UTC, which is LA midnight in winter (drift 0)
-  // and ~60min after it in summer (07:00 UTC is the summer boundary). The window
-  // spans [-5min, +90min] of the run instant so both seasons — plus reasonable
-  // Hobby cron delay — act, while a stray early or late manual non-force curl is
-  // still refused: rearranging off-instant would mis-stamp the live cycle's votes
-  // (happened 2026-07-03, 111 rows repaired). ?force=1 is the catch-up escape.
-  const boundaryIso = force ? getLastRearrangementIso() : getRunInstantIso();
-  if (!force) {
-    if (!isRearrangementDay()) {
-      return NextResponse.json({ ok: true, skipped: 'not a rearrangement day' });
-    }
-    const drift = Date.now() - Date.parse(boundaryIso);
-    if (drift < -5 * 60_000 || drift > 90 * 60_000) {
-      return NextResponse.json({ ok: true, skipped: 'not the LA-midnight run instant' });
-    }
-  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -50,50 +34,51 @@ export async function GET(request: Request) {
 
   const admin = createClient<Database>(url, serviceKey);
 
+  const { data: boardRows, error: boardError } = await admin
+    .from('currentweeklyrankings')
+    .select('year, week_of_year, ranked_at')
+    .limit(1);
+  if (boardError) {
+    return NextResponse.json({ error: boardError.message }, { status: 500 });
+  }
+  const board = boardRows?.[0];
+  if (!board) {
+    return NextResponse.json({ ok: true, skipped: 'no current rankings' });
+  }
+
+  const plan = planRearrangement({ force, rankedAt: board.ranked_at });
+  if (plan.action === 'skip') {
+    return NextResponse.json({
+      ok: true,
+      skipped: plan.reason,
+      boundary: plan.boundaryIso,
+      rankedAt: board.ranked_at,
+    });
+  }
+
   // The RPC archives currentweeklyrankings under the (year, week) those rows
   // are stamped with. When two runs land in the same ISO week, the second
   // run's output keeps that week's stamp and the NEXT run collides with the
   // uq_history_year_week_player constraint (this is what silently killed
   // reranking in April 2026). Clearing the incoming stamp's bucket first
   // gives "last rankings of the week win" semantics at any cadence.
-  const { data: stampRows, error: stampError } = await admin
-    .from('currentweeklyrankings')
-    .select('year, week_of_year')
-    .limit(1);
-  if (stampError) {
-    return NextResponse.json({ error: stampError.message }, { status: 500 });
-  }
-  const stamp = stampRows?.[0];
-  if (stamp) {
-    const { error: clearError } = await admin
-      .from('rankinghistory')
-      .delete()
-      .eq('year', stamp.year)
-      .eq('week_of_year', stamp.week_of_year);
-    if (clearError) {
-      return NextResponse.json({ error: clearError.message }, { status: 500 });
-    }
+  const { error: clearError } = await admin
+    .from('rankinghistory')
+    .delete()
+    .eq('year', board.year)
+    .eq('week_of_year', board.week_of_year);
+  if (clearError) {
+    return NextResponse.json({ error: clearError.message }, { status: 500 });
   }
 
   // The RPC only counts votes from roughly the last 48 hours (it was built
-  // for a 2-day cadence). Refresh the timestamps of every vote from the
-  // cycle being applied so a full 3-day cycle's votes land inside that
-  // window. Boundary runs stamp them just before the boundary (never in the
-  // future, in case the RPC's window is capped at now()) so they stay out
-  // of the new cycle's counts and highlight queries. A force run mid-cycle
-  // stamps now instead, so the current cycle's UI counts survive the
-  // rerank. (A late same-day non-force catch-up absorbs any post-boundary
-  // votes into the old cycle; acceptable, the window is minutes.)
-  const windowStartIso = force
-    ? boundaryIso
-    : getPreviousRearrangementIso(new Date(Date.parse(boundaryIso)));
-  const stampIso = force
-    ? new Date().toISOString()
-    : new Date(Math.min(Date.now(), Date.parse(boundaryIso) - 1000)).toISOString();
+  // for a 2-day cadence). Refresh the timestamps of the ending cycle's votes
+  // so a full 3-day cycle's worth lands inside that window; see
+  // lib/top100Cron.ts for the stamp/window semantics.
   const { error: freshenError } = await admin
     .from('playervotes')
-    .update({ created_at: stampIso, updated_at: stampIso })
-    .or(`created_at.gte.${windowStartIso},updated_at.gte.${windowStartIso}`);
+    .update({ created_at: plan.stampIso, updated_at: plan.stampIso })
+    .or(plan.freshenFilter);
   if (freshenError) {
     return NextResponse.json({ error: freshenError.message }, { status: 500 });
   }
@@ -103,5 +88,11 @@ export async function GET(request: Request) {
     console.error('weekly-rankings cron failed:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, mode: force ? 'forced' : 'boundary', result: data });
+  return NextResponse.json({
+    ok: true,
+    mode: plan.mode,
+    boundary: plan.boundaryIso,
+    previousRankedAt: board.ranked_at,
+    result: data,
+  });
 }
