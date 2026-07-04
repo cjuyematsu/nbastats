@@ -92,7 +92,14 @@ async function getInitialTop100Data(): Promise<{
   rankingData: Record<number, PlayerRankingInfo>;
   weekStartISO: string;
 }> {
-  const weekStartISO = getLastRearrangementIso();
+  // The vote window opens at the last APPLIED rearrangement, not the
+  // theoretical boundary: if a cron fire is late, votes cast since the
+  // boundary must stay visible until a run actually consumes them.
+  const { data: boardMeta } = await supabase
+    .from('currentweeklyrankings')
+    .select('ranked_at')
+    .limit(1);
+  const weekStartISO = boardMeta?.[0]?.ranked_at ?? getLastRearrangementIso();
 
   const { data: rpcData, error: rpcError } = await supabase.rpc('get_current_ranking_with_details');
   if (rpcError || !rpcData) {
