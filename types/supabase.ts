@@ -816,6 +816,9 @@ export type Database = {
       }
       teammates: {
         Row: {
+          CombinedAstPerGame: number | null
+          CombinedPtsPerGame: number | null
+          CombinedRebPerGame: number | null
           EndYearTogether: number | null
           PlayerID: number
           PlayerName: string | null
@@ -827,6 +830,9 @@ export type Database = {
           TeammateName: string
         }
         Insert: {
+          CombinedAstPerGame?: number | null
+          CombinedPtsPerGame?: number | null
+          CombinedRebPerGame?: number | null
           EndYearTogether?: number | null
           PlayerID: number
           PlayerName?: string | null
@@ -838,6 +844,9 @@ export type Database = {
           TeammateName: string
         }
         Update: {
+          CombinedAstPerGame?: number | null
+          CombinedPtsPerGame?: number | null
+          CombinedRebPerGame?: number | null
           EndYearTogether?: number | null
           PlayerID?: number
           PlayerName?: string | null
