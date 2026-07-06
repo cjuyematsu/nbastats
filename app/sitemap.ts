@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import { supabase } from '@/lib/supabaseClient'
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups'
+import { DUO_PAGES } from '@/app/data/duoPages'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://hoopsdata.net';
@@ -42,6 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/duos`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/games`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -97,6 +104,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const duoRoutes: MetadataRoute.Sitemap = DUO_PAGES.map((d) => ({
+    url: `${baseUrl}/duos/${d.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  const latestDraftYear = new Date().getFullYear();
+  const draftRoutes: MetadataRoute.Sitemap = Array.from(
+    { length: latestDraftYear - 1955 + 1 },
+    (_, i) => ({
+      url: `${baseUrl}/draft/${1955 + i}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    })
+  );
+
   // Published articles (best-effort: never break the build if the table or DB is unavailable).
   let articleRoutes: MetadataRoute.Sitemap = [];
   try {
@@ -128,5 +153,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore; player pages just stay out of the sitemap
   }
 
-  return [...staticRoutes, ...matchupRoutes, ...articleRoutes, ...playerRoutes];
+  return [...staticRoutes, ...matchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
 }
