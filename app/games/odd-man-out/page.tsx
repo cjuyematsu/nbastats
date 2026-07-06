@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import OddManOutClient from './OddManOutClient';
+import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
   title: 'NBA Odd Man Out | Basketball Trivia Game',
@@ -29,8 +30,17 @@ function Loading() {
 
 export default function OddManOutPage() {
   return (
-    <Suspense fallback={<Loading />}>
-      <OddManOutClient />
-    </Suspense>
+    <>
+      <Suspense fallback={<Loading />}>
+        <OddManOutClient />
+      </Suspense>
+      <GameAbout
+        title="About Odd Man Out"
+        paragraphs={[
+          'Odd Man Out is an NBA connections-style game: a group of players shares something in common, and one does not belong. Spot the odd man out before your guesses run dry.',
+          'A new round is generated every day from real rosters and teammate history, so the connections come from what actually happened on the court.',
+        ]}
+      />
+    </>
   );
 }

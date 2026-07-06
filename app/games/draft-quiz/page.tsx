@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import DraftQuizLobbyClient from './DraftQuizLobbyClient';
+import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
   title: 'NBA Draft Quiz | Test Your Draft Knowledge',
@@ -31,8 +32,17 @@ function Loading() {
 
 export default function DraftQuizPage() {
   return (
-    <Suspense fallback={<Loading />}>
-      <DraftQuizLobbyClient />
-    </Suspense>
+    <>
+      <Suspense fallback={<Loading />}>
+        <DraftQuizLobbyClient />
+      </Suspense>
+      <GameAbout
+        title="About Fill in the Draft"
+        paragraphs={[
+          'Fill in the Draft is an NBA draft quiz: pick a year and name every player you can from that class, pick by pick. There is a new daily draft year, plus every class back to 1955.',
+          'Your progress saves as you go, so a half-finished 2003 board will be waiting for you. Signed-in players keep progress across devices.',
+        ]}
+      />
+    </>
   );
 }
