@@ -64,6 +64,80 @@ const fmt = (v: number | null | undefined, d = 1) => (v != null ? v.toFixed(d) :
 const fmtPct = (v: number | null | undefined) => (v != null ? `${(v * 100).toFixed(1)}%` : 'N/A');
 const fmtInt = (v: number | null | undefined) => (v != null ? v.toLocaleString() : 'N/A');
 
+interface Faq {
+  q: string;
+  a: string;
+}
+
+// Question-form long-tail queries ("who has more points, A or B") get a
+// server-rendered answer with real numbers, mirrored into FAQPage JSON-LD.
+function buildFaqs(a: string, b: string, sa: CareerStatsData | null, sb: CareerStatsData | null): Faq[] {
+  if (!sa || !sb) return [];
+  const faqs: Faq[] = [];
+
+  const add = (
+    q: string,
+    va: number | null | undefined,
+    vb: number | null | undefined,
+    phrase: (winner: string, hi: string, lo: string) => string,
+    tie: (v: string) => string,
+    format: (v: number) => string,
+  ) => {
+    if (va == null || vb == null) return;
+    if (va === vb) {
+      faqs.push({ q, a: tie(format(va)) });
+    } else {
+      const [winner, hi, lo] = va > vb ? [a, format(va), format(vb)] : [b, format(vb), format(va)];
+      faqs.push({ q, a: phrase(winner, hi, lo) });
+    }
+  };
+
+  add(
+    `Who scored more career points, ${a} or ${b}?`,
+    sa.pts_total, sb.pts_total,
+    (w, hi, lo) => `${w} scored more career points, ${hi} to ${lo}, in the NBA regular season.`,
+    (v) => `It is a dead heat: both scored ${v} career regular-season points.`,
+    (v) => v.toLocaleString(),
+  );
+  add(
+    `Who averaged more points per game, ${a} or ${b}?`,
+    sa.pts_per_g, sb.pts_per_g,
+    (w, hi, lo) => `${w} averaged more points per game for his career, ${hi} PPG to ${lo} PPG.`,
+    (v) => `Both averaged exactly ${v} points per game for their careers.`,
+    (v) => v.toFixed(1),
+  );
+  add(
+    `Who averaged more rebounds, ${a} or ${b}?`,
+    sa.trb_per_g, sb.trb_per_g,
+    (w, hi, lo) => `${w} averaged more rebounds per game, ${hi} RPG to ${lo} RPG.`,
+    (v) => `Both averaged ${v} rebounds per game.`,
+    (v) => v.toFixed(1),
+  );
+  add(
+    `Who averaged more assists, ${a} or ${b}?`,
+    sa.ast_per_g, sb.ast_per_g,
+    (w, hi, lo) => `${w} averaged more assists per game, ${hi} APG to ${lo} APG.`,
+    (v) => `Both averaged ${v} assists per game.`,
+    (v) => v.toFixed(1),
+  );
+  add(
+    `Who was the better three-point shooter, ${a} or ${b}?`,
+    sa.fg3_pct, sb.fg3_pct,
+    (w, hi, lo) => `${w} shot better from three for his career, ${hi} to ${lo}.`,
+    (v) => `Both shot ${v} from three for their careers.`,
+    (v) => `${(v * 100).toFixed(1)}%`,
+  );
+  add(
+    `Who was the more efficient scorer, ${a} or ${b}?`,
+    sa.ts_pct, sb.ts_pct,
+    (w, hi, lo) => `${w} posted the higher career true shooting percentage, ${hi} to ${lo}.`,
+    (v) => `Both posted a ${v} career true shooting percentage.`,
+    (v) => `${(v * 100).toFixed(1)}%`,
+  );
+
+  return faqs;
+}
+
 const TABLE_ROWS: { label: string; value: (s: CareerStatsData) => string }[] = [
   { label: 'Games Played', value: (s) => fmtInt(s.games_played) },
   { label: 'Career Points', value: (s) => fmtInt(s.pts_total) },
@@ -93,9 +167,24 @@ export default async function CompareMatchupPage({
     s?.startYear && s?.endYear ? ` (${s.startYear}-${s.endYear})` : '';
 
   const related = relatedMatchups(found.matchup);
+  const faqs = buildFaqs(a, b, sa, sb);
+  const faqJsonLd = faqs.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      }
+    : null;
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+      {faqJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      )}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl md:text-5xl">
@@ -137,6 +226,22 @@ export default async function CompareMatchupPage({
         </Suspense>
 
         <AdSlot slot="matchup-page" className="mt-8 max-w-4xl mx-auto" />
+
+        {faqs.length > 0 && (
+          <section className="mt-12 text-left max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+              {a} vs {b}: Frequently Asked Questions
+            </h2>
+            <div className="space-y-5">
+              {faqs.map((f) => (
+                <div key={f.q}>
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{f.q}</h3>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">{f.a}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-12 text-left max-w-4xl mx-auto">
           <div className="flex flex-wrap items-center gap-4 mb-8">
