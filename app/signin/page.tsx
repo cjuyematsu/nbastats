@@ -3,8 +3,9 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; 
+import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -42,6 +43,12 @@ export default function SignInPage() {
           <h1 className="text-3xl font-bold text-center text-slate-900 dark:text-white">
             Sign In to Your Account
           </h1>
+          <GoogleSignInButton />
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />
+            <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">or</span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />
+          </div>
           <form onSubmit={handleSignIn} className="space-y-6">
             <div>
               <label
