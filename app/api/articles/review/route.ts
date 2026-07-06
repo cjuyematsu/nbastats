@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAdmin } from '@/lib/articleAdmin';
+import { submitToIndexNow, INDEXNOW_HOST } from '@/lib/indexnow';
 
 export async function GET(request: Request) {
   const gate = await requireAdmin(request);
@@ -84,6 +85,12 @@ export async function POST(request: Request) {
   revalidatePath('/');
   revalidatePath('/articles');
   if (data?.slug) revalidatePath(`/articles/${data.slug}`);
+
+  // Announce the new article to IndexNow (Bing, DuckDuckGo, Yandex). No-throw.
+  if (action === 'publish' && data?.slug) {
+    const base = `https://${INDEXNOW_HOST}`;
+    await submitToIndexNow([`${base}/articles/${data.slug}`, `${base}/`, `${base}/articles`]);
+  }
 
   return NextResponse.json({ ok: true, article: data });
 }

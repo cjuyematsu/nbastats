@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "tsx --test tests/*.test.ts",
     "generate:draft-data": "tsx scripts/generate-draft-data.ts",
-    "refresh:teammates": "tsx scripts/refresh-teammates.ts"
+    "refresh:teammates": "tsx scripts/refresh-teammates.ts",
+    "indexnow:submit": "tsx scripts/indexnow-submit.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.107.0",
