@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/signin', '/signup'],
+        disallow: ['/api/', '/signin', '/signup', '/auth/', '/embed/'],
       },
     ],
     sitemap: 'https://hoopsdata.net/sitemap.xml',

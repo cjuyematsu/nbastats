@@ -10,6 +10,7 @@ import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion } from '@/types/stats';
 import { type DuoRow, parseRecord, cleanSharedTeams } from '@/lib/duos';
+import { buildDuoSlug } from '@/app/data/duoPages';
 
 const COLOR_A = '#00b060';
 const COLOR_B = '#0090b0';
@@ -193,10 +194,14 @@ export default function DuosClient() {
       setDuo((data as DuoRow) ?? null);
       setStatus(data ? 'found' : 'not_teammates');
       track('duo_viewed', { found: !!data });
+      // A real duo gets the crawlable/shareable permalink; non-teammates (no
+      // page exists) keep the query-param URL.
       window.history.replaceState(
         null,
         '',
-        `/duos?players=${encodeURIComponent(a.name)},${encodeURIComponent(b.name)}`
+        data
+          ? `/duos/${buildDuoSlug(a.name, b.name)}`
+          : `/duos?players=${encodeURIComponent(a.name)},${encodeURIComponent(b.name)}`
       );
     })();
     return () => {

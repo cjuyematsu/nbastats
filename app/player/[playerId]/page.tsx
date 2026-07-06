@@ -5,30 +5,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { CareerStatsData } from '@/types/stats';
+import { getCareerStats, getPlayoffStats } from '@/lib/serverStats';
 import { StatsTable, SeasonBySeasonTable, type SeasonRow } from './PlayerStatsTables';
 import { ViewTeammatesButton } from './ViewTeammatesButton';
+import CopyEmbedCode from '@/components/CopyEmbedCode';
 import AdSlot from '@/components/AdSlot';
 
 export const revalidate = 86400;
-
-const getCareerStats = cache(async (personId: number): Promise<CareerStatsData | null> => {
-  try {
-    const { data } = await supabase.rpc('calculate_player_career_stats', { p_person_id: personId });
-    return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
-  } catch {
-    return null;
-  }
-});
-
-const getPlayoffStats = cache(async (personId: number): Promise<CareerStatsData | null> => {
-  try {
-    const { data } = await supabase.rpc('calculate_player_career_playoff_stats', { p_person_id: personId });
-    return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
-  } catch {
-    return null;
-  }
-});
 
 const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
   try {
@@ -90,10 +73,16 @@ export async function generateMetadata({
     ? `${name} NBA career statistics: ${statBits}. Regular season and playoff totals, averages, and shooting percentages.`
     : `${name} NBA career statistics: regular season and playoff totals, averages, and shooting percentages.`;
 
+  const canonical = `/player/${playerId}`;
   return {
     title,
     description,
-    alternates: { canonical: `/player/${playerId}` },
+    alternates: {
+      canonical,
+      types: {
+        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${canonical}`)}&format=json`,
+      },
+    },
     openGraph: { title, description },
   };
 }
@@ -201,6 +190,10 @@ export default async function PlayerStatsPage({
             >
               Explore teammate connections
             </Link>
+          </section>
+
+          <section className="mt-6">
+            <CopyEmbedCode embedPath={`/embed/player/${id}`} canonicalPath={`/player/${id}`} title={`${name} career stats`} />
           </section>
         </div>
       </div>

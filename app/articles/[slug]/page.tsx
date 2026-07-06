@@ -42,7 +42,12 @@ export async function generateMetadata({
   return {
     title: article.title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: {
+        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${url}`)}&format=json`,
+      },
+    },
     openGraph: {
       type: 'article',
       url,
