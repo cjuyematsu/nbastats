@@ -331,6 +331,34 @@ export default function DuosClient() {
             )}
           </div>
 
+          {duo.CombinedPtsPerGame != null && (
+            <div className="mb-6">
+              <p className="text-center text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">
+                Combined per game
+              </p>
+              <div className="flex flex-wrap justify-around text-center gap-6">
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {duo.CombinedPtsPerGame.toFixed(1)}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Points</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {duo.CombinedAstPerGame?.toFixed(1) ?? 'N/A'}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Assists</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {duo.CombinedRebPerGame?.toFixed(1) ?? 'N/A'}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Rebounds</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {cleanSharedTeams(duo.SharedTeams, [a.name, b.name]) && (
             <div className="text-center mb-6">
               <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">Shared Teams</p>
