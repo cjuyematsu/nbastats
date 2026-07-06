@@ -177,6 +177,33 @@ export default async function DuoPage({ params }: { params: Promise<{ slug: stri
               </div>
             )}
           </div>
+          {row.CombinedPtsPerGame != null && (
+            <div className="mt-6">
+              <p className="text-center text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">
+                Combined per game
+              </p>
+              <div className="flex flex-wrap justify-around text-center gap-6">
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {row.CombinedPtsPerGame.toFixed(1)}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Points</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {row.CombinedAstPerGame?.toFixed(1) ?? 'N/A'}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Assists</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {row.CombinedRebPerGame?.toFixed(1) ?? 'N/A'}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Rebounds</p>
+                </div>
+              </div>
+            </div>
+          )}
           {teams && (
             <div className="text-center mt-6">
               <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">Shared Teams</p>

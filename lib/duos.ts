@@ -12,6 +12,9 @@ export type DuoRow = {
   SharedTeams: string | null;
   StartYearTogether: number | null;
   EndYearTogether: number | null;
+  CombinedPtsPerGame: number | null;
+  CombinedAstPerGame: number | null;
+  CombinedRebPerGame: number | null;
 };
 
 export function parseRecord(record: string | null): { wins: number; losses: number } | null {
