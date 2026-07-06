@@ -15,9 +15,14 @@ const LOGO_GREEN = '#00b060';
 const NEW_BADGE_MAX_AGE_DAYS = 3;
 
 // Articles publish Mondays (draft generated 14:00 UTC, reviewed same day).
-function nextArticleLabel(now: Date = new Date()): string {
+function nextArticleLabel(publishedAt: string | null, now: Date = new Date()): string {
   const day = now.getUTCDay();
-  if (day === 1 && now.getUTCHours() < 18) return 'coming today';
+  const publishedToday =
+    !!publishedAt &&
+    new Date(publishedAt).toISOString().slice(0, 10) === now.toISOString().slice(0, 10);
+  // "coming today" only while this Monday's article hasn't dropped yet; once it
+  // has, point at next Monday so the note doesn't contradict the article shown.
+  if (day === 1 && now.getUTCHours() < 18 && !publishedToday) return 'coming today';
   const daysAhead = ((8 - day) % 7) || 7;
   const next = new Date(now.getTime() + daysAhead * 86_400_000);
   return `next: ${next.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
@@ -44,7 +49,7 @@ export default function HomeFeaturedArticle({ article }: { article: FeaturedArti
           {isNew ? 'New article' : 'Latest article'}
         </span>
         <span className="text-xs text-slate-400 dark:text-slate-500">
-          New article every Monday &middot; {nextArticleLabel()}
+          New article every Monday &middot; {nextArticleLabel(article.published_at)}
         </span>
       </div>
       <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
