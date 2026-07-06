@@ -6,11 +6,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import CountdownTimer from '@/components/CountdownTimer';
 import ShareResult from '@/components/ShareResult';
-import { getNextRearrangementIso } from '@/lib/top100Time';
-import { buildTop100Share } from '@/lib/shareText';
+import { getNextRearrangementIso, isBoundaryUnapplied } from '@/lib/top100Time';
+import { buildTop100Share, buildTop100BallotShare } from '@/lib/shareText';
 import { resolveVoteIdentity, writeTop100Vote, type VoteIdentity } from '@/lib/top100Votes';
 import PlayerRow from './PlayerRow';
 import RecapStrip from './RecapStrip';
+import TrendingStrip from './TrendingStrip';
 import NominateSection from './NominateSection';
 import type { PlayerRankingInfo, TopPlayer } from './types';
 
@@ -39,6 +40,11 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
   useEffect(() => { playersRef.current = players; }, [players]);
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(initialPlayers.length === 0);
   const [nextRearrangementTime, setNextRearrangementTime] = useState<string | null>(null);
+  // True when the board's ranked_at predates the last cycle boundary: a
+  // reshuffle is owed but hasn't applied. Computed client-side (starts false to
+  // avoid a hydration mismatch) and re-checked each minute so it flips honestly
+  // when the clock crosses a boundary while the page is open.
+  const [boundaryOverdue, setBoundaryOverdue] = useState(false);
   const lastRearrangementTimeISO = initialWeekStartISO;
   const [isSubmittingVoteForPlayer, setIsSubmittingVoteForPlayer] = useState<Record<number, boolean>>({});
   const submittingRef = useRef<Record<number, boolean>>({});
@@ -117,6 +123,13 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
       setNextRearrangementTime(getNextRearrangementIso());
     }
   }, [nextRearrangementTime]);
+
+  useEffect(() => {
+    const check = () => setBoundaryOverdue(isBoundaryUnapplied(lastRearrangementTimeISO));
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, [lastRearrangementTimeISO]);
 
   useEffect(() => {
     if (authIsLoading || !lastRearrangementTimeISO) return;
@@ -201,6 +214,12 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
 
   const ballotCount = useMemo(() => players.filter(p => p.currentUserVote != null).length, [players]);
 
+  const ballot = useMemo(() => {
+    const ups = players.filter(p => p.currentUserVote === 1).map(p => `${p.firstName} ${p.lastName}`);
+    const downs = players.filter(p => p.currentUserVote === -1).map(p => `${p.firstName} ${p.lastName}`);
+    return { ups, downs, count: ups.length + downs.length };
+  }, [players]);
+
   const jumpMatches = useMemo(() => {
     const term = jumpTerm.trim().toLowerCase();
     if (term.length < 2) return [];
@@ -260,9 +279,22 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
 
         <RecapStrip risers={recap.risers} fallers={recap.fallers} newEntries={recap.newEntries} />
 
-        {nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />}
+        <TrendingStrip players={players} />
+
+        {boundaryOverdue ? (
+          <div className="text-center my-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p className="text-amber-700 dark:text-amber-300 font-semibold">
+              Reshuffle in progress
+            </p>
+            <p className="text-amber-600 dark:text-amber-400 text-sm mt-0.5">
+              Fan votes from this cycle are being applied. Updated rankings will appear shortly.
+            </p>
+          </div>
+        ) : (
+          nextRearrangementTime && <CountdownTimer targetTimeIso={nextRearrangementTime} />
+        )}
         {players.length >= 5 && (
-          <div className="flex justify-center mt-2">
+          <div className="flex flex-wrap justify-center items-center gap-2 mt-2">
             <ShareResult
               shareText={buildTop100Share({
                 topFive: [...players]
@@ -272,7 +304,17 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
               })}
               game="top_100"
               surface="rankings"
+              label="Share top 5"
             />
+            {ballot.count > 0 && (
+              <ShareResult
+                shareText={buildTop100BallotShare({ ups: ballot.ups, downs: ballot.downs })}
+                game="top_100"
+                surface="ballot"
+                label={`Share my ballot (${ballot.count})`}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-500 text-sky-600 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-900/30 font-semibold px-6 py-2 transition-all active:scale-95"
+              />
+            )}
           </div>
         )}
         {!user && !authIsLoading && (

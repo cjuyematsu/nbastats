@@ -44,10 +44,31 @@ Last-5-weeks history from `rankinghistory` as jsonb + `last_week_rank` (most
 recent archived week) + `current_rank` from `currentweeklyrankings` +
 `weekly_change = last_rank - current_rank` (positive = climbed).
 
-## Scheduling (as of 2026-07-03)
+## Scheduling (as of 2026-07-06)
 
+- **The Vercel Hobby cron silently did not fire on 2026-07-03 and 2026-07-06**
+  (both boundaries missed; the board sat at the 07-04 manual run and votes were
+  never consumed). The route code is correct: hitting it by hand with the bearer
+  token applied the 07-06 boundary cleanly ("Archived 100, Ranks Created 100,
+  Votes Cleared 100", 68/100 players moved). So the failure mode to watch is the
+  **scheduled trigger not invoking the route**, not the route logic. First things
+  to check when the board looks stale: (1) `CRON_SECRET` is set in Vercel
+  Production env (Vercel only sends `Authorization: Bearer <CRON_SECRET>` when it
+  is; missing -> the route 401s every fire); (2) Vercel dashboard shows the cron
+  with recent invocations. A redundant **GitHub Actions** trigger
+  (`.github/workflows/top100-reshuffle.yml`, 08:30 UTC + manual dispatch) now
+  backs up the Hobby cron; the `planRearrangement` gate makes a double fire a
+  no-op. The page also shows an honest "reshuffle pending" banner
+  (`isBoundaryUnapplied` in `lib/top100Time.ts`) when the board predates the last
+  boundary, instead of resetting the countdown as if a missed reshuffle had
+  succeeded.
+- Archive keying (confirmed empirically 2026-07-06): the RPC archives under the
+  **board's own `(year, week_of_year)` stamp**, not `EXTRACT(WEEK)` of NOW (board
+  stamped w27 archived to w27; the freshly created board is stamped the current
+  week, w28). This is exactly the bucket the route's clear step deletes
+  (`board.year`/`board.week_of_year`), so the clear and the archive always agree.
 - Vercel cron (`vercel.json`): daily 08:00 UTC (Hobby allows one run/day; fires
-  can be ~1h late) -> `/api/cron/weekly-rankings`. The route acts when the
+  can be ~1h late, or skip entirely) -> `/api/cron/weekly-rankings`. The route acts when the
   board's `ranked_at` predates the last LA-midnight cycle boundary (every 3rd
   day, epoch 2026-07-03) and skips otherwise, so late or missed fires self-heal
   at the next daily fire instead of losing the cycle (a [-5min, +90min] window

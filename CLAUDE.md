@@ -101,7 +101,10 @@ some game records key on either `user_id` (signed in) or this anonymous id.
 
 ### Top 100 voting model
 The page is a compact leaderboard: `Top100PlayersClient.tsx` is the container,
-`PlayerRow`/`RecapStrip`/`NominateSection` live beside it. All vote writes go through
+`PlayerRow`/`RecapStrip`/`TrendingStrip`/`NominateSection` live beside it (`TrendingStrip` =
+live current-cycle vote momentum, distinct from `RecapStrip`'s already-applied rank changes).
+A dynamic `/top-100-players/opengraph-image` renders the live top 10, and the page offers a
+"share my ballot" button (`buildTop100BallotShare`). All vote writes go through
 `lib/top100Votes.ts` (select-then-insert/update on `playervotes`, delete on un-vote; upsert
 breaks anonymous identities) — the home quick-vote and nominations use it too. Voting is
 deliberately NOT a daily-hub task (user decision). "Your vote" reads MUST be cycle-scoped
@@ -109,7 +112,13 @@ deliberately NOT a daily-hub task (user decision). "Your vote" reads MUST be cyc
 vote buttons from prior cycles. The rearrangement RPC **consumes** (deletes) the votes it
 counts. Full RPC internals + the pg_cron history: `docs/top-100-rpcs.md`. Only the Vercel
 cron route may call `perform_weekly_player_rearrangement`; a direct pg_cron job doing so
-was the source of the flaky-reranking era.
+was the source of the flaky-reranking era. The **Vercel Hobby cron silently skipped the
+2026-07-03 and 2026-07-06 fires** (board stranded, votes uncleared); the route logic is fine,
+so when the board looks stale first check `CRON_SECRET` is set in Vercel Production (missing =
+route 401s) and that the cron shows recent invocations. A redundant GitHub Actions trigger
+(`.github/workflows/top100-reshuffle.yml`) backs up the Hobby cron and offers a manual
+"Run workflow" catch-up; the page shows an honest "reshuffle pending" banner
+(`isBoundaryUnapplied`) instead of resetting the countdown when a boundary has not applied.
 
 ## Data & schema
 

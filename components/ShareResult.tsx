@@ -10,12 +10,13 @@ interface ShareResultProps {
   game: string;
   surface: string;
   className?: string;
+  label?: string;
 }
 
 const DEFAULT_CLASSES =
   'inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-semibold px-6 py-2 transition-all';
 
-export default function ShareResult({ shareText, game, surface, className }: ShareResultProps) {
+export default function ShareResult({ shareText, game, surface, className, label = 'Share' }: ShareResultProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -42,7 +43,7 @@ export default function ShareResult({ shareText, game, surface, className }: Sha
 
   return (
     <button onClick={handleShare} className={`${className ?? DEFAULT_CLASSES} active:scale-95`} aria-live="polite">
-      {copied ? 'Copied!' : 'Share'}
+      {copied ? 'Copied!' : label}
     </button>
   );
 }
