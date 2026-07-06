@@ -183,7 +183,9 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
     setIsSubmittingVoteForPlayer(prev => ({ ...prev, [playerId]: false }));
   }, [user]);
 
-  const pageTitle = 'Top 100 Players';
+  // Derived from a prop, so server and client agree (no hydration mismatch).
+  const rankingYear = new Date(initialWeekStartISO).getFullYear();
+  const pageTitle = `Top 100 NBA Players of ${rankingYear}`;
   const pageSubtitle = 'The fan-voted NBA Top 100. Rankings reshuffle every 3 days.';
 
   const recap = useMemo(() => {
@@ -224,7 +226,10 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
     </div>
   );
 
-  if (authIsLoading || (isLoadingPlayers && players.length === 0)) {
+  // Never gate the board on auth: during SSR auth is always "loading", and
+  // returning early here would serve crawlers a spinner instead of the list.
+  // Vote highlights hydrate later via loadVoteDataInternal once auth resolves.
+  if (isLoadingPlayers && players.length === 0) {
     return <LoadingErrorDisplay><p className="text-xl">Loading players...</p></LoadingErrorDisplay>;
   }
   if (!isLoadingPlayers && players.length === 0) {
