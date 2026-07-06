@@ -31,6 +31,10 @@ const COMPONENTS: Record<string, ComponentType> = {
     ssr: false,
     loading: Loading,
   }),
+  // ssr stays on: the ranked list + FAQ text must be in the initial HTML for SEO
+  'greatest-duos': dynamic(() => import('@/app/articles/_components/GreatestDuosArticle'), {
+    loading: Loading,
+  }),
 };
 
 export default function ComponentArticle({ componentKey }: { componentKey: string | null }) {

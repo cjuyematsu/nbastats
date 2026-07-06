@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/app/contexts/AuthContext';
+import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 
 interface DraftArticle {
   id: string;
@@ -14,6 +15,8 @@ interface DraftArticle {
   dek: string | null;
   summary: string | null;
   body_markdown: string;
+  kind: string | null;
+  component_key: string | null;
   status: string;
   created_at: string;
   generation_meta: unknown;
@@ -93,7 +96,7 @@ export default function ReviewClient() {
   if (isLoading) {
     return (
       <div className={wrapper}>
-        <div className="max-w-3xl mx-auto text-gray-500 dark:text-gray-400">Loading…</div>
+        <div className="max-w-5xl mx-auto text-gray-500 dark:text-gray-400">Loading…</div>
       </div>
     );
   }
@@ -101,7 +104,7 @@ export default function ReviewClient() {
   if (!user) {
     return (
       <div className={wrapper}>
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold mb-2">Review Drafts</h1>
           <p className="text-gray-600 dark:text-gray-400">Please sign in to review drafts.</p>
         </div>
@@ -111,7 +114,7 @@ export default function ReviewClient() {
 
   return (
     <div className={wrapper}>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold mb-1">Review Drafts</h1>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
           Read each draft, spot-check the stats against the sources, then publish or reject.
@@ -152,6 +155,11 @@ export default function ReviewClient() {
                   <div className="prose prose-slate dark:prose-invert max-w-none mt-3">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{d.body_markdown}</ReactMarkdown>
                   </div>
+                  {d.kind === 'component' && d.component_key && (
+                    <div className="mt-6">
+                      <ComponentArticle componentKey={d.component_key} />
+                    </div>
+                  )}
                 </details>
 
                 <div className="mt-4 flex gap-3">
