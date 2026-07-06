@@ -1,6 +1,8 @@
 // app/top-100-players/page.tsx
 
 import type { Metadata } from 'next';
+import { cache } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { getLastRearrangementIso } from '@/lib/top100Time';
 import Top100PlayersClient from './Top100PlayersClient';
@@ -8,35 +10,42 @@ import type { PlayerRankingInfo, RpcRankedPlayerData, TopPlayer } from './types'
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: 'Top 100 NBA Players 2026: Vote To Change Rankings',
-  description: 'Vote on the Top 100 NBA player rankings for 2026, no sign-in required. Nominate players, compare stats, see who rises. Reshuffled every 3 days by fan votes.',
-  keywords: [
-    'top 100 nba players',
-    'top 100 nba players 2026',
-    'top 100 nba players 2025',
-    'nba player rankings',
-    'best nba players',
-    'nba player rankings 2026',
-    'top nba players',
-    'nba player stats',
-    'nba statistics',
-    'nba stat leaders',
-    'compare nba players',
-    'nba player comparison',
-    'fan-voted nba rankings',
-    'nba top 100',
-    'top 100 players nba',
-  ],
-  alternates: {
-    canonical: '/top-100-players',
-  },
-  openGraph: {
-    title: 'Top 100 NBA Players 2026 | Fan-Voted Rankings',
-    description: 'Vote on the Top 100 NBA players for 2026. No sign-in required. Rankings reshuffle every 3 days based on fan votes.',
-    url: '/top-100-players',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { weekStartISO } = await getInitialTop100Data();
+  const year = new Date(weekStartISO).getFullYear();
+  const title = `Top 100 NBA Players ${year}: Vote To Change Rankings`;
+  const description = `Vote on the Top 100 NBA player rankings for ${year}, no sign-in required. Nominate players, compare stats, see who rises. Reshuffled every 3 days by fan votes.`;
+  return {
+    title,
+    description,
+    keywords: [
+      'top 100 nba players',
+      `top 100 nba players ${year}`,
+      `top 100 nba players ${year - 1}`,
+      'nba player rankings',
+      'best nba players',
+      `nba player rankings ${year}`,
+      `best nba players ${year}`,
+      'top nba players',
+      'nba player stats',
+      'nba statistics',
+      'nba stat leaders',
+      'compare nba players',
+      'nba player comparison',
+      'fan-voted nba rankings',
+      'nba top 100',
+      'top 100 players nba',
+    ],
+    alternates: {
+      canonical: '/top-100-players',
+    },
+    openGraph: {
+      title: `Top 100 NBA Players ${year} | Fan-Voted Rankings`,
+      description: `Vote on the Top 100 NBA players for ${year}. No sign-in required. Rankings reshuffle every 3 days based on fan votes.`,
+      url: '/top-100-players',
+    },
+  };
+}
 
 interface PlayerRankingHistoryRPCRow {
   player_id: number;
@@ -87,11 +96,12 @@ function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
   };
 }
 
-async function getInitialTop100Data(): Promise<{
+// cache(): generateMetadata and the page share one fetch per request.
+const getInitialTop100Data = cache(async (): Promise<{
   players: TopPlayer[];
   rankingData: Record<number, PlayerRankingInfo>;
   weekStartISO: string;
-}> {
+}> => {
   // The vote window opens at the last APPLIED rearrangement, not the
   // theoretical boundary: if a cron fire is late, votes cast since the
   // boundary must stay visible until a run actually consumes them.
@@ -152,9 +162,60 @@ async function getInitialTop100Data(): Promise<{
   }
 
   return { players, rankingData, weekStartISO };
-}
+});
 
 export default async function Top100PlayersPage() {
   const { players, rankingData, weekStartISO } = await getInitialTop100Data();
-  return <Top100PlayersClient initialPlayers={players} initialRankingData={rankingData} initialWeekStartISO={weekStartISO} />;
+  const year = new Date(weekStartISO).getFullYear();
+  const reshuffledOn = new Date(weekStartISO).toLocaleDateString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const topThree = players.slice(0, 3).map((p) => `${p.firstName} ${p.lastName}`);
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Top 100 NBA Players of ${year}`,
+    description: 'Fan-voted Top 100 NBA player rankings, reshuffled every 3 days.',
+    numberOfItems: players.length,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    itemListElement: players.map((p) => ({
+      '@type': 'ListItem',
+      position: p.rankNumber,
+      name: `${p.firstName} ${p.lastName}`,
+      url: `https://hoopsdata.net/player/${p.personId}`,
+    })),
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <Top100PlayersClient initialPlayers={players} initialRankingData={rankingData} initialWeekStartISO={weekStartISO} />
+      <section className="w-full mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6 text-slate-700 dark:text-slate-300">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-3">About these rankings</h2>
+        <p className="mb-2">
+          This Top 100 NBA players list for {year} is ranked by fan votes, not by an editorial panel.
+          Anyone can vote a player up or down without signing in, and the board reshuffles every 3 days
+          based on the votes cast that cycle. It was last reshuffled on {reshuffledOn}.
+        </p>
+        {topThree.length === 3 && (
+          <p className="mb-2">
+            Fans currently rank {topThree[0]}, {topThree[1]}, and {topThree[2]} as the top three players
+            in the NBA. Disagree? Cast your vote above, or{' '}
+            <Link href="/compare" className="text-sky-600 dark:text-sky-400 hover:underline">
+              compare any two players side by side
+            </Link>{' '}
+            to settle it with stats.
+          </p>
+        )}
+        <p>
+          Every player on the board links to their full career stats page, and nominations open a path
+          for anyone outside the 100 to break in.
+        </p>
+      </section>
+    </>
+  );
 }
