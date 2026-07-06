@@ -122,6 +122,29 @@ export const DUO_PAGES: DuoPage[] = [
   { slug: 'ben-wallace-and-chauncey-billups', a: 'Ben Wallace', b: 'Chauncey Billups' },
 ];
 
+import { slugifyName } from './compareMatchups';
+
+// Canonical open-duo slug: the two name-slugs sorted, joined with -and-.
+export function buildDuoSlug(a: string, b: string): string {
+  return [slugifyName(a), slugifyName(b)].sort().join('-and-');
+}
+
+export function parseDuoSlug(slug: string): { a: string; b: string } | null {
+  const parts = slug.split('-and-');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  return { a: parts[0].replace(/-/g, ' '), b: parts[1].replace(/-/g, ' ') };
+}
+
+export function findDuoSlugForPair(a: string, b: string): string | null {
+  const d = DUO_PAGES.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+  return d ? d.slug : null;
+}
+
+// Best URL for a duo pair: curated slug if one exists, else canonical open slug.
+export function duoHref(a: string, b: string): string {
+  return findDuoSlugForPair(a, b) ?? buildDuoSlug(a, b);
+}
+
 export function findDuo(slug: string): { duo: DuoPage; reversed: boolean } | null {
   const exact = DUO_PAGES.find((d) => d.slug === slug);
   if (exact) return { duo: exact, reversed: false };

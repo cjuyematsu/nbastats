@@ -179,6 +179,37 @@ export const COMPARE_MATCHUPS: CompareMatchup[] = [
   { slug: 'lamarcus-aldridge-vs-tim-duncan', a: 'LaMarcus Aldridge', b: 'Tim Duncan' },
 ];
 
+// Deterministic name -> slug used by builder, parser, sitemap and the client
+// tools so an open (non-curated) pair always resolves to one canonical URL.
+export function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/['.]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Canonical open-pair slug: the two name-slugs sorted so a-vs-b and b-vs-a map
+// to the same URL. Curated slugs keep their hand-authored order (findMatchup
+// redirects the sorted form to the curated one).
+export function buildCompareSlug(a: string, b: string): string {
+  return [slugifyName(a), slugifyName(b)].sort().join('-vs-');
+}
+
+// Turn a slug back into two search strings for get_player_suggestions.
+export function parseCompareSlug(slug: string): { a: string; b: string } | null {
+  const parts = slug.split('-vs-');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  return { a: parts[0].replace(/-/g, ' '), b: parts[1].replace(/-/g, ' ') };
+}
+
+// Best URL for a pair: the curated slug if one exists, else the canonical open slug.
+export function compareHref(a: string, b: string): string {
+  return findSlugForPair(a, b) ?? buildCompareSlug(a, b);
+}
+
 export function findMatchup(slug: string): { matchup: CompareMatchup; reversed: boolean } | null {
   const exact = COMPARE_MATCHUPS.find((m) => m.slug === slug);
   if (exact) return { matchup: exact, reversed: false };

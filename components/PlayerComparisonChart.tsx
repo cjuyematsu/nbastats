@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
-import { findSlugForPair } from '@/app/data/compareMatchups';
+import { compareHref } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
 import { debounce } from 'lodash';
@@ -511,7 +511,9 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
     .filter((p): p is SelectedPlayerForComparison => p !== null)
     .map((p) => `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim())
     .filter((n) => n.length > 0);
-  const shareSlug = activeNames.length === 2 ? findSlugForPair(activeNames[0], activeNames[1]) : null;
+  // Two selected players always share a crawlable permalink (curated slug or the
+  // canonical open slug); only fall back to the query-param URL for other counts.
+  const shareSlug = activeNames.length === 2 ? compareHref(activeNames[0], activeNames[1]) : null;
   const shareUrl = shareSlug
     ? `hoopsdata.net/compare/${shareSlug}`
     : `hoopsdata.net/compare?players=${encodeURIComponent(activeNames.join(','))}`;

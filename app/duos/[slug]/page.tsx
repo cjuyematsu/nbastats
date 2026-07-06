@@ -1,51 +1,21 @@
 // app/duos/[slug]/page.tsx
 
-import React, { cache } from 'react';
+import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import AdSlot from '@/components/AdSlot';
-import { DUO_PAGES, findDuo, relatedDuos } from '@/app/data/duoPages';
-import { findSlugForPair } from '@/app/data/compareMatchups';
+import CopyEmbedCode from '@/components/CopyEmbedCode';
+import { DUO_PAGES, relatedDuos } from '@/app/data/duoPages';
+import { compareHref } from '@/app/data/compareMatchups';
 import { type DuoRow, parseRecord, cleanSharedTeams } from '@/lib/duos';
-import { PlayerSuggestion } from '@/types/stats';
+import { resolveDuoBySlug } from '@/lib/serverStats';
 
 export const revalidate = 86400;
 
 export function generateStaticParams() {
   return DUO_PAGES.map((d) => ({ slug: d.slug }));
 }
-
-type ResolvedDuo = {
-  a: { id: number; name: string };
-  b: { id: number; name: string };
-  row: DuoRow | null;
-};
-
-const getDuoData = cache(async (nameA: string, nameB: string): Promise<ResolvedDuo | null> => {
-  try {
-    const resolve = async (name: string) => {
-      const { data } = await supabase.rpc('get_player_suggestions', { search_term: name });
-      const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
-      return p ? { id: p.personId, name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim() } : null;
-    };
-    const [a, b] = await Promise.all([resolve(nameA), resolve(nameB)]);
-    if (!a || !b) return null;
-
-    const lo = Math.min(a.id, b.id);
-    const hi = Math.max(a.id, b.id);
-    const { data } = await supabase
-      .from('teammates')
-      .select('*')
-      .eq('PlayerID', lo)
-      .eq('TeammateID', hi)
-      .maybeSingle();
-    return { a, b, row: (data as DuoRow) ?? null };
-  } catch {
-    return null;
-  }
-});
 
 interface DuoFact {
   q: string;
@@ -94,37 +64,41 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const found = findDuo(slug);
-  if (!found || found.reversed) return { title: 'NBA Duo', robots: { index: false } };
+  const resolved = await resolveDuoBySlug(slug);
+  if (!resolved) return { title: 'NBA Duo', robots: { index: false } };
 
-  const { a, b } = found.duo;
-  const data = await getDuoData(a, b);
-  const games = data?.row?.SharedGamesTotal;
+  const a = resolved.data.a.name;
+  const b = resolved.data.b.name;
+  const games = resolved.data.row?.SharedGamesTotal;
 
   const title = `${a} & ${b}: Games Played Together, Record & Teams`;
   const description = games
     ? `Did ${a} and ${b} play together? Yes: ${games.toLocaleString()} games as teammates. See their win-loss record together, shared teams, and years side by side.`
     : `Did ${a} and ${b} play together? See their games as teammates, win-loss record together, shared teams, and years side by side.`;
 
+  const canonical = `/duos/${resolved.canonicalSlug}`;
   return {
     title,
     description,
-    alternates: { canonical: `/duos/${found.duo.slug}` },
+    alternates: {
+      canonical,
+      types: {
+        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${canonical}`)}&format=json`,
+      },
+    },
     openGraph: { title, description },
   };
 }
 
 export default async function DuoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const found = findDuo(slug);
-  if (!found) notFound();
-  if (found.reversed) permanentRedirect(`/duos/${found.duo.slug}`);
+  const resolved = await resolveDuoBySlug(slug);
+  if (!resolved) notFound();
+  if (slug !== resolved.canonicalSlug) permanentRedirect(`/duos/${resolved.canonicalSlug}`);
 
-  const { a: nameA, b: nameB } = found.duo;
-  const data = await getDuoData(nameA, nameB);
-  if (!data || !data.row) notFound();
-
+  const { data, canonicalSlug } = resolved;
   const { a, b, row } = data;
+  if (!row) notFound();
   const record = parseRecord(row.SharedGamesRecord);
   const winPct =
     record && record.wins + record.losses > 0
@@ -132,8 +106,7 @@ export default async function DuoPage({ params }: { params: Promise<{ slug: stri
       : null;
   const teams = cleanSharedTeams(row.SharedTeams, [a.name, b.name]);
   const facts = buildDuoFacts(a.name, b.name, row);
-  const compareSlug = findSlugForPair(nameA, nameB);
-  const related = relatedDuos(found.duo);
+  const related = relatedDuos({ slug: canonicalSlug, a: a.name, b: b.name });
 
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -237,11 +210,7 @@ export default async function DuoPage({ params }: { params: Promise<{ slug: stri
               {b.name} career stats
             </Link>
             <Link
-              href={
-                compareSlug
-                  ? `/compare/${compareSlug}`
-                  : `/compare?players=${encodeURIComponent(a.name)},${encodeURIComponent(b.name)}`
-              }
+              href={`/compare/${compareHref(a.name, b.name)}`}
               className="text-sky-600 dark:text-sky-400 hover:underline"
             >
               Compare their stats
@@ -249,6 +218,11 @@ export default async function DuoPage({ params }: { params: Promise<{ slug: stri
             <Link href="/duos" className="text-sky-600 dark:text-sky-400 hover:underline">
               Look up any duo
             </Link>
+            <CopyEmbedCode
+              embedPath={`/embed/duos/${canonicalSlug}`}
+              canonicalPath={`/duos/${canonicalSlug}`}
+              title={`${a.name} & ${b.name}`}
+            />
           </div>
 
           {related.length > 0 && (

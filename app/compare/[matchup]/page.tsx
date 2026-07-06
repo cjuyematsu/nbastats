@@ -1,16 +1,17 @@
 // app/compare/[matchup]/page.tsx
 
-import React, { Suspense, cache } from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import PlayerComparisonChart from '@/components/PlayerComparisonChart';
 import ShareResult from '@/components/ShareResult';
+import CopyEmbedCode from '@/components/CopyEmbedCode';
 import AdSlot from '@/components/AdSlot';
-import { COMPARE_MATCHUPS, findMatchup, relatedMatchups } from '@/app/data/compareMatchups';
+import { COMPARE_MATCHUPS, relatedMatchups } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
-import { CareerStatsData, PlayerSuggestion } from '@/types/stats';
+import { resolveMatchupBySlug, type ResolvedPlayer } from '@/lib/serverStats';
+import { CareerStatsData } from '@/types/stats';
 
 export const revalidate = 86400;
 
@@ -18,44 +19,32 @@ export function generateStaticParams() {
   return COMPARE_MATCHUPS.map((m) => ({ matchup: m.slug }));
 }
 
-type ResolvedPlayer = {
-  suggestion: PlayerSuggestion;
-  stats: CareerStatsData | null;
-};
-
-const getPlayerByName = cache(async (name: string): Promise<ResolvedPlayer | null> => {
-  try {
-    const { data } = await supabase.rpc('get_player_suggestions', { search_term: name });
-    const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
-    if (!p) return null;
-    const { data: s } = await supabase.rpc('calculate_player_career_stats', { p_person_id: p.personId });
-    return { suggestion: p, stats: s && s.length > 0 ? (s[0] as CareerStatsData) : null };
-  } catch {
-    return null;
-  }
-});
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ matchup: string }>;
 }): Promise<Metadata> {
   const { matchup: slug } = await params;
-  const found = findMatchup(slug);
-  if (!found || found.reversed) return { title: 'Player Comparison', robots: { index: false } };
+  const resolved = await resolveMatchupBySlug(slug);
+  if (!resolved) return { title: 'Player Comparison', robots: { index: false } };
 
-  const { a, b } = found.matchup;
-  const [pa, pb] = await Promise.all([getPlayerByName(a), getPlayerByName(b)]);
+  const { a, b, pa, pb, canonicalSlug } = resolved;
   const ppgLine = (name: string, p: ResolvedPlayer | null) =>
     p?.stats?.pts_per_g != null ? `${name} (${p.stats.pts_per_g.toFixed(1)} PPG)` : name;
 
   const title = `${a} vs ${b}: NBA Career Stats Comparison`;
   const description = `Compare ${ppgLine(a, pa)} and ${ppgLine(b, pb)} side by side: points, rebounds, assists, shooting percentages, and season-by-season curves.`;
 
+  const canonical = `/compare/${canonicalSlug}`;
   return {
     title,
     description,
-    alternates: { canonical: `/compare/${found.matchup.slug}` },
+    alternates: {
+      canonical,
+      types: {
+        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${canonical}`)}&format=json`,
+      },
+    },
     openGraph: { title, description },
   };
 }
@@ -155,18 +144,17 @@ export default async function CompareMatchupPage({
   params: Promise<{ matchup: string }>;
 }) {
   const { matchup: slug } = await params;
-  const found = findMatchup(slug);
-  if (!found) notFound();
-  if (found.reversed) permanentRedirect(`/compare/${found.matchup.slug}`);
+  const resolved = await resolveMatchupBySlug(slug);
+  if (!resolved) notFound();
+  if (slug !== resolved.canonicalSlug) permanentRedirect(`/compare/${resolved.canonicalSlug}`);
 
-  const { a, b } = found.matchup;
-  const [pa, pb] = await Promise.all([getPlayerByName(a), getPlayerByName(b)]);
+  const { a, b, pa, pb, canonicalSlug } = resolved;
   const sa = pa?.stats ?? null;
   const sb = pb?.stats ?? null;
   const years = (s: CareerStatsData | null) =>
     s?.startYear && s?.endYear ? ` (${s.startYear}-${s.endYear})` : '';
 
-  const related = relatedMatchups(found.matchup);
+  const related = relatedMatchups({ slug: canonicalSlug, a, b });
   const faqs = buildFaqs(a, b, sa, sb);
   const faqJsonLd = faqs.length > 0
     ? {
@@ -249,11 +237,16 @@ export default async function CompareMatchupPage({
               shareText={buildCompareShare({
                 nameA: a,
                 nameB: b,
-                url: `hoopsdata.net/compare/${found.matchup.slug}`,
+                url: `hoopsdata.net/compare/${canonicalSlug}`,
               })}
               game="compare"
               surface="matchup_page"
               className="inline-flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white text-sm font-semibold px-4 py-1.5 transition-all"
+            />
+            <CopyEmbedCode
+              embedPath={`/embed/compare/${canonicalSlug}`}
+              canonicalPath={`/compare/${canonicalSlug}`}
+              title={`${a} vs ${b}`}
             />
             {pa && (
               <Link href={`/player/${pa.suggestion.personId}`} className="text-sky-600 dark:text-sky-400 hover:underline">

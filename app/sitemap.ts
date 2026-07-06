@@ -6,6 +6,7 @@ import path from 'path'
 import { supabase } from '@/lib/supabaseClient'
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups'
 import { DUO_PAGES } from '@/app/data/duoPages'
+import { strategicCompareSlugs } from '@/app/data/strategicPlayers'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://hoopsdata.net';
@@ -95,6 +96,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 
   const matchupRoutes: MetadataRoute.Sitemap = COMPARE_MATCHUPS.map((m) => ({
@@ -102,6 +115,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
+  }));
+
+  // Strategic open matchups (marquee cross-product minus curated) rendered on
+  // demand via ISR; only this bounded subset is advertised for crawl.
+  const strategicMatchupRoutes: MetadataRoute.Sitemap = strategicCompareSlugs().map((slug) => ({
+    url: `${baseUrl}/compare/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.6,
   }));
 
   const duoRoutes: MetadataRoute.Sitemap = DUO_PAGES.map((d) => ({
@@ -153,5 +175,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore; player pages just stay out of the sitemap
   }
 
-  return [...staticRoutes, ...matchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
+  return [...staticRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
 }
