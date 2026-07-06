@@ -10,6 +10,7 @@ import {
   getLastRearrangementIso,
   getNextRearrangementIso,
   getPreviousRearrangementIso,
+  isBoundaryUnapplied,
   isRearrangementDay,
 } from '@/lib/top100Time';
 import { getLaDateString, laMidnightIso } from '@/lib/dailyTime';
@@ -79,6 +80,20 @@ test('boundary instants pin to LA midnight in UTC across DST', () => {
   // must still land exactly on the next cycle day's LA midnight.
   assert.equal(getNextRearrangementIso(new Date('2026-10-31T07:00:01Z')), '2026-11-03T08:00:00.000Z');
   assert.equal(getNextRearrangementIso(new Date('2027-03-12T08:00:01Z')), '2027-03-15T07:00:00.000Z');
+});
+
+test('isBoundaryUnapplied is true only when the board predates the last boundary', () => {
+  const now = new Date('2026-07-06T17:00:00Z'); // last boundary = 2026-07-06T07:00Z
+  // Board from the previous cycle: reshuffle is owed.
+  assert.equal(isBoundaryUnapplied('2026-07-04T07:00:09Z', now), true);
+  // Board stamped exactly at / after the boundary: applied.
+  assert.equal(isBoundaryUnapplied('2026-07-06T07:00:00Z', now), false);
+  assert.equal(isBoundaryUnapplied('2026-07-06T17:10:42Z', now), false);
+  // No board / unparseable: not overdue (avoids a false pending banner).
+  assert.equal(isBoundaryUnapplied(null, now), false);
+  assert.equal(isBoundaryUnapplied('not-a-date', now), false);
+  // Just before the boundary the board is one boundary stale.
+  assert.equal(isBoundaryUnapplied('2026-07-06T06:59:59Z', now), true);
 });
 
 test('an exactly-on-time 08:00 UTC fire sees the same-day boundary in both PST and PDT', () => {

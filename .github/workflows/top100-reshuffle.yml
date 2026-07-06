@@ -1,0 +1,40 @@
+name: Top 100 reshuffle (safety net)
+
+# Redundant trigger for the Top 100 weekly-rankings cron. Vercel Hobby crons are
+# best-effort and have silently skipped fires (2026-07-03, 2026-07-06), stranding
+# the board. This hits the same route a bit after Vercel's 08:00 UTC fire; the
+# route's planRearrangement gate is idempotent per boundary, so a double fire is a
+# no-op ("skip: boundary already applied"). Use "Run workflow" for a manual
+# catch-up (?force=1 to rearrange off-cycle).
+
+on:
+  schedule:
+    - cron: '30 8 * * *' # 30 min after the Vercel cron, as a catch-up
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force an off-cycle reshuffle (?force=1)'
+        type: boolean
+        default: false
+
+jobs:
+  reshuffle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly-rankings route
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$BASE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Missing PRODUCTION_URL or CRON_SECRET secret"; exit 1
+          fi
+          URL="${BASE_URL%/}/api/cron/weekly-rankings"
+          if [ "${{ inputs.force }}" = "true" ]; then URL="$URL?force=1"; fi
+          echo "Requesting $URL"
+          STATUS=$(curl -s -o /tmp/body.txt -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" "$URL")
+          echo "HTTP $STATUS"
+          cat /tmp/body.txt
+          echo
+          if [ "$STATUS" != "200" ]; then exit 1; fi

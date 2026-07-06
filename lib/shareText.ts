@@ -144,6 +144,19 @@ export function buildTop100Share({ topFive }: { topFive: string[] }): string {
   ].join('\n');
 }
 
+// A user's personal ballot for the current cycle: who they pushed up and who
+// they pushed down. Arrow prefixes so it reads at a glance when pasted.
+export function buildTop100BallotShare({ ups, downs }: { ups: string[]; downs: string[] }): string {
+  const lines = ['My NBA Top 100 ballot this cycle:'];
+  ups.slice(0, 5).forEach((name) => lines.push(`\u{2B06}\u{FE0F} ${name}`));
+  downs.slice(0, 5).forEach((name) => lines.push(`\u{2B07}\u{FE0F} ${name}`));
+  const extra = Math.max(0, ups.length - 5) + Math.max(0, downs.length - 5);
+  if (extra > 0) lines.push(`+${extra} more`);
+  lines.push('Cast yours (no sign-in):');
+  lines.push('hoopsdata.net/top-100-players');
+  return lines.join('\n');
+}
+
 export function buildCompareShare({
   nameA,
   nameB,

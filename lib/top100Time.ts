@@ -58,3 +58,14 @@ export function getLastRearrangementIso(now: Date = new Date()): string {
 export function getPreviousRearrangementIso(now: Date = new Date()): string {
   return runInstantIso(lastRunDay(now) - CYCLE_DAYS);
 }
+
+// True when the most recent cycle boundary has NOT been applied to the board:
+// the board's ranked_at predates that boundary, so a reshuffle is owed but has
+// not run yet. Drives the page's honest "reshuffle pending" state so the
+// countdown can't silently reset as if a missed reshuffle had succeeded.
+export function isBoundaryUnapplied(rankedAt: string | null | undefined, now: Date = new Date()): boolean {
+  if (!rankedAt) return false;
+  const ranked = Date.parse(rankedAt);
+  if (Number.isNaN(ranked)) return false;
+  return ranked < Date.parse(getLastRearrangementIso(now));
+}
