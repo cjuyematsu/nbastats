@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { CareerStatsData } from '@/types/stats';
-import { StatsTable } from './PlayerStatsTables';
+import { StatsTable, SeasonBySeasonTable, type SeasonRow } from './PlayerStatsTables';
 import { ViewTeammatesButton } from './ViewTeammatesButton';
 import AdSlot from '@/components/AdSlot';
 
@@ -27,6 +27,19 @@ const getPlayoffStats = cache(async (personId: number): Promise<CareerStatsData 
     return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
   } catch {
     return null;
+  }
+});
+
+const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
+  try {
+    const { data } = await supabase
+      .from('regularseasonstats')
+      .select('SeasonYear, playerteamName, G, PTS_per_g, TRB_per_g, AST_per_g, FG_PCT, FG3_PCT')
+      .eq('personId', personId)
+      .order('SeasonYear');
+    return (data as SeasonRow[]) ?? [];
+  } catch {
+    return [];
   }
 });
 
@@ -94,10 +107,11 @@ export default async function PlayerStatsPage({
   const id = Number(playerId);
   if (!Number.isFinite(id)) notFound();
 
-  const [regular, playoffs, teammates] = await Promise.all([
+  const [regular, playoffs, teammates, seasons] = await Promise.all([
     getCareerStats(id),
     getPlayoffStats(id),
     getTopTeammates(id),
+    getSeasonStats(id),
   ]);
   const player = regular ?? playoffs;
   if (!player) notFound();
@@ -131,6 +145,7 @@ export default async function PlayerStatsPage({
           {teammates.length > 0 && <ViewTeammatesButton />}
 
           <StatsTable stats={regular} title="Regular Season Career Stats" statType="Averages" />
+          <SeasonBySeasonTable seasons={seasons} />
           <StatsTable stats={regular} title="Regular Season Career Totals" statType="Totals" />
 
           <StatsTable stats={playoffs} title="Playoff Career Stats" statType="Averages" />
