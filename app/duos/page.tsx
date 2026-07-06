@@ -2,7 +2,9 @@
 
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import DuosClient from './DuosClient';
+import { DUO_PAGES } from '@/app/data/duoPages';
 
 export const metadata: Metadata = {
   title: 'NBA Duos: Games, Record & Teams Together',
@@ -26,6 +28,16 @@ export default function DuosPage() {
       <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
         <DuosClient />
       </Suspense>
+      <section className="w-full max-w-3xl mx-auto px-4 sm:px-6 pb-10">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Famous NBA Duos</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          {DUO_PAGES.slice(0, 24).map((d) => (
+            <Link key={d.slug} href={`/duos/${d.slug}`} className="text-sky-600 dark:text-sky-400 hover:underline">
+              {d.a} &amp; {d.b}
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
