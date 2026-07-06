@@ -123,6 +123,19 @@ Notable tables: `regularseasonstats`, `playoffstats`, `draft`, `teammates`, `pla
 `stat_ou_daily_challenges`, `gamescores`. Domain TS interfaces (career/per-game stats,
 suggestions) live in `types/stats.ts`.
 
+`teammates` (~150k pair rows) is derived from the game-log dump `data/PlayerStatistics.csv`
+(not in git, ~390 MB): a shared game = both players in the same team's box score for a
+**regular season or playoff** game (preseason, All-Star, Play-In, and NBA Cup finals are
+excluded, matching official NBA stats — `INCLUDE_TYPES` in `scripts/refresh-teammates.ts`);
+sparse roster rows with no minutes still count, and postponed games repeat a gameId under two
+dates where only the final date is real. The table also carries `CombinedPtsPerGame`/`CombinedAstPerGame`/`CombinedRebPerGame` (each
+duo's combined per-game output over games BOTH logged minutes; null when they never both
+played), shown on `/duos`, `/duos/[slug]`, and the greatest-duos article cards.
+`npm run refresh:teammates` recomputes, diffs, and (with `--apply`) updates/inserts/deletes to
+sync the table after a new season's CSV lands; the exhibition-exclusion migration ran
+2026-07-06 (185,297 → 149,560 rows). Schema changes go in the Supabase SQL editor (no DB
+password in env), then hand-add columns to `types/supabase.ts` and re-run `--apply` to backfill.
+
 Static / hardcoded data:
 - `public/` — team logo PNGs and the Six Degrees graph JSON (`adjacency_list.json`,
   `player_map.json`).
