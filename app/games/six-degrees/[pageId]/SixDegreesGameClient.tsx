@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -258,6 +259,11 @@ function SixDegreesGameContent() {
         setPuzzle(null);
         setPriorPlayResult(null);
     }, []);
+
+    const startNewRandomGame = () => {
+        track('six_degrees_new_random', { from: gameStatus });
+        router.push(`/games/six-degrees/${uuidv4()}`);
+    };
 
     const saveDailyResult = useCallback(async (isSuccess: boolean, finalPath: Guess[], guessCount: number) => {
         if (!user || gameId !== 'daily' || !puzzle?.game_date) {
@@ -541,6 +547,12 @@ function SixDegreesGameContent() {
                 Compare {puzzle.player_a_name} vs {puzzle.player_b_name}
             </Link>
             <button
+                onClick={startNewRandomGame}
+                className={`px-4 py-2 rounded-lg text-white text-sm font-semibold ${backButtonClasses}`}
+            >
+                {gameId === 'daily' ? 'Play a Random Game' : 'New Random Game'}
+            </button>
+            <button
                 onClick={() => router.push('/games/six-degrees')}
                 className={`px-4 py-2 rounded-lg text-white text-sm font-semibold ${backButtonClasses}`}
             >
@@ -703,13 +715,21 @@ function SixDegreesGameContent() {
             </div>
 
             {gameStatus === 'playing' && (
-                <div className="mt-6">
+                <div className="mt-6 flex flex-wrap justify-center items-center gap-3">
                     <button
                         onClick={() => router.back()}
                         className={`px-6 py-2 rounded-lg text-white font-bold ${backButtonClasses}`}
                     >
                         Back
                     </button>
+                    {gameId !== 'daily' && (
+                        <button
+                            onClick={startNewRandomGame}
+                            className={`px-6 py-2 rounded-lg text-white font-bold ${backButtonClasses}`}
+                        >
+                            Shuffle
+                        </button>
+                    )}
                 </div>
             )}
 
