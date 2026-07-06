@@ -42,7 +42,7 @@ export default function ArticleDetailClient({ article }: { article: Article }) {
           All articles
         </Link>
 
-        <header className="mt-4 mb-6 max-w-3xl">
+        <header className="mt-4 mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{article.title}</h1>
           {article.dek && (
             <p className="mt-2 text-lg text-gray-700 dark:text-gray-300">{article.dek}</p>
@@ -59,7 +59,7 @@ export default function ArticleDetailClient({ article }: { article: Article }) {
         {isComponent ? (
           <>
             {article.body_markdown.trim() && (
-              <div className="prose prose-slate dark:prose-invert max-w-3xl">
+              <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {article.body_markdown}
                 </ReactMarkdown>
