@@ -6,6 +6,7 @@
 // then read/write with the service-role admin client.
 
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAdmin } from '@/lib/articleAdmin';
 
@@ -76,5 +77,13 @@ export async function POST(request: Request) {
     .select('id, slug, status')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // The homepage (ISR, revalidate=3600) features the newest published article and
+  // the /articles forum lists them; publishing or unpublishing changes both, so
+  // bust their caches on demand instead of waiting out the hourly window.
+  revalidatePath('/');
+  revalidatePath('/articles');
+  if (data?.slug) revalidatePath(`/articles/${data.slug}`);
+
   return NextResponse.json({ ok: true, article: data });
 }
