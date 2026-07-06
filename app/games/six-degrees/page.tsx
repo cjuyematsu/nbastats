@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import SixDegreesLobbyClient from './SixDegreesLobbyClient';
+import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
   title: 'Six Degrees of NBA | The Ultimate Player Connection Game',
@@ -30,8 +31,17 @@ function Loading() {
 
 export default function SixDegreesPage() {
   return (
-    <Suspense fallback={<Loading />}>
-      <SixDegreesLobbyClient />
-    </Suspense>
+    <>
+      <Suspense fallback={<Loading />}>
+        <SixDegreesLobbyClient />
+      </Suspense>
+      <GameAbout
+        title="About Six Degrees of NBA"
+        paragraphs={[
+          'Six Degrees of NBA is the basketball version of the Kevin Bacon game: connect any two players through a chain of shared teammates, in six hops or fewer.',
+          'Over 5,000 players are linked through real rosters. Play the daily matchup, or generate a random pair and see how short you can make the chain.',
+        ]}
+      />
+    </>
   );
 }
