@@ -211,6 +211,10 @@ export default async function HomePage() {
         <HomeForumLatest excludeSlug={featuredArticle?.slug} />
 
         <footer className="text-center pt-8 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex justify-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-3">
+            <Link href="/privacy" className="hover:underline">Privacy</Link>
+            <Link href="/terms" className="hover:underline">Terms</Link>
+          </div>
           <p className="text-sm text-slate-500 dark:text-slate-500 pb-6">
             Hoops Data &copy; {new Date().getFullYear()}
           </p>
