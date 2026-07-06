@@ -107,6 +107,14 @@ pages) can be upvoted/downvoted and commented on. The old analysis pages now liv
 **component articles**: the article shell renders their existing interactive chart components
 (`SalaryAnalysisClient`, `GrowthPageClient`, `DraftPointsClient`) instead of markdown.
 
+Component keys are registered in `app/articles/_components/ComponentArticle.tsx`. Besides the
+three analysis pages there is `greatest-duos` (`GreatestDuosArticle.tsx`, data in
+`app/data/duosData.ts`), registered **with SSR on** so its ranked list and FAQ text are in the
+initial HTML for SEO; the analysis three stay `ssr: false`. `/articles/review` renders the
+full component below the markdown for component-article drafts, so visuals are reviewable
+before publishing. Chart theming must watch `prefers-color-scheme` (media query), not a
+`dark` class: Tailwind runs the default media strategy here.
+
 - **Voting** is open to guests (mirrors `playervotes`: keyed by `user_id` or the 7-day
   `getAnonymousId()`).
 - **Commenting** requires sign-in. Comments are flat with a single reply level
