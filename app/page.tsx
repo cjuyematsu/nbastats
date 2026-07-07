@@ -94,7 +94,7 @@ export default async function HomePage() {
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
-      <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <header className="text-center pt-8 mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
             <span className="block text-sky-600 dark:text-sky-400">A Hub for NBA Stats</span>
@@ -209,16 +209,6 @@ export default async function HomePage() {
         </section>
 
         <HomeForumLatest excludeSlug={featuredArticle?.slug} />
-
-        <footer className="text-center pt-8 border-t border-gray-200 dark:border-slate-700">
-          <div className="flex justify-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-3">
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/terms" className="hover:underline">Terms</Link>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-500 pb-6">
-            Hoops Data &copy; {new Date().getFullYear()}
-          </p>
-        </footer>
       </main>
     </div>
   );
