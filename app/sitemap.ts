@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups'
 import { DUO_PAGES } from '@/app/data/duoPages'
 import { strategicCompareSlugs } from '@/app/data/strategicPlayers'
+import { PLAYER_DIRECTORY } from '@/app/data/playerDirectory'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://hoopsdata.net';
@@ -110,6 +111,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // Crawlable directory hubs: shallow entry points that link to the leaf pages.
+  const directoryRoutes: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/players`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/compare/all`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/duos/all`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/draft`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+  ];
+
+  const playerLetterRoutes: MetadataRoute.Sitemap = [
+    ...new Set(PLAYER_DIRECTORY.map((p) => p.letter)),
+  ].map((letter) => ({
+    url: `${baseUrl}/players/${letter.toLowerCase()}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.5,
+  }));
+
   const matchupRoutes: MetadataRoute.Sitemap = COMPARE_MATCHUPS.map((m) => ({
     url: `${baseUrl}/compare/${m.slug}`,
     lastModified: new Date(),
@@ -175,5 +193,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore; player pages just stay out of the sitemap
   }
 
-  return [...staticRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
+  return [...staticRoutes, ...directoryRoutes, ...playerLetterRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
 }

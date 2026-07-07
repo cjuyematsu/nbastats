@@ -11,6 +11,9 @@ import { ViewTeammatesButton } from './ViewTeammatesButton';
 import ShareResult from '@/components/ShareResult';
 import AdSlot from '@/components/AdSlot';
 import { buildPlayerShare } from '@/lib/shareText';
+import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups';
+import { duoHref } from '@/app/data/duoPages';
+import { strategicComparePairs } from '@/app/data/strategicPlayers';
 
 export const revalidate = 86400;
 
@@ -103,6 +106,27 @@ export default async function PlayerStatsPage({
 
   const name = `${player.firstName ?? ''} ${player.lastName ?? ''}`.trim();
 
+  // Curated + strategic head-to-head pages that involve this player, so the
+  // player page feeds crawlable links into the compare leaf graph (no new URLs).
+  const comparisons = (() => {
+    const seen = new Set<string>();
+    const out: { slug: string; other: string }[] = [];
+    const add = (slug: string, other: string) => {
+      if (seen.has(slug)) return;
+      seen.add(slug);
+      out.push({ slug, other });
+    };
+    for (const m of COMPARE_MATCHUPS) {
+      if (m.a === name) add(m.slug, m.b);
+      else if (m.b === name) add(m.slug, m.a);
+    }
+    for (const p of strategicComparePairs()) {
+      if (p.a === name) add(p.slug, p.b);
+      else if (p.b === name) add(p.slug, p.a);
+    }
+    return out;
+  })();
+
   const personJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -156,12 +180,31 @@ export default async function PlayerStatsPage({
                       {t.games.toLocaleString()} games together
                     </span>
                     <Link
-                      href={`/duos?players=${encodeURIComponent(name)},${encodeURIComponent(t.name)}`}
+                      href={`/duos/${duoHref(name, t.name)}`}
                       className="inline-block text-xs font-bold px-3 py-1.5 rounded-full bg-sky-500 text-white hover:bg-sky-400 dark:bg-sky-600 dark:hover:bg-sky-500 shadow-sm hover:shadow-md hover:scale-105 transition-all"
                     >
                       See their record
                     </Link>
                   </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {comparisons.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100 border-b border-gray-200 dark:border-slate-600 pb-2 transition-colors duration-200">
+                {name} Head-to-Head
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {comparisons.map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/compare/${c.slug}`}
+                    className="text-sm px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    vs {c.other}
+                  </Link>
                 ))}
               </div>
             </section>

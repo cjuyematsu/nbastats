@@ -53,20 +53,33 @@ export const STRATEGIC_PLAYERS: string[] = [
   'Victor Wembanyama',
 ];
 
-// Canonical compare slugs for every strategic pair, excluding any pair already
-// covered by a curated matchup (compared by canonical pair identity so ordering
-// differences never slip a duplicate/redirect into the sitemap).
-export function strategicCompareSlugs(): string[] {
+export interface StrategicPair {
+  slug: string;
+  a: string;
+  b: string;
+}
+
+// Canonical compare pairs for every strategic combination, excluding any pair
+// already covered by a curated matchup (compared by canonical pair identity so
+// ordering differences never slip a duplicate/redirect into the list). Carries
+// the display names so both the sitemap and the /compare/all directory can use it.
+export function strategicComparePairs(): StrategicPair[] {
   const curated = new Set(COMPARE_MATCHUPS.map((m) => buildCompareSlug(m.a, m.b)));
   const seen = new Set<string>();
-  const out: string[] = [];
+  const out: StrategicPair[] = [];
   for (let i = 0; i < STRATEGIC_PLAYERS.length; i++) {
     for (let j = i + 1; j < STRATEGIC_PLAYERS.length; j++) {
-      const slug = buildCompareSlug(STRATEGIC_PLAYERS[i], STRATEGIC_PLAYERS[j]);
+      const a = STRATEGIC_PLAYERS[i];
+      const b = STRATEGIC_PLAYERS[j];
+      const slug = buildCompareSlug(a, b);
       if (seen.has(slug) || curated.has(slug)) continue;
       seen.add(slug);
-      out.push(slug);
+      out.push({ slug, a, b });
     }
   }
   return out;
+}
+
+export function strategicCompareSlugs(): string[] {
+  return strategicComparePairs().map((p) => p.slug);
 }

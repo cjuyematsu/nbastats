@@ -38,6 +38,11 @@ export default function DuosPage() {
               </Link>
             ))}
           </div>
+          <p className="mt-4">
+            <Link href="/duos/all" className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
+              Browse all duos &rarr;
+            </Link>
+          </p>
         </section>
       </div>
     </div>
