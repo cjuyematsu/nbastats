@@ -58,6 +58,11 @@ export default function ComparePlayersPage() {
             <Link href="/compare/larry-bird-vs-magic-johnson" className="text-sky-600 dark:text-sky-400 hover:underline">Larry Bird vs Magic Johnson</Link>
             <Link href="/compare/shaquille-oneal-vs-hakeem-olajuwon" className="text-sky-600 dark:text-sky-400 hover:underline">Shaquille O&apos;Neal vs Hakeem Olajuwon</Link>
         </div>
+        <p className="mt-4">
+          <Link href="/compare/all" className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
+            Browse all comparisons &rarr;
+          </Link>
+        </p>
       </section>
     </div>
     </div>

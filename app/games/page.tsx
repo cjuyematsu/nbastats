@@ -124,7 +124,7 @@ export default function GamesHubPage() {
           </p>
           <p>
             Want the source material? Browse{' '}
-            <Link href="/draft/2003" className="text-sky-600 dark:text-sky-400 hover:underline">
+            <Link href="/draft" className="text-sky-600 dark:text-sky-400 hover:underline">
               full draft classes back to 1955
             </Link>
             ,{' '}
