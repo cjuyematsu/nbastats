@@ -44,9 +44,6 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: url,
-      types: {
-        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${url}`)}&format=json`,
-      },
     },
     openGraph: {
       type: 'article',

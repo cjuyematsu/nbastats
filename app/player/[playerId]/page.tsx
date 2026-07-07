@@ -8,8 +8,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { getCareerStats, getPlayoffStats } from '@/lib/serverStats';
 import { StatsTable, SeasonBySeasonTable, type SeasonRow } from './PlayerStatsTables';
 import { ViewTeammatesButton } from './ViewTeammatesButton';
-import CopyEmbedCode from '@/components/CopyEmbedCode';
+import ShareResult from '@/components/ShareResult';
 import AdSlot from '@/components/AdSlot';
+import { buildPlayerShare } from '@/lib/shareText';
 
 export const revalidate = 86400;
 
@@ -77,12 +78,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical,
-      types: {
-        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${canonical}`)}&format=json`,
-      },
-    },
+    alternates: { canonical },
     openGraph: { title, description },
   };
 }
@@ -193,7 +189,11 @@ export default async function PlayerStatsPage({
           </section>
 
           <section className="mt-6">
-            <CopyEmbedCode embedPath={`/embed/player/${id}`} canonicalPath={`/player/${id}`} title={`${name} career stats`} />
+            <ShareResult
+              shareText={buildPlayerShare({ name, url: `hoopsdata.net/player/${id}` })}
+              game="player"
+              surface="player_page"
+            />
           </section>
         </div>
       </div>
