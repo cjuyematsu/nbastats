@@ -2,6 +2,11 @@
 //
 // Shared duo helpers used by the /duos tool (client) and /duos/[slug] pages (server).
 
+// Each player in a duo gets a distinct accent; defined once so the index,
+// detail page, and embed all tint the two names the same way.
+export const DUO_ACCENT_A = '#00b060';
+export const DUO_ACCENT_B = '#0090b0';
+
 export type DuoRow = {
   PlayerID: number;
   TeammateID: number;

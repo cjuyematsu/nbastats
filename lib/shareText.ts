@@ -168,3 +168,19 @@ export function buildCompareShare({
 }): string {
   return [`${nameA} vs ${nameB}: settle it with the numbers.`, url].join('\n');
 }
+
+export function buildDuoShare({
+  nameA,
+  nameB,
+  url,
+}: {
+  nameA: string;
+  nameB: string;
+  url: string;
+}): string {
+  return [`${nameA} & ${nameB} as teammates: games, record, and combined stats.`, url].join('\n');
+}
+
+export function buildPlayerShare({ name, url }: { name: string; url: string }): string {
+  return [`${name}'s NBA career stats:`, url].join('\n');
+}

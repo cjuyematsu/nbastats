@@ -9,11 +9,9 @@ import { debounce } from 'lodash';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { PlayerSuggestion } from '@/types/stats';
-import { type DuoRow, parseRecord, cleanSharedTeams } from '@/lib/duos';
+import { type DuoRow, cleanSharedTeams, DUO_ACCENT_A, DUO_ACCENT_B } from '@/lib/duos';
 import { buildDuoSlug } from '@/app/data/duoPages';
-
-const COLOR_A = '#00b060';
-const COLOR_B = '#0090b0';
+import DuoStats from '@/app/duos/DuoStats';
 
 type Picked = { id: number; name: string };
 
@@ -217,13 +215,8 @@ export default function DuosClient() {
     if (!pa || !pb) setStatus('idle');
   };
 
-  const record = parseRecord(duo?.SharedGamesRecord ?? null);
-  const winPct = record && record.wins + record.losses > 0
-    ? ((record.wins / (record.wins + record.losses)) * 100).toFixed(1)
-    : null;
-
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="text-center mb-8">
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
           NBA Duos
@@ -235,9 +228,9 @@ export default function DuosClient() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
-        <PlayerSearch picked={a} onSelect={setA} placeholder="First player..." accentColor={COLOR_A} />
+        <PlayerSearch picked={a} onSelect={setA} placeholder="First player..." accentColor={DUO_ACCENT_A} />
         <span className="hidden sm:block text-slate-400 dark:text-slate-500 font-bold">&amp;</span>
-        <PlayerSearch picked={b} onSelect={setB} placeholder="Second player..." accentColor={COLOR_B} />
+        <PlayerSearch picked={b} onSelect={setB} placeholder="Second player..." accentColor={DUO_ACCENT_B} />
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8">
@@ -301,11 +294,11 @@ export default function DuosClient() {
       {status === 'found' && duo && a && b && (
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/60 p-6 animate-fadeIn">
           <h2 className="text-xl sm:text-2xl font-bold text-center text-slate-900 dark:text-slate-100 mb-1">
-            <Link href={`/player/${a.id}`} className="hover:underline" style={{ color: COLOR_A }}>
+            <Link href={`/player/${a.id}`} className="hover:underline" style={{ color: DUO_ACCENT_A }}>
               {a.name}
             </Link>
             <span className="text-slate-400 dark:text-slate-500"> &amp; </span>
-            <Link href={`/player/${b.id}`} className="hover:underline" style={{ color: COLOR_B }}>
+            <Link href={`/player/${b.id}`} className="hover:underline" style={{ color: DUO_ACCENT_B }}>
               {b.name}
             </Link>
           </h2>
@@ -315,61 +308,9 @@ export default function DuosClient() {
             </p>
           )}
 
-          <div className="flex flex-wrap justify-around text-center gap-6 mb-6">
-            <div>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                {duo.SharedGamesTotal?.toLocaleString() ?? 'N/A'}
-              </p>
-              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Games Together</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                {duo.SharedGamesRecord ?? 'N/A'}
-              </p>
-              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Record Together</p>
-            </div>
-            {winPct && (
-              <div>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">{winPct}%</p>
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Win Percentage</p>
-              </div>
-            )}
+          <div className="mb-6">
+            <DuoStats row={duo} teams={cleanSharedTeams(duo.SharedTeams, [a.name, b.name])} />
           </div>
-
-          {duo.CombinedPtsPerGame != null && (
-            <div className="mb-6">
-              <p className="text-center text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">
-                Combined per game
-              </p>
-              <div className="flex flex-wrap justify-around text-center gap-6">
-                <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {duo.CombinedPtsPerGame.toFixed(1)}
-                  </p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Points</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {duo.CombinedAstPerGame?.toFixed(1) ?? 'N/A'}
-                  </p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Assists</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {duo.CombinedRebPerGame?.toFixed(1) ?? 'N/A'}
-                  </p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Rebounds</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {cleanSharedTeams(duo.SharedTeams, [a.name, b.name]) && (
-            <div className="text-center mb-6">
-              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">Shared Teams</p>
-              <p className="text-slate-800 dark:text-slate-200">{cleanSharedTeams(duo.SharedTeams, [a.name, b.name])}</p>
-            </div>
-          )}
 
           <div className="flex flex-wrap justify-center gap-3">
             <Link
