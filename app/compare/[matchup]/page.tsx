@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import PlayerComparisonChart from '@/components/PlayerComparisonChart';
 import ShareResult from '@/components/ShareResult';
-import CopyEmbedCode from '@/components/CopyEmbedCode';
 import AdSlot from '@/components/AdSlot';
 import { COMPARE_MATCHUPS, relatedMatchups } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
@@ -39,12 +38,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical,
-      types: {
-        'application/json+oembed': `https://hoopsdata.net/api/oembed?url=${encodeURIComponent(`https://hoopsdata.net${canonical}`)}&format=json`,
-      },
-    },
+    alternates: { canonical },
     openGraph: { title, description },
   };
 }
@@ -242,11 +236,6 @@ export default async function CompareMatchupPage({
               game="compare"
               surface="matchup_page"
               className="inline-flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white text-sm font-semibold px-4 py-1.5 transition-all"
-            />
-            <CopyEmbedCode
-              embedPath={`/embed/compare/${canonicalSlug}`}
-              canonicalPath={`/compare/${canonicalSlug}`}
-              title={`${a} vs ${b}`}
             />
             {pa && (
               <Link href={`/player/${pa.suggestion.personId}`} className="text-sky-600 dark:text-sky-400 hover:underline">

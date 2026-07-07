@@ -1,21 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Block third-party framing of the real site, but let /embed/* widgets be
-  // embedded anywhere (that is the point of them). The negative-lookahead source
-  // keeps the two rules from both matching /embed/* and sending conflicting CSP.
+  // Block third-party framing of the site (clickjacking protection).
   async headers() {
     return [
       {
-        source: '/((?!embed).*)',
+        source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
         ],
-      },
-      {
-        source: '/embed/:path*',
-        headers: [{ key: 'Content-Security-Policy', value: 'frame-ancestors *' }],
       },
     ];
   },

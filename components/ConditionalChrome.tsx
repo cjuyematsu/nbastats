@@ -1,14 +1,11 @@
 // components/ConditionalChrome.tsx
 //
-// Renders the full site chrome (nav, header, scroll container, analytics, ads)
-// for normal routes, but nothing but the bare page for /embed/* so those pages
-// render as clean, self-contained widgets inside third-party iframes. navbar and
-// header are passed in as already-rendered elements so they keep their own
-// server/client boundary instead of being pulled into this client component.
+// Renders the full site chrome (nav, header, scroll container, analytics, ads).
+// navbar and header are passed in as already-rendered elements so they keep their
+// own server/client boundary instead of being pulled into this client component.
 
 'use client';
 
-import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import ScrollRestoration from '@/components/ScrollRestoration';
 import { Analytics } from '@vercel/analytics/react';
@@ -23,12 +20,6 @@ export default function ConditionalChrome({
   navbar: React.ReactNode;
   header: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  if (pathname?.startsWith('/embed')) {
-    return <>{children}</>;
-  }
-
   return (
     <>
       <div className="fixed inset-0 md:p-[var(--page-inset-padding)] pointer-events-none z-[49]">
