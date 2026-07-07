@@ -10,7 +10,6 @@ import { getNextRearrangementIso, isBoundaryUnapplied } from '@/lib/top100Time';
 import { buildTop100Share, buildTop100BallotShare } from '@/lib/shareText';
 import { resolveVoteIdentity, writeTop100Vote, type VoteIdentity } from '@/lib/top100Votes';
 import PlayerRow from './PlayerRow';
-import RecapStrip from './RecapStrip';
 import TrendingStrip from './TrendingStrip';
 import NominateSection from './NominateSection';
 import type { PlayerRankingInfo, TopPlayer } from './types';
@@ -201,17 +200,6 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
   const pageTitle = `Top 100 NBA Players of ${rankingYear}`;
   const pageSubtitle = 'The fan-voted NBA Top 100. Rankings reshuffle every 3 days.';
 
-  const recap = useMemo(() => {
-    const rows = players
-      .map(p => ({ player: p, change: playerRankingData.get(p.personId)?.weeklyChange ?? 0 }))
-      .filter(r => r.change !== 0);
-    return {
-      risers: rows.filter(r => r.change > 0).sort((a, b) => b.change - a.change).slice(0, 3),
-      fallers: rows.filter(r => r.change < 0).sort((a, b) => a.change - b.change).slice(0, 3),
-      newEntries: players.filter(p => (playerRankingData.get(p.personId)?.history?.length ?? 0) === 0).slice(0, 3),
-    };
-  }, [players, playerRankingData]);
-
   const ballotCount = useMemo(() => players.filter(p => p.currentUserVote != null).length, [players]);
 
   const ballot = useMemo(() => {
@@ -276,8 +264,6 @@ export default function Top100PlayersPage({ initialPlayers, initialRankingData, 
             . Votes are applied at every reshuffle.
           </p>
         </div>
-
-        <RecapStrip risers={recap.risers} fallers={recap.fallers} newEntries={recap.newEntries} />
 
         <TrendingStrip players={players} />
 
