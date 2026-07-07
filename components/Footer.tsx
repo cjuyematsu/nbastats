@@ -45,7 +45,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
 
 export default function Footer() {
   return (
-    <footer className="mt-10 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg text-slate-700 dark:text-slate-300">
+    <footer className="mt-4 md:mt-[var(--navbar-header-gap)] border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg text-slate-700 dark:text-slate-300">
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
           {COLUMNS.map((col) => (
