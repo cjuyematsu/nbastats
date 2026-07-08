@@ -92,12 +92,20 @@ export default function Header() {
           {authIsLoading ? (
             <div className="h-8 w-20 px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
           ) : user ? (
-            <button
-              onClick={handleSignOut}
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-500 dark:bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/account"
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
+              >
+                Account
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-sky-500 dark:bg-sky-600 border-sky-700 hover:bg-sky-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
             <Link
               href="/signin"
