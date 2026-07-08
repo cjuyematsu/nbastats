@@ -25,6 +25,15 @@ export const metadata: Metadata = {
 export default function DuosPage() {
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+      <header className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 text-center">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          NBA Duos
+        </h1>
+        <p className="mt-3 max-w-2xl mx-auto text-slate-600 dark:text-slate-300">
+          Pick any two players who shared a locker room and see how they did together:
+          games played, win-loss record, and every team they suited up for side by side.
+        </p>
+      </header>
       <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
         <DuosClient />
       </Suspense>

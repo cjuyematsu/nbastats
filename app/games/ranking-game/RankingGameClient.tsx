@@ -302,7 +302,7 @@ export default function RankingGame() {
   return (
     <div className={`min-h-screen rounded-lg ${mainBgClasses} border border-gray-200 dark:border-gray-700`}>
       <div className={`container mx-auto p-4 max-w-2xl ${mainTextClasses}`}>
-        <h1 className="text-3xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h1>
+        <h2 className="text-2xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h2>
         <h2 className="text-sm font-bold text-center mb-2">Green means the player is in the correct ranking and yellow means they are one away</h2>
         <div className={`text-center mb-4 p-3 rounded-lg ${statsContainerClasses}`}>
           {isDailyRound && (

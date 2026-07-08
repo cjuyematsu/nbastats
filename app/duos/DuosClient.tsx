@@ -216,17 +216,7 @@ export default function DuosClient() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <header className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-          NBA Duos
-        </h1>
-        <p className="mt-3 max-w-2xl mx-auto text-slate-600 dark:text-slate-300">
-          Pick any two players who shared a locker room and see how they did together:
-          games played, win-loss record, and every team they suited up for side by side.
-        </p>
-      </header>
-
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <PlayerSearch picked={a} onSelect={setA} placeholder="First player..." accentColor={DUO_ACCENT_A} />
         <span className="hidden sm:block text-slate-400 dark:text-slate-500 font-bold">&amp;</span>

@@ -588,9 +588,9 @@ function SixDegreesGameContent() {
         return (
             <div className={`flex flex-col justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
              <div className={`w-full p-4 text-center max-w-lg mx-auto animate-fadeIn ${alreadyPlayedContainer}`}>
-                <h1 className={`text-3xl font-bold ${highlightColor} mb-6`}>
+                <h2 className={`text-3xl font-bold ${highlightColor} mb-6`}>
                     Daily Challenge Complete{puzzleNumber ? ` (#${puzzleNumber})` : ''}
-                </h1>
+                </h2>
 
                 {priorPlayResult ? (
                      <div className={`text-left p-4 rounded-lg ${alreadyPlayedCard}`}>
@@ -671,9 +671,9 @@ function SixDegreesGameContent() {
     return (
         <div className={`w-full min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="container mx-auto p-4 text-center max-w-lg">
-            <h1 className="text-3xl font-bold mb-4">
-                Six Degrees of NBA{gameId === 'daily' && puzzleNumber ? ` #${puzzleNumber}` : ''}
-            </h1>
+            {gameId === 'daily' && puzzleNumber ? (
+                <h2 className="text-2xl font-bold mb-4">Puzzle #{puzzleNumber}</h2>
+            ) : null}
             <p className="mb-4">Connect <span className={`font-bold ${highlightColor}`}>{puzzle.player_a_name}</span> to <span className={`font-bold ${highlightColor}`}>{puzzle.player_b_name}</span>.</p>
             <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? (isDarkMode ? 'text-red-500' : 'text-red-600') : highlightColor}>{MAX_GUESSES - guessHistory.length}</span></p>
 

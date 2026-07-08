@@ -289,7 +289,6 @@ export default function OddManOutGame() {
       <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
 
         <div>
-            <h1 className="text-3xl font-bold mb-2 text-sky-600">Odd Man Out</h1>
             {isDailyRound && (
               <span className="inline-block mb-2 text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/40 border border-sky-300 dark:border-sky-700 rounded-full px-3 py-0.5">
                 Daily Challenge
