@@ -50,12 +50,5 @@ export async function generateMetadata({
 }
 
 export default function SixDegreesGamePage() {
-  return (
-    <>
-      <h1 className="text-3xl font-bold text-center text-sky-500 dark:text-sky-400 pt-6 pb-2">
-        Six Degrees of NBA
-      </h1>
-      <SixDegreesGameClient />
-    </>
-  );
+  return <SixDegreesGameClient />;
 }

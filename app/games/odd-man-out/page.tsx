@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 
 function Loading() {
   return (
-    <div className="w-full rounded-lg flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white">
-      <div className="text-center p-10 text-slate-100">Loading New Round...</div>
+    <div className="w-full rounded-lg flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700">
+      <div className="text-center p-10 text-gray-700 dark:text-slate-100">Loading New Round...</div>
     </div>
   );
 }
@@ -31,9 +31,6 @@ function Loading() {
 export default function OddManOutPage() {
   return (
     <>
-      <h1 className="text-3xl font-bold text-sky-600 dark:text-sky-400 text-center pt-6 pb-2">
-        Odd Man Out
-      </h1>
       <Suspense fallback={<Loading />}>
         <OddManOutClient />
       </Suspense>

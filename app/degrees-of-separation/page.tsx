@@ -24,9 +24,9 @@ export const metadata: Metadata = {
 
 function LoadingState() {
   return (
-    <div className="w-full bg-gray-800 text-slate-100">
+    <div className="w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-slate-100 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="container mx-auto p-4 min-h-screen flex flex-col items-center justify-center">
-        <p className="text-xl text-slate-300">Loading connection analysis tool...</p>
+        <p className="text-xl text-gray-600 dark:text-slate-300">Loading connection analysis tool...</p>
       </div>
     </div>
   );
@@ -34,13 +34,8 @@ function LoadingState() {
 
 export default function DegreesOfSeparationPage() {
   return (
-    <>
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-500 dark:text-sky-400 pt-6 pb-2">
-        NBA Degrees of Separation
-      </h1>
-      <Suspense fallback={<LoadingState />}>
-        <DegreesOfSeparationClient />
-      </Suspense>
-    </>
+    <Suspense fallback={<LoadingState />}>
+      <DegreesOfSeparationClient />
+    </Suspense>
   );
 }

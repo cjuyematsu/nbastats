@@ -69,12 +69,10 @@ function PlayerInput({
   onSelect,
   placeholder,
   disabled,
-  isDarkMode
 }: {
   onSelect: (player: Guess) => void;
   placeholder: string;
   disabled: boolean;
-  isDarkMode: boolean;
 }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<{id: number, name: string}[]>([]);
@@ -123,19 +121,13 @@ function PlayerInput({
         setIsOpen(false);
     };
 
-    const inputClasses = isDarkMode
-        ? "bg-slate-700 text-white placeholder-gray-400 disabled:bg-slate-800 disabled:text-gray-500"
-        : "bg-white text-gray-800 placeholder-gray-500 border border-sky-300 disabled:bg-gray-100 disabled:text-gray-400";
+    const inputClasses = "bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-sky-300 dark:border-transparent disabled:bg-gray-100 dark:disabled:bg-slate-800 disabled:text-gray-400 dark:disabled:text-gray-500";
 
-    const dropdownClasses = isDarkMode
-        ? "bg-slate-600 text-white"
-        : "bg-white text-gray-800 border border-sky-200";
+    const dropdownClasses = "bg-white dark:bg-slate-600 text-gray-800 dark:text-white border border-sky-200 dark:border-transparent";
 
-    const dropdownItemClasses = isDarkMode
-        ? "text-white hover:bg-sky-700"
-        : "text-gray-800 hover:bg-sky-100";
+    const dropdownItemClasses = "text-gray-800 dark:text-white hover:bg-sky-100 dark:hover:bg-sky-700";
 
-    const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
+    const mutedTextClasses = "text-gray-500 dark:text-gray-400";
 
 
     return (
@@ -194,15 +186,6 @@ function SixDegreesGameContent() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [priorPlayResult, setPriorPlayResult] = useState<DailyScore | null>(null);
     const [streak, setStreak] = useState<number | null>(null);
-    const [isDarkMode, setIsDarkMode] = useState(true);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(mediaQuery.matches);
-        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
 
     useEffect(() => {
         if (gameStatus === 'playing' && puzzle) {
@@ -494,24 +477,20 @@ function SixDegreesGameContent() {
         }
     };
 
-    const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800";
-    const loadingTextClasses = isDarkMode ? "text-slate-300" : "text-gray-600";
-    const errorTextClasses = isDarkMode ? "text-red-400" : "text-red-600";
-    const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
-    const playerCardClasses = isDarkMode ? "bg-slate-800" : "bg-white/60 backdrop-blur-sm border border-sky-200";
-    const arrowColor = isDarkMode ? "text-green-400" : "text-green-500";
-    const mutedArrowColor = isDarkMode ? "text-gray-400" : "text-gray-500";
-    const backButtonClasses = isDarkMode ? "bg-sky-600 hover:bg-sky-700" : "bg-sky-500 hover:bg-sky-600";
-    const pathLinkClasses = isDarkMode ? "underline hover:text-sky-400" : "underline hover:text-sky-600";
+    const mainContainerClasses = "bg-white dark:bg-gray-800 text-gray-800 dark:text-white";
+    const loadingTextClasses = "text-gray-600 dark:text-slate-300";
+    const errorTextClasses = "text-red-600 dark:text-red-400";
+    const highlightColor = "text-sky-600 dark:text-sky-400";
+    const playerCardClasses = "bg-white/60 dark:bg-slate-800 backdrop-blur-sm border border-sky-200 dark:border-transparent";
+    const arrowColor = "text-green-500 dark:text-green-400";
+    const mutedArrowColor = "text-gray-500 dark:text-gray-400";
+    const backButtonClasses = "bg-sky-500 dark:bg-sky-600 hover:bg-sky-600 dark:hover:bg-sky-700";
+    const pathLinkClasses = "underline hover:text-sky-600 dark:hover:text-sky-400";
 
-    const alreadyPlayedContainer = isDarkMode
-        ? "bg-gray-800 text-white"
-        : "bg-white text-gray-800";
-    const alreadyPlayedCard = isDarkMode
-        ? "bg-slate-700/50"
-        : "bg-white/60 backdrop-blur-sm border border-sky-200";
-    const alreadyPlayedHeaderText = isDarkMode ? "text-slate-200" : "text-gray-800";
-    const alreadyPlayedMutedText = isDarkMode ? "text-slate-400" : "text-gray-500";
+    const alreadyPlayedContainer = "bg-white dark:bg-gray-800 text-gray-800 dark:text-white";
+    const alreadyPlayedCard = "bg-white/60 dark:bg-slate-700/50 backdrop-blur-sm border border-sky-200 dark:border-transparent";
+    const alreadyPlayedHeaderText = "text-gray-800 dark:text-slate-200";
+    const alreadyPlayedMutedText = "text-gray-500 dark:text-slate-400";
 
     const puzzleNumber = puzzle?.game_date ? sixDegreesPuzzleNumber(puzzle.game_date) : null;
     const nextDailyIso = useMemo(() => getNextLaMidnightIso(), []);
@@ -588,7 +567,8 @@ function SixDegreesGameContent() {
         return (
             <div className={`flex flex-col justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
              <div className={`w-full p-4 text-center max-w-lg mx-auto animate-fadeIn ${alreadyPlayedContainer}`}>
-                <h2 className={`text-3xl font-bold ${highlightColor} mb-6`}>
+                <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h1>
+                <h2 className={`text-2xl font-bold ${highlightColor} mb-6`}>
                     Daily Challenge Complete{puzzleNumber ? ` (#${puzzleNumber})` : ''}
                 </h2>
 
@@ -671,11 +651,12 @@ function SixDegreesGameContent() {
     return (
         <div className={`w-full min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="container mx-auto p-4 text-center max-w-lg">
+            <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h1>
             {gameId === 'daily' && puzzleNumber ? (
                 <h2 className="text-2xl font-bold mb-4">Puzzle #{puzzleNumber}</h2>
             ) : null}
             <p className="mb-4">Connect <span className={`font-bold ${highlightColor}`}>{puzzle.player_a_name}</span> to <span className={`font-bold ${highlightColor}`}>{puzzle.player_b_name}</span>.</p>
-            <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? (isDarkMode ? 'text-red-500' : 'text-red-600') : highlightColor}>{MAX_GUESSES - guessHistory.length}</span></p>
+            <p className="mb-8 font-bold text-xl">Guesses Remaining: <span className={MAX_GUESSES - guessHistory.length <= 2 ? 'text-red-600 dark:text-red-500' : highlightColor}>{MAX_GUESSES - guessHistory.length}</span></p>
 
             <div className="space-y-4 mb-6">
                 {path.map((player, index) => (
@@ -698,7 +679,6 @@ function SixDegreesGameContent() {
                                 placeholder={`Find a teammate of ${nextPlayerToGuessFor.name}...`}
                                 onSelect={handleGuess}
                                 disabled={false}
-                                isDarkMode={isDarkMode}
                             />
                          </div>
                     </div>
@@ -711,7 +691,7 @@ function SixDegreesGameContent() {
             </div>
 
             <div className="h-7 my-4">
-                {feedbackMessage && <p className={`text-lg font-bold ${feedbackMessage.startsWith('Correct') || feedbackMessage.startsWith('Success') ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')}`}>{feedbackMessage}</p>}
+                {feedbackMessage && <p className={`text-lg font-bold ${feedbackMessage.startsWith('Correct') || feedbackMessage.startsWith('Success') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{feedbackMessage}</p>}
             </div>
 
             {gameStatus === 'playing' && (
@@ -734,8 +714,8 @@ function SixDegreesGameContent() {
             )}
 
              {(gameStatus === 'won' || gameStatus === 'lost') && (
-                 <div className={`mt-6 p-4 rounded-lg animate-fadeIn ${gameStatus === 'won' ? (isDarkMode ? 'bg-green-900/50 border border-green-500' : 'bg-green-100 border border-green-400') : (isDarkMode ? 'bg-red-900/50 border border-red-500' : 'bg-red-100 border border-red-400')}`}>
-                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? (isDarkMode ? 'text-green-300' : 'text-green-800') : (isDarkMode ? 'text-red-300' : 'text-red-800')}`}>
+                 <div className={`mt-6 p-4 rounded-lg animate-fadeIn ${gameStatus === 'won' ? 'bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-500' : 'bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-500'}`}>
+                     <h2 className={`text-2xl font-bold ${gameStatus === 'won' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
                          {gameStatus === 'won' ? `You Won!` : 'Game Over!'}
                      </h2>
                      {gameStatus === 'won' && (

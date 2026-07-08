@@ -66,24 +66,6 @@ function writeGuestStreak(s: GuestStreak): void {
     }
 }
 
-/**
- * Custom Hook: useThemeDetector
- * Safely detects the user's preferred color scheme to prevent theme flashing.
- */
-const useThemeDetector = () => {
-    const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(mediaQuery.matches);
-        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
-
-    return isDarkMode;
-};
-
 export default function RankingGame() {
   const { supabase, user, isLoading: authIsLoading } = useAuth();
 
@@ -100,8 +82,6 @@ export default function RankingGame() {
   const [totalIncorrect, setTotalIncorrect] = useState<number>(0);
   const [endedStreak, setEndedStreak] = useState<number | null>(null);
   const [isDailyRound, setIsDailyRound] = useState(false);
-
-  const isDarkMode = useThemeDetector();
 
   const fetchUserStreak = useCallback(async () => {
     if (!user) {
@@ -280,18 +260,18 @@ export default function RankingGame() {
   const totalGames = totalCorrect + totalIncorrect;
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
   
-  const mainBgClasses = isDarkMode ? "bg-gray-800" : "bg-white";
-  const mainTextClasses = isDarkMode ? "text-white" : "text-gray-800";
-  const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
-  const statsContainerClasses = isDarkMode ? "bg-gray-700/50" : "bg-white/80 border border-gray-200";
-  const cardIncorrectClasses = isDarkMode ? "bg-gray-900" : "bg-white border border-gray-300";
+  const mainBgClasses = "bg-white dark:bg-gray-800";
+  const mainTextClasses = "text-gray-800 dark:text-white";
+  const mutedTextClasses = "text-gray-500 dark:text-gray-400";
+  const statsContainerClasses = "bg-white/80 dark:bg-gray-700/50 border border-gray-200 dark:border-transparent";
+  const cardIncorrectClasses = "bg-white dark:bg-gray-900 border border-gray-300 dark:border-transparent";
   const cardCorrectClasses = "bg-green-600 text-white";
-  const cardCloseClasses = isDarkMode ? "bg-yellow-600 text-white" : "bg-yellow-400 text-white";
-  const guessingButtonClasses = isDarkMode ? "bg-sky-700 hover:bg-sky-600" : "bg-sky-500 hover:bg-sky-600 text-white";
-  const finishedCardClasses = isDarkMode ? "bg-gray-900" : "bg-white border border-gray-200";
+  const cardCloseClasses = "bg-yellow-400 dark:bg-yellow-600 text-white";
+  const guessingButtonClasses = "bg-sky-500 dark:bg-sky-700 hover:bg-sky-600 dark:hover:bg-sky-600 text-white";
+  const finishedCardClasses = "bg-white dark:bg-gray-900 border border-gray-200 dark:border-transparent";
   const playAgainButtonClasses = "bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 dark:hover:bg-sky-700 transition-colors";
 
-  if (isDarkMode === null || authIsLoading || status === GameStatus.Loading) {
+  if (authIsLoading || status === GameStatus.Loading) {
     return (
       <div className="w-full flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="text-center p-10 text-gray-700 dark:text-slate-100">Loading Game...</div>
@@ -302,6 +282,7 @@ export default function RankingGame() {
   return (
     <div className={`min-h-screen rounded-lg ${mainBgClasses} border border-gray-200 dark:border-gray-700`}>
       <div className={`container mx-auto p-4 max-w-2xl ${mainTextClasses}`}>
+        <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">NBA Player Ranking Game</h1>
         <h2 className="text-2xl font-bold text-center mb-2">Move the players into the correct ranking then guess the category</h2>
         <h2 className="text-sm font-bold text-center mb-2">Green means the player is in the correct ranking and yellow means they are one away</h2>
         <div className={`text-center mb-4 p-3 rounded-lg ${statsContainerClasses}`}>
