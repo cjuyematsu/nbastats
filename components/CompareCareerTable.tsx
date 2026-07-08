@@ -8,10 +8,9 @@ import { COMPARE_TABLE_ROWS, rowLeaderFlags } from '@/lib/compareCareer';
 interface CompareCareerTableProps {
   players: { player: SelectedPlayerForComparison; color: string }[];
   seasonType: 'regular' | 'playoffs';
-  isDarkMode: boolean;
 }
 
-export default function CompareCareerTable({ players, seasonType, isDarkMode }: CompareCareerTableProps) {
+export default function CompareCareerTable({ players, seasonType }: CompareCareerTableProps) {
   const [stats, setStats] = useState<Record<string, CareerStatsData | null>>({});
   const [isLoading, setIsLoading] = useState(false);
   const cacheRef = useRef(new Map<string, CareerStatsData | null>());
@@ -64,33 +63,21 @@ export default function CompareCareerTable({ players, seasonType, isDarkMode }: 
     stats: stats[String(player.personId)] ?? null,
   }));
 
-  const wrapperClasses = isDarkMode
-    ? 'overflow-x-auto shadow-md rounded-lg border border-slate-600'
-    : 'overflow-x-auto shadow-md rounded-lg border border-gray-200';
-  const theadClasses = isDarkMode ? 'bg-slate-600' : 'bg-gray-50';
-  const thClasses = isDarkMode
-    ? 'px-4 py-3 text-xs font-semibold text-slate-300 uppercase tracking-wider'
-    : 'px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider';
-  const tbodyClasses = isDarkMode
-    ? 'bg-slate-700 divide-y divide-slate-600'
-    : 'bg-white divide-y divide-gray-200';
-  const labelCellClasses = isDarkMode
-    ? 'px-4 py-2 whitespace-nowrap text-sm text-slate-300'
-    : 'px-4 py-2 whitespace-nowrap text-sm text-slate-600';
-  const valueCellClasses = isDarkMode
-    ? 'px-4 py-2 text-right text-sm font-mono text-slate-100'
-    : 'px-4 py-2 text-right text-sm font-mono text-slate-800';
-  const leaderCellClasses = isDarkMode
-    ? 'px-4 py-2 text-right text-sm font-mono font-semibold bg-sky-900/40 text-sky-300'
-    : 'px-4 py-2 text-right text-sm font-mono font-semibold bg-sky-100 text-sky-800';
+  const wrapperClasses = 'overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-slate-600';
+  const theadClasses = 'bg-gray-50 dark:bg-slate-600';
+  const thClasses = 'px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider';
+  const tbodyClasses = 'bg-white dark:bg-slate-700 divide-y divide-gray-200 dark:divide-slate-600';
+  const labelCellClasses = 'px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300';
+  const valueCellClasses = 'px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100';
+  const leaderCellClasses = 'px-4 py-2 text-right text-sm font-mono font-semibold bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300';
 
   return (
     <div className="mt-6">
       {isLoading && (
-        <p className={`text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Loading career stats...</p>
+        <p className="text-sm mb-2 text-gray-500 dark:text-slate-400">Loading career stats...</p>
       )}
       <div className={wrapperClasses}>
-        <table className={`min-w-full divide-y ${isDarkMode ? 'divide-slate-600' : 'divide-gray-200'}`}>
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
           <thead className={theadClasses}>
             <tr>
               <th className={`${thClasses} text-left`}>

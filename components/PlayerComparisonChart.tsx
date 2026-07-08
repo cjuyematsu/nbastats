@@ -48,7 +48,6 @@ interface PlayerSearchInputProps {
   selectedPlayer: SelectedPlayerForComparison | null;
   onPlayerSelect: (player: SelectedPlayerForComparison | null, index: number) => void;
   onRemovePlayer: (index: number) => void;
-  isDarkMode: boolean;
 }
 
 interface SelectedPlayerData {
@@ -82,7 +81,7 @@ function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] 
   );
 }
 
-const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPlayer, onPlayerSelect, onRemovePlayer, isDarkMode }) => {
+const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPlayer, onPlayerSelect, onRemovePlayer }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
@@ -155,17 +154,11 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
     }
   };
 
-  const inputClasses = isDarkMode 
-    ? "w-full p-2 border border-slate-500 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-slate-100 bg-slate-600 placeholder-slate-400"
-    : "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-gray-800 bg-white placeholder-gray-400";
-  
-  const suggestionsListClasses = isDarkMode
-    ? "absolute z-20 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto"
-    : "absolute z-20 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto";
+  const inputClasses = "w-full p-2 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-gray-800 dark:text-slate-100 bg-white dark:bg-slate-600 placeholder-gray-400 dark:placeholder-slate-400";
 
-  const suggestionItemClasses = isDarkMode
-    ? "p-2 hover:bg-sky-600 cursor-pointer text-sm text-slate-200"
-    : "p-2 hover:bg-sky-500 cursor-pointer text-sm text-gray-700";
+  const suggestionsListClasses = "absolute z-20 w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto";
+
+  const suggestionItemClasses = "p-2 hover:bg-sky-500 dark:hover:bg-sky-600 cursor-pointer text-sm text-gray-700 dark:text-slate-200";
 
   return (
     <div ref={searchContainerRef} className="relative mb-2">
@@ -189,7 +182,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
           </button>
         )}
       </div>
-      {isLoading && <div className={`absolute right-10 top-1/2 transform -translate-y-1/2 text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Loading...</div>}
+      {isLoading && <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-slate-400">Loading...</div>}
       {isSuggestionsVisible && suggestions.length > 0 && !selectedPlayer && (
         <ul className={suggestionsListClasses}>
           {suggestions.map((p) => (
@@ -200,7 +193,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
         </ul>
       )}
       {isSuggestionsVisible && searchTerm.length >= 2 && suggestions.length === 0 && !isLoading && !selectedPlayer && (
-        <div className={`${suggestionsListClasses} p-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+        <div className={`${suggestionsListClasses} p-2 text-sm text-gray-500 dark:text-slate-400`}>
           No players found matching &quot;{searchTerm}&quot;.
         </div>
       )}
@@ -241,7 +234,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
   const [chartData, setChartData] = useState<ChartData<'line', CustomChartPoint[]> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true); 
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const searchParams = useSearchParams();
   const initialNamesKey = (initialPlayerNames ?? []).join(',');
@@ -533,29 +526,21 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
     return options;
   }, [selectedStat, seasonType, xAxisMode, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]);
 
-  const mainContainerClasses = isDarkMode 
-    ? "w-full bg-gray-800 rounded-lg text-slate-100" 
-    : "w-full bg-white rounded-lg text-gray-800";
-  const sectionClasses = isDarkMode
-    ? "p-5 bg-slate-700 rounded-xl shadow-lg border border-slate-600"
-    : "p-5 bg-gray-50 rounded-xl shadow-lg border border-gray-200";
-  const chartContainerClasses = isDarkMode
-    ? "mt-6 h-96 md:h-[550px] bg-slate-700 p-3 rounded-xl shadow-inner border border-slate-600"
-    : "mt-6 h-96 md:h-[550px] bg-gray-50 p-3 rounded-xl shadow-inner border border-gray-200";
-  const selectClasses = isDarkMode
-    ? "w-full p-2.5 border border-sky-500 rounded-lg shadow-sm focus:ring-sky-500 0 text-slate-100 bg-slate-600 text-sm"
-    : "w-full p-2.5 border border-sky-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-gray-800 bg-white text-sm";
+  const mainContainerClasses = "w-full bg-white dark:bg-gray-800 rounded-lg text-gray-800 dark:text-slate-100";
+  const sectionClasses = "p-5 bg-gray-50 dark:bg-slate-700 rounded-xl shadow-lg border border-gray-200 dark:border-slate-600";
+  const chartContainerClasses = "mt-6 h-96 md:h-[550px] bg-gray-50 dark:bg-slate-700 p-3 rounded-xl shadow-inner border border-gray-200 dark:border-slate-600";
+  const selectClasses = "w-full p-2.5 border border-sky-300 dark:border-sky-500 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-gray-800 dark:text-slate-100 bg-white dark:bg-slate-600 text-sm";
+  const idleToggleClasses = 'bg-white dark:bg-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500';
   const buttonGroupRegularClasses = `flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
-    seasonType === 'regular' 
-      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' 
-      : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
+    seasonType === 'regular'
+      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700'
+      : idleToggleClasses
   }`;
   const buttonGroupPlayoffsClasses = `flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
     seasonType === 'playoffs'
       ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700'
-      : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
+      : idleToggleClasses
   }`;
-  const idleToggleClasses = isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300';
   const xAxisAgeClasses = `flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
     xAxisMode === 'age' ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' : idleToggleClasses
   }`;
@@ -585,7 +570,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
       <div className="p-4 md:px-4 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
             <div className={`lg:col-span-2 ${sectionClasses}`}>
-                <h3 className={`text-xl font-semibold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-slate-100">
                 Select Up to {MAX_PLAYERS} Players ({selectedPlayers.filter(p => p !== null).length} / {MAX_PLAYERS})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
@@ -596,14 +581,13 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
                         selectedPlayer={selectedPlayers[index]}
                         onPlayerSelect={handlePlayerSelect}
                         onRemovePlayer={handleRemovePlayer}
-                        isDarkMode={isDarkMode}
                         />
                     ))}
                 </div>
             </div>
             <div className={`${sectionClasses} space-y-5`}>
             <div>
-                <label htmlFor="stat-select" className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Statistic:</label>
+                <label htmlFor="stat-select" className="block text-lg font-semibold mb-1.5 text-gray-800 dark:text-slate-100">Statistic:</label>
                 <div className="flex flex-wrap gap-2 mb-2.5">
                     {QUICK_STATS.map((stat) => (
                         <button key={stat.value} type="button" onClick={() => setSelectedStat(stat.value)} className={chipClasses(selectedStat === stat.value)}>
@@ -621,14 +605,14 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
                 </select>
             </div>
             <div>
-                <label className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Season Type:</label>
+                <label className="block text-lg font-semibold mb-1.5 text-gray-800 dark:text-slate-100">Season Type:</label>
                 <div className="flex rounded-lg shadow-sm">
                     <button type="button" onClick={() => setSeasonType('regular')} className={buttonGroupRegularClasses}>Regular Season</button>
                     <button type="button" onClick={() => setSeasonType('playoffs')} className={buttonGroupPlayoffsClasses}>Playoffs</button>
                 </div>
             </div>
             <div>
-                <label className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>X-Axis:</label>
+                <label className="block text-lg font-semibold mb-1.5 text-gray-800 dark:text-slate-100">X-Axis:</label>
                 <div className="flex rounded-lg shadow-sm">
                     <button type="button" onClick={() => setXAxisMode('age')} className={xAxisAgeClasses}>Age</button>
                     <button type="button" onClick={() => setXAxisMode('season')} className={xAxisSeasonClasses}>Season</button>
@@ -640,7 +624,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
         {isLoadingChart && (
             <div className="flex flex-col justify-center items-center h-full">
                 <div className="w-12 h-12 border-4 border-t-sky-600 border-r-sky-700 border-b-slate-600 border-l-slate-600 rounded-full animate-spin"></div>
-                <p className={`mt-4 text-lg ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>Loading Chart Data...</p>
+                <p className="mt-4 text-lg text-gray-600 dark:text-slate-300">Loading Chart Data...</p>
             </div>
         )}
         {!isLoadingChart && error && (
@@ -653,14 +637,14 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
         )}
         {!isLoadingChart && !error && (!chartData || chartData.datasets.length === 0) && (
              <div className="flex justify-center items-center h-full">
-                <p className={`text-lg ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} text-center px-4`}>
+                <p className="text-lg text-gray-500 dark:text-slate-400 text-center px-4">
                     {selectedPlayers.some(p => p !== null) ? `No ${seasonType} data to display for current selections.` : "Select players and a statistic to view the chart."}
                 </p>
             </div>
         )}
       </div>
-      <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} isDarkMode={isDarkMode} />
-      {showExplore && <CompareExploreLinks names={activeNames} isDarkMode={isDarkMode} />}
+      <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} />
+      {showExplore && <CompareExploreLinks names={activeNames} />}
       {showShare && activeNames.length >= 2 && (
         <div className="mt-4 flex justify-center">
           <ShareResult
