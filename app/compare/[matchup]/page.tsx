@@ -10,6 +10,7 @@ import AdSlot from '@/components/AdSlot';
 import { COMPARE_MATCHUPS, relatedMatchups } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
 import { resolveMatchupBySlug, type ResolvedPlayer } from '@/lib/serverStats';
+import { COMPARE_TABLE_ROWS } from '@/lib/compareCareer';
 import { CareerStatsData } from '@/types/stats';
 
 export const revalidate = 86400;
@@ -43,10 +44,6 @@ export async function generateMetadata({
     openGraph: { title: ogTitle, description },
   };
 }
-
-const fmt = (v: number | null | undefined, d = 1) => (v != null ? v.toFixed(d) : 'N/A');
-const fmtPct = (v: number | null | undefined) => (v != null ? `${(v * 100).toFixed(1)}%` : 'N/A');
-const fmtInt = (v: number | null | undefined) => (v != null ? v.toLocaleString() : 'N/A');
 
 interface Faq {
   q: string;
@@ -122,16 +119,10 @@ function buildFaqs(a: string, b: string, sa: CareerStatsData | null, sb: CareerS
   return faqs;
 }
 
-const TABLE_ROWS: { label: string; value: (s: CareerStatsData) => string }[] = [
-  { label: 'Games Played', value: (s) => fmtInt(s.games_played) },
-  { label: 'Career Points', value: (s) => fmtInt(s.pts_total) },
-  { label: 'Points Per Game', value: (s) => fmt(s.pts_per_g) },
-  { label: 'Rebounds Per Game', value: (s) => fmt(s.trb_per_g) },
-  { label: 'Assists Per Game', value: (s) => fmt(s.ast_per_g) },
-  { label: 'Field Goal %', value: (s) => fmtPct(s.fg_pct) },
-  { label: '3-Point %', value: (s) => fmtPct(s.fg3_pct) },
-  { label: 'True Shooting %', value: (s) => fmtPct(s.ts_pct) },
-];
+const cell = (s: CareerStatsData | null, row: (typeof COMPARE_TABLE_ROWS)[number]) => {
+  const v = s ? row.get(s) : null;
+  return v != null ? row.format(v) : 'N/A';
+};
 
 export default async function CompareMatchupPage({
   params,
@@ -191,11 +182,11 @@ export default async function CompareMatchupPage({
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-slate-700 divide-y divide-gray-200 dark:divide-slate-600">
-                  {TABLE_ROWS.map((row) => (
+                  {COMPARE_TABLE_ROWS.map((row) => (
                     <tr key={row.label}>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{row.label}</td>
-                      <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{sa ? row.value(sa) : 'N/A'}</td>
-                      <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{sb ? row.value(sb) : 'N/A'}</td>
+                      <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{cell(sa, row)}</td>
+                      <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{cell(sb, row)}</td>
                     </tr>
                   ))}
                 </tbody>
