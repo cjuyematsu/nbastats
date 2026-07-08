@@ -51,6 +51,11 @@ export default function PrivacyPage() {
                 <strong>Usage data.</strong> We collect aggregate, privacy-friendly analytics about page views
                 and performance to understand how the Site is used.
               </li>
+              <li>
+                <strong>Newsletter email.</strong> If you subscribe to article updates, we store the email
+                address you provide so we can send you a notification when a new article is published. We use
+                double opt-in (you must confirm via a link) and every email includes a one-click unsubscribe.
+              </li>
             </ul>
           </section>
 
@@ -61,6 +66,10 @@ export default function PrivacyPage() {
               <li>To save your progress, votes, and streaks across sessions.</li>
               <li>To measure and improve performance and usability.</li>
               <li>To secure the Site and prevent abuse.</li>
+              <li>
+                To send newsletter emails about new articles, if you subscribed. You can unsubscribe at any time
+                from the link in any newsletter email.
+              </li>
             </ul>
             <p className="mt-3">We do not sell your personal information.</p>
           </section>
@@ -83,6 +92,9 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Vercel</strong> hosts the Site and provides aggregate analytics and performance metrics.
+              </li>
+              <li>
+                <strong>Resend</strong> delivers newsletter and confirmation emails to subscribers on our behalf.
               </li>
               <li>
                 <strong>Google</strong> provides optional Google sign-in. If advertising is enabled, Google
