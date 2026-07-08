@@ -5,7 +5,7 @@ import SelectEraClient from './SelectEraClient';
 import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
-  title: 'NBA Stat Over/Under Game | Daily Basketball Trivia Challenge',
+  title: 'NBA Stat Over/Under | Daily Trivia Game',
   description: 'Play the daily NBA Stat Over/Under game. Choose an era and guess if a player\'s stats land over or under the line. A fun trivia challenge for NBA fans.',
   keywords: [
     'nba trivia game',
