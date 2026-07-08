@@ -7,10 +7,9 @@ import { exploreLinksForNames } from '@/lib/compareExplore';
 
 interface CompareExploreLinksProps {
   names: string[];
-  isDarkMode: boolean;
 }
 
-export default function CompareExploreLinks({ names, isDarkMode }: CompareExploreLinksProps) {
+export default function CompareExploreLinks({ names }: CompareExploreLinksProps) {
   if (names.length < 2) return null;
   const excludeSlug = names.length === 2 ? buildCompareSlug(names[0], names[1]) : null;
   const links = exploreLinksForNames(names, excludeSlug);
@@ -18,13 +17,13 @@ export default function CompareExploreLinks({ names, isDarkMode }: CompareExplor
 
   return (
     <div className="mt-6">
-      <h3 className={`text-xl font-semibold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Keep Exploring</h3>
+      <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-slate-100">Keep Exploring</h3>
       <div className="flex flex-wrap gap-4">
         {links.map((l) => (
           <Link
             key={l.slug}
             href={`/compare/${l.slug}`}
-            className={isDarkMode ? 'text-sky-400 hover:underline' : 'text-sky-600 hover:underline'}
+            className="text-sky-600 dark:text-sky-400 hover:underline"
           >
             {l.a} vs {l.b}
           </Link>
