@@ -9,6 +9,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { getAnonymousId } from '@/lib/anonymousIdentifier';
 import ArticleVote, { type VoteValue } from './_components/ArticleVote';
 import { relativeTime, nextMondayLabel } from '@/lib/articleDates';
+import NewsletterSignup from '@/components/NewsletterSignup';
 
 interface ForumRow {
   id: string;
@@ -139,12 +140,16 @@ export default function ArticlesClient() {
         </div>
 
         {nextDrop && (
-          <div className="mb-6 rounded-lg border border-dashed border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-4 py-3">
+          <div className="mb-4 rounded-lg border border-dashed border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-4 py-3">
             <p className="text-sm text-sky-800 dark:text-sky-200">
               <span className="font-semibold">Next article</span> drops {nextDrop}.
             </p>
           </div>
         )}
+
+        <div className="mb-6">
+          <NewsletterSignup variant="card" />
+        </div>
 
         {loading && <p className="text-gray-500 dark:text-gray-400">Loading…</p>}
         {error && (

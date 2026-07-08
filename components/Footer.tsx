@@ -6,6 +6,7 @@
 // graph-walking. Server component (plain links, no interactivity).
 
 import Link from 'next/link';
+import NewsletterSignup from '@/components/NewsletterSignup';
 
 const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] = [
   {
@@ -64,6 +65,17 @@ export default function Footer() {
               </ul>
             </nav>
           ))}
+        </div>
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700/60">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            Newsletter
+          </h2>
+          <p className="text-sm mb-3 text-slate-600 dark:text-slate-400">
+            Get an email when a new article drops.
+          </p>
+          <div className="max-w-md">
+            <NewsletterSignup variant="compact" />
+          </div>
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700/60 text-xs text-slate-500 dark:text-slate-400">
           <Link href="/" className="font-semibold hover:text-sky-600 dark:hover:text-sky-400">
