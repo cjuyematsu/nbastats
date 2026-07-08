@@ -32,17 +32,18 @@ export async function generateMetadata({
   const b = resolved.data.b.name;
   const games = resolved.data.row?.SharedGamesTotal;
 
-  const title = `${a} & ${b}: Games Played Together, Record & Teams`;
+  const title = `${a} & ${b}: Games Played Together`;
+  const ogTitle = `${a} & ${b}: Games Played Together, Record & Teams`;
   const description = games
     ? `Did ${a} and ${b} play together? Yes: ${games.toLocaleString()} games as teammates. See their win-loss record together, shared teams, and years side by side.`
     : `Did ${a} and ${b} play together? See their games as teammates, win-loss record together, shared teams, and years side by side.`;
 
   const canonical = `/duos/${resolved.canonicalSlug}`;
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical },
-    openGraph: { title, description },
+    openGraph: { title: ogTitle, description },
   };
 }
 

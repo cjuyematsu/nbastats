@@ -31,15 +31,16 @@ export async function generateMetadata({
   const ppgLine = (name: string, p: ResolvedPlayer | null) =>
     p?.stats?.pts_per_g != null ? `${name} (${p.stats.pts_per_g.toFixed(1)} PPG)` : name;
 
-  const title = `${a} vs ${b}: NBA Career Stats Comparison`;
+  const title = `${a} vs ${b}: NBA Career Stats`;
+  const ogTitle = `${a} vs ${b}: NBA Career Stats Comparison`;
   const description = `Compare ${ppgLine(a, pa)} and ${ppgLine(b, pb)} side by side: points, rebounds, assists, shooting percentages, and season-by-season curves.`;
 
   const canonical = `/compare/${canonicalSlug}`;
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical },
-    openGraph: { title, description },
+    openGraph: { title: ogTitle, description },
   };
 }
 
