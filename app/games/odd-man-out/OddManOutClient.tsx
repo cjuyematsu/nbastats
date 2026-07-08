@@ -64,16 +64,6 @@ export default function OddManOutGame() {
   const [endedStreak, setEndedStreak] = useState<number | null>(null);
   const [isDailyRound, setIsDailyRound] = useState(false);
 
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
   const fetchUserStreak = useCallback(async () => {
     if (user) {
       const { data } = await supabase
@@ -262,17 +252,15 @@ export default function OddManOutGame() {
   const totalGames = totalCorrect + totalIncorrect;
   const winPercentage = totalGames > 0 ? (totalCorrect / totalGames) * 100 : 0;
   
-  const mainContainerClasses = isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800";
-  const loadingTextClasses = isDarkMode ? "text-slate-100" : "text-gray-700";
-  const mutedTextClasses = isDarkMode ? "text-gray-400" : "text-gray-500";
-  const streakTextClasses = isDarkMode ? "text-yellow-400" : "text-amber-500";
-  
-  const cardDefaultClasses = isDarkMode 
-    ? "bg-sky-600 hover:bg-sky-700 text-white" 
-    : "bg-sky-500 border border-gray-300 hover:bg-sky-600 text-white";
+  const mainContainerClasses = "bg-white dark:bg-gray-800 text-gray-800 dark:text-white";
+  const loadingTextClasses = "text-gray-700 dark:text-slate-100";
+  const mutedTextClasses = "text-gray-500 dark:text-gray-400";
+  const streakTextClasses = "text-amber-500 dark:text-yellow-400";
+
+  const cardDefaultClasses = "bg-sky-500 dark:bg-sky-600 border border-gray-300 dark:border-transparent hover:bg-sky-600 dark:hover:bg-sky-700 text-white";
   const cardCorrectClasses = "bg-green-500 text-white scale-105";
   const cardIncorrectClasses = "bg-red-500 text-white";
-  const cardFadedClasses = isDarkMode ? "bg-gray-700 text-white opacity-60" : "bg-gray-200 text-gray-800 opacity-60";
+  const cardFadedClasses = "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white opacity-60";
 
 
   if (status === GameStatus.Loading || authIsLoading) {
@@ -285,7 +273,9 @@ export default function OddManOutGame() {
 
   return (
     <div className={`w-full min-h-screen rounded-lg p-4 text-center flex flex-col ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
-      
+      <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mt-2 mb-4">
+        Odd Man Out
+      </h1>
       <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
 
         <div>

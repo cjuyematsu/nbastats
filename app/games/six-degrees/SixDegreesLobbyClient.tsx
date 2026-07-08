@@ -14,18 +14,16 @@ import CountdownTimer from '@/components/CountdownTimer';
 
 const MIN_LOADING_TIME_MS = 400;
 
-function StatsDisplay({ scores, isDarkMode }: { scores: ScoreHistoryRecord[]; isDarkMode: boolean }) {
+function StatsDisplay({ scores }: { scores: ScoreHistoryRecord[] }) {
     const stats = useMemo(() => computeSixDegreesStats(scores, getLaDateString()), [scores]);
 
     const maxDistributionCount = Math.max(...stats.guessDistribution, 1);
 
-    const containerClasses = isDarkMode 
-      ? "mt-8 p-6 bg-slate-800/50 rounded-lg border border-slate-700 w-full"
-      : "mt-8 p-6 bg-white/60 rounded-lg border border-sky-200 w-full backdrop-blur-sm";
-    const headerTextClasses = isDarkMode ? "text-slate-100" : "text-gray-800";
-    const subHeaderTextClasses = isDarkMode ? "text-slate-200" : "text-gray-700";
-    const mutedTextClasses = isDarkMode ? "text-slate-400" : "text-gray-500";
-    const barBgClasses = isDarkMode ? "bg-slate-700" : "bg-sky-100";
+    const containerClasses = "mt-8 p-6 bg-white/60 dark:bg-slate-800/50 rounded-lg border border-sky-200 dark:border-slate-700 w-full backdrop-blur-sm";
+    const headerTextClasses = "text-gray-800 dark:text-slate-100";
+    const subHeaderTextClasses = "text-gray-700 dark:text-slate-200";
+    const mutedTextClasses = "text-gray-500 dark:text-slate-400";
+    const barBgClasses = "bg-sky-100 dark:bg-slate-700";
 
     return (
         <div className={`border border-gray-200 dark:border-gray-700 ${containerClasses}`}>
@@ -76,18 +74,8 @@ export default function SixDegreesLobby() {
     const [isLoadingPage, setIsLoadingPage] = useState(true);
     const [dailyDoneToday, setDailyDoneToday] = useState(false);
 
-    const [isDarkMode, setIsDarkMode] = useState(true);
-
     useEffect(() => {
         setDailyDoneToday(!!readDailyResult(getLaDateString()));
-    }, []);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(mediaQuery.matches);
-        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
     useEffect(() => {
@@ -141,13 +129,11 @@ export default function SixDegreesLobby() {
         router.push(`/games/six-degrees/${randomGameId}`);
     };
 
-    const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-white text-gray-800";
-    const loadingTextClasses = isDarkMode ? "text-slate-300" : "text-gray-600";
-    const mutedTextClasses = isDarkMode ? "text-slate-300" : "text-slate-600";
-    const linkClasses = isDarkMode ? "underline hover:text-sky-400" : "underline hover:text-sky-600";
-    const randomButtonClasses = isDarkMode 
-      ? "bg-[rgb(60,192,103)] hover:bg-green-400" 
-      : "bg-green-500 hover:bg-green-600";
+    const mainContainerClasses = "bg-white dark:bg-gray-800 text-gray-800 dark:text-slate-100";
+    const loadingTextClasses = "text-gray-600 dark:text-slate-300";
+    const mutedTextClasses = "text-slate-600 dark:text-slate-300";
+    const linkClasses = "underline hover:text-sky-600 dark:hover:text-sky-400";
+    const randomButtonClasses = "bg-green-500 dark:bg-[rgb(60,192,103)] hover:bg-green-600 dark:hover:bg-green-400";
 
 
     if (isLoadingPage) {
@@ -161,6 +147,7 @@ export default function SixDegreesLobby() {
     return (
         <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className="text-center w-full max-w-md">
+                <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-3">Six Degrees of NBA</h1>
                 <p className={`text-lg mb-10 ${mutedTextClasses}`}>Connect two NBA players through a chain of former teammates.</p>
                 <div className="space-y-4">
                     <button
@@ -187,10 +174,10 @@ export default function SixDegreesLobby() {
                 
                 <div className="mt-8">
                     {user ? (
-                        <StatsDisplay scores={scoreHistory} isDarkMode={isDarkMode} />
+                        <StatsDisplay scores={scoreHistory} />
                     ) : (
                         <>
-                            {scoreHistory.length > 0 && <StatsDisplay scores={scoreHistory} isDarkMode={isDarkMode} />}
+                            {scoreHistory.length > 0 && <StatsDisplay scores={scoreHistory} />}
                             <p className={`mt-8 text-sm ${mutedTextClasses}`}>
                                 <Link href="/signin" className={linkClasses}>Sign in</Link> to keep your daily stats across devices!
                             </p>

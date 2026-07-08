@@ -41,23 +41,6 @@ interface ApiErrorOrMessageResponse {
   searchedPlayerIds?: { p1: string; p2: string };
 }
 
-const useThemeDetector = () => {
-    const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(mediaQuery.matches);
-
-        const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
-
-    return isDarkMode;
-};
-
-
 const PlayerCard = ({ playerNode, className, linkClassName }: { playerNode: PathNode, className: string, linkClassName: string }) => {
   return (
     <div className={className}>
@@ -103,8 +86,6 @@ function DegreesOfSeparationClientContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  
-  const isDarkMode = useThemeDetector();
 
   useEffect(() => {
     const queryP1Id = searchParams?.get('p1');
@@ -239,52 +220,32 @@ function DegreesOfSeparationClientContent() {
     newParams.delete('p1'); newParams.delete('p2');
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   }, [router, pathname, searchParams]);
-  
-  if (isDarkMode === null) {
-    return null;
-  }
-  const mainContainerClasses = isDarkMode 
-    ? "w-full bg-gray-800 rounded-lg text-slate-100" 
-    : "w-full bg-white rounded-lg text-gray-800";
-  const textColor = isDarkMode ? "text-slate-100" : "text-gray-900";
-  const mutedTextColor = isDarkMode ? "text-slate-400" : "text-gray-500";
-  const labelColor = isDarkMode ? "text-gray-300" : "text-gray-600";
-  const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
-  const highlightHoverColor = isDarkMode ? "hover:text-sky-300" : "hover:text-sky-500";
-  const clearButtonClasses = isDarkMode 
-    ? "w-full sm:w-auto px-6 py-3 bg-slate-600 text-slate-100 rounded-md hover:bg-slate-700 transition-colors text-lg" 
-    : "w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-lg";
-  const errorBoxClasses = isDarkMode
-    ? "my-6 p-4 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-center"
-    : "my-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-center";
-  const infoBoxClasses = isDarkMode
-    ? "my-6 p-4 bg-sky-900/30 border border-sky-700/50 rounded-md text-sky-400 text-center"
-    : "my-6 p-4 bg-sky-50 border border-sky-200 rounded-md text-sky-700 text-center";
-  const linkSegmentContainerClasses = isDarkMode 
-    ? "block lg:grid lg:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)_minmax(0,_1fr)] lg:items-stretch gap-4 p-2 bg-slate-800/30 rounded-lg"
-    : "block lg:grid lg:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)_minmax(0,_1fr)] lg:items-stretch gap-4 p-2 bg-gray-100 rounded-lg";
-  const playerCardClasses = isDarkMode
-    ? "bg-slate-700 border border-slate-500 rounded-lg shadow-lg p-4 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/30 hover:border-sky-500/50"
-    : "bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/20 hover:border-sky-400";
+
+  const mainContainerClasses = "w-full bg-white dark:bg-gray-800 rounded-lg text-gray-800 dark:text-slate-100";
+  const textColor = "text-gray-900 dark:text-slate-100";
+  const mutedTextColor = "text-gray-500 dark:text-slate-400";
+  const labelColor = "text-gray-600 dark:text-gray-300";
+  const highlightColor = "text-sky-600 dark:text-sky-400";
+  const highlightHoverColor = "hover:text-sky-500 dark:hover:text-sky-300";
+  const clearButtonClasses = "w-full sm:w-auto px-6 py-3 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-100 rounded-md hover:bg-gray-300 dark:hover:bg-slate-700 transition-colors text-lg";
+  const errorBoxClasses = "my-6 p-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-md text-red-700 dark:text-red-300 text-center";
+  const infoBoxClasses = "my-6 p-4 bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-700/50 rounded-md text-sky-700 dark:text-sky-400 text-center";
+  const linkSegmentContainerClasses = "block lg:grid lg:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)_minmax(0,_1fr)] lg:items-stretch gap-4 p-2 bg-gray-100 dark:bg-slate-800/30 rounded-lg";
+  const playerCardClasses = "bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-500 rounded-lg shadow-lg p-4 flex flex-col justify-center h-full transition-all hover:shadow-sky-500/20 dark:hover:shadow-sky-500/30 hover:border-sky-400 dark:hover:border-sky-500/50";
   const playerCardLinkClasses = `text-xl text-center font-bold leading-tight cursor-pointer ${textColor} ${highlightHoverColor}`;
-  const connectionCardClasses = isDarkMode
-    ? "bg-slate-800 border border-slate-600 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-center items-center text-center h-full text-slate-300"
-    : "bg-gray-50 border border-gray-200 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-center items-center text-center h-full text-gray-700";
+  const connectionCardClasses = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-center items-center text-center h-full text-gray-700 dark:text-slate-300";
   const connectionLabelClasses = `text-xs font-bold ${highlightColor}`;
   const connectionValueClasses = `text-lg font-bold ${highlightColor}`;
 
   return (
-    <div className={`${mainContainerClasses} rounded-lg border border-gray-200 dark:border-gray-700`}>
+    <div className={`${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
       <div className={`container mx-auto p-4 min-h-screen ${textColor}`}>
-        <h2 className={`mt-4 text-4xl font-bold sm:text-5xl md:text-6xl text-center mb-3 ${highlightColor}`}>
-            NBA Player Connection Explorer
-        </h2>
-        <h2 className={`text-xl font-bold sm:text-2xl text-center mb-2 ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>
+        <h1 className={`mt-4 text-3xl sm:text-4xl font-bold text-center mb-3 ${highlightColor}`}>
+            NBA Degrees of Separation
+        </h1>
+        <h2 className="text-xl font-bold sm:text-2xl text-center mb-2 text-gray-800 dark:text-slate-200">
           The max separation between any two players is nine degrees.
         </h2>
-        <h3>
-          
-        </h3>
         <p className={`text-lg sm:text-xl text-center mb-8 ${mutedTextColor}`}>
           Can you find one?
         </p>
@@ -309,7 +270,7 @@ function DegreesOfSeparationClientContent() {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-6">
-          <button onClick={handleFindConnection} disabled={isLoading || !selectedStartPlayer || !selectedEndPlayer} className={`w-full sm:w-auto px-6 py-3 rounded-md transition-colors text-lg font-bold ${isDarkMode ? 'bg-sky-600 text-white hover:bg-sky-700 disabled:bg-slate-500' : 'bg-sky-500 text-white hover:bg-sky-700 disabled:bg-gray-400'} disabled:cursor-not-allowed`}>
+          <button onClick={handleFindConnection} disabled={isLoading || !selectedStartPlayer || !selectedEndPlayer} className="w-full sm:w-auto px-6 py-3 rounded-md transition-colors text-lg font-bold bg-sky-500 dark:bg-sky-600 text-white hover:bg-sky-700 disabled:bg-gray-400 dark:disabled:bg-slate-500 disabled:cursor-not-allowed">
             {isLoading ? 'Searching...' : 'Find Connection'}
           </button>
           {(selectedStartPlayer || selectedEndPlayer || path.length > 0 || error || infoMessage) && (
@@ -339,7 +300,7 @@ function DegreesOfSeparationClientContent() {
                 </Fragment>
               ))}
               {degrees === 0 && path.length === 1 && (
-                  <div className={`p-2 rounded-lg max-w-md mx-auto ${isDarkMode ? 'bg-slate-800/30' : 'bg-gray-100'}`}>
+                  <div className="p-2 rounded-lg max-w-md mx-auto bg-gray-100 dark:bg-slate-800/30">
                       <PlayerCard playerNode={path[0]} className={playerCardClasses} linkClassName={playerCardLinkClasses} />
                   </div>
               )}
@@ -352,31 +313,13 @@ function DegreesOfSeparationClientContent() {
 }
 
 function LoadingState() {
-  const isDarkMode = useThemeDetector();
-
-  if (isDarkMode === null) {
-      return (
-        <div className="w-full bg-transparent">
-           <div className="container mx-auto p-4 min-h-screen flex flex-col items-center justify-center">
-              <p className="text-xl text-gray-500 dark:text-gray-400">Loading Connections...</p>
-           </div>
-        </div>
-      );
-  }
-
-  const mainContainerClasses = isDarkMode 
-    ? "w-full bg-gray-800 text-slate-100" 
-    : "w-full bg-white text-gray-800";
-  const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
-  const textColor = isDarkMode ? "text-slate-300" : "text-gray-600";
-  
   return (
-    <div className={mainContainerClasses}>
+    <div className="w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-slate-100 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="container mx-auto p-4 min-h-screen flex flex-col items-center justify-center">
-        <h2 className={`text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center ${highlightColor}`}>
+        <h2 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-sky-600 dark:text-sky-400">
           Nine Degrees
         </h2>
-        <p className={`text-xl ${textColor}`}>Loading page and connections...</p>
+        <p className="text-xl text-gray-600 dark:text-slate-300">Loading page and connections...</p>
       </div>
     </div>
   );

@@ -23,8 +23,8 @@ export const metadata: Metadata = {
 
 function Loading() {
     return (
-        <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-800 text-slate-100 rounded-lg">
-            <p className="text-xl text-slate-300">Loading Game...</p>
+        <div className="w-full flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-slate-100 rounded-lg border border-gray-200 dark:border-gray-700">
+            <p className="text-xl text-gray-600 dark:text-slate-300">Loading Game...</p>
         </div>
     );
 }
@@ -32,9 +32,6 @@ function Loading() {
 export default function SixDegreesPage() {
   return (
     <>
-      <h1 className="text-4xl font-bold text-center text-sky-500 dark:text-sky-400 pt-6 pb-2">
-        Six Degrees of NBA
-      </h1>
       <Suspense fallback={<Loading />}>
         <SixDegreesLobbyClient />
       </Suspense>

@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 
 function Loading() {
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-800 rounded-lg">
-        <div className="text-center p-10 text-slate-100">Loading Game...</div>
+    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="text-center p-10 text-gray-700 dark:text-slate-100">Loading Game...</div>
     </div>
   );
 }
@@ -30,7 +30,6 @@ function Loading() {
 export default function RankingGamePage() {
   return (
     <>
-      <h1 className="text-3xl font-bold text-center pt-6 pb-2">NBA Player Ranking Game</h1>
       <Suspense fallback={<Loading />}>
         <RankingGameClient />
       </Suspense>
