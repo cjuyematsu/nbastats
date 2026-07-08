@@ -24,6 +24,7 @@ export type Database = {
           generation_meta: Json | null
           id: string
           kind: string
+          newsletter_sent_at: string | null
           published_at: string | null
           slug: string
           sources: Json | null
@@ -41,6 +42,7 @@ export type Database = {
           generation_meta?: Json | null
           id?: string
           kind?: string
+          newsletter_sent_at?: string | null
           published_at?: string | null
           slug: string
           sources?: Json | null
@@ -58,6 +60,7 @@ export type Database = {
           generation_meta?: Json | null
           id?: string
           kind?: string
+          newsletter_sent_at?: string | null
           published_at?: string | null
           slug?: string
           sources?: Json | null
@@ -65,6 +68,39 @@ export type Database = {
           summary?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          confirm_token: string
+          confirmed_at: string | null
+          created_at: string
+          email: string
+          id: string
+          status: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
         }
         Relationships: []
       }
