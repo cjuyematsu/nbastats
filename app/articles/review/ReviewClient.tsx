@@ -22,6 +22,15 @@ interface DraftArticle {
   generation_meta: unknown;
 }
 
+interface PublishedArticle {
+  id: string;
+  slug: string;
+  title: string;
+  dek: string | null;
+  published_at: string | null;
+  newsletter_sent_at: string | null;
+}
+
 function getEstCost(meta: unknown): number | null {
   if (meta && typeof meta === 'object' && 'est_cost_usd' in meta) {
     const v = (meta as Record<string, unknown>).est_cost_usd;
@@ -33,9 +42,11 @@ function getEstCost(meta: unknown): number | null {
 export default function ReviewClient() {
   const { user, session, isLoading } = useAuth();
   const [drafts, setDrafts] = useState<DraftArticle[]>([]);
+  const [published, setPublished] = useState<PublishedArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [sendMsg, setSendMsg] = useState<string | null>(null);
 
   const token = session?.access_token;
 
@@ -53,6 +64,7 @@ export default function ReviewClient() {
         setDrafts([]);
       } else {
         setDrafts(json.articles ?? []);
+        setPublished(json.published ?? []);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load drafts.');
@@ -85,6 +97,33 @@ export default function ReviewClient() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const sendNewsletter = async (id: string, force = false) => {
+    if (!token) return;
+    setBusyId(id);
+    setSendMsg(null);
+    try {
+      const res = await fetch('/api/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ articleId: id, force }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setSendMsg(json.error ?? 'Send failed.');
+      } else {
+        const now = new Date().toISOString();
+        setPublished((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, newsletter_sent_at: now } : p)),
+        );
+        setSendMsg(`Sent to ${json.recipientCount} subscriber${json.recipientCount === 1 ? '' : 's'}.`);
+      }
+    } catch (err) {
+      setSendMsg(err instanceof Error ? err.message : 'Send failed.');
     } finally {
       setBusyId(null);
     }
@@ -181,6 +220,53 @@ export default function ReviewClient() {
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold mb-1">Newsletter</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Email a summary to confirmed subscribers. One send per article
+            live, then send.
+          </p>
+          {sendMsg && <p className="mb-4 text-sm text-sky-600 dark:text-sky-400">{sendMsg}</p>}
+          {published.length === 0 && (
+            <p className="text-gray-500 dark:text-gray-400">No published articles yet.</p>
+          )}
+          <div className="space-y-3">
+            {published.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{p.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    /articles/{p.slug}
+                    {p.newsletter_sent_at && (
+                      <> · sent {new Date(p.newsletter_sent_at).toLocaleDateString()}</>
+                    )}
+                  </p>
+                </div>
+                {p.newsletter_sent_at ? (
+                  <button
+                    onClick={() => sendNewsletter(p.id, true)}
+                    disabled={busyId === p.id}
+                    className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {busyId === p.id ? 'Sending…' : 'Resend'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => sendNewsletter(p.id)}
+                    disabled={busyId === p.id}
+                    className="px-4 py-2 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {busyId === p.id ? 'Sending…' : 'Send newsletter'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

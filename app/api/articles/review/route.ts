@@ -21,7 +21,18 @@ export async function GET(request: Request) {
     .in('status', ['draft', 'rejected'])
     .order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ articles: data ?? [] });
+
+  // Recently published articles power the "Send newsletter" panel (the send is
+  // manual and one-shot per article, guarded by newsletter_sent_at).
+  const { data: published, error: pubErr } = await supabaseAdmin
+    .from('articles')
+    .select('id, slug, title, dek, published_at, newsletter_sent_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(20);
+  if (pubErr) return NextResponse.json({ error: pubErr.message }, { status: 500 });
+
+  return NextResponse.json({ articles: data ?? [], published: published ?? [] });
 }
 
 export async function POST(request: Request) {
