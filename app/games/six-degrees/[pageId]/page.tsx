@@ -37,8 +37,8 @@ export async function generateMetadata({
   }
 
   const daily = await getDailyPuzzle(getLaDateString());
-  const title = daily?.game_date
-    ? `Six Degrees of NBA #${sixDegreesPuzzleNumber(daily.game_date)}: ${daily.player_a_name} to ${daily.player_b_name}`
+  const title: Metadata['title'] = daily?.game_date
+    ? { absolute: `Six Degrees #${sixDegreesPuzzleNumber(daily.game_date)}: ${daily.player_a_name} to ${daily.player_b_name}` }
     : 'Six Degrees of NBA: Daily Challenge';
 
   return {
@@ -50,5 +50,12 @@ export async function generateMetadata({
 }
 
 export default function SixDegreesGamePage() {
-  return <SixDegreesGameClient />;
+  return (
+    <>
+      <h1 className="text-3xl font-bold text-center text-sky-500 dark:text-sky-400 pt-6 pb-2">
+        Six Degrees of NBA
+      </h1>
+      <SixDegreesGameClient />
+    </>
+  );
 }

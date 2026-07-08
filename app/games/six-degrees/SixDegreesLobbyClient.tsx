@@ -143,7 +143,6 @@ export default function SixDegreesLobby() {
 
     const mainContainerClasses = isDarkMode ? "bg-gray-800 text-slate-100" : "bg-white text-gray-800";
     const loadingTextClasses = isDarkMode ? "text-slate-300" : "text-gray-600";
-    const highlightColor = isDarkMode ? "text-sky-400" : "text-sky-600";
     const mutedTextClasses = isDarkMode ? "text-slate-300" : "text-slate-600";
     const linkClasses = isDarkMode ? "underline hover:text-sky-400" : "underline hover:text-sky-600";
     const randomButtonClasses = isDarkMode 
@@ -162,7 +161,6 @@ export default function SixDegreesLobby() {
     return (
         <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className="text-center w-full max-w-md">
-                <h1 className={`text-4xl font-bold mb-4 ${highlightColor}`}>Six Degrees of NBA</h1>
                 <p className={`text-lg mb-10 ${mutedTextClasses}`}>Connect two NBA players through a chain of former teammates.</p>
                 <div className="space-y-4">
                     <button

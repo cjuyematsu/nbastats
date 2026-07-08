@@ -32,6 +32,9 @@ function Loading() {
 export default function SixDegreesPage() {
   return (
     <>
+      <h1 className="text-4xl font-bold text-center text-sky-500 dark:text-sky-400 pt-6 pb-2">
+        Six Degrees of NBA
+      </h1>
       <Suspense fallback={<Loading />}>
         <SixDegreesLobbyClient />
       </Suspense>
