@@ -276,20 +276,20 @@ export default function Navbar() {
                   )}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                   
-                  <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
-                    Over/Under
+                  <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
+                    Six Degrees
                   </NavLink>
                   <NavLink href="/games/draft-quiz" icon={<QuizIcon />} showText={showTextInNav}>
                     Fill in the Draft
                   </NavLink>
-                  <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
-                    Guess the Ranking
+                  <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
+                    Over/Under
                   </NavLink>
                   <NavLink href="/games/odd-man-out" icon={<OddManOutIcon />} showText={showTextInNav}>
                     Odd Man Out
                   </NavLink>
-                  <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
-                    Six Degrees
+                  <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
+                    Guess the Ranking
                   </NavLink>
                 </div>
 
