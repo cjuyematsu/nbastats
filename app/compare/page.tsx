@@ -36,7 +36,7 @@ export default function ComparePlayersPage() {
       </header>
 
       <Suspense fallback={<div className="text-center p-10">Loading Comparison Chart...</div>}>
-        <PlayerComparisonChart showShare />
+        <PlayerComparisonChart showShare showExplore />
       </Suspense>
 
       <section className="mt-12 text-left max-w-4xl mx-auto">
@@ -60,7 +60,7 @@ export default function ComparePlayersPage() {
         </div>
         <p className="mt-4">
           <Link href="/compare/all" className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
-            Browse all comparisons &rarr;
+            Browse all comparisons
           </Link>
         </p>
       </section>

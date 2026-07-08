@@ -9,6 +9,8 @@ import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
 import { compareHref } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
+import CompareCareerTable from '@/components/CompareCareerTable';
+import CompareExploreLinks from '@/components/CompareExploreLinks';
 import { debounce } from 'lodash';
 import { Line } from 'react-chartjs-2';
 import {
@@ -33,11 +35,13 @@ ChartJS.register(
 );
 
 const MAX_PLAYERS = 5;
-const AGE_AXIS_PADDING = 1; 
+const AGE_AXIS_PADDING = 1;
 
-const PLAYER_COLORS = [
-  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-];
+// Categorical palettes validated for CVD separation and contrast against the
+// chart surfaces (light bg-gray-50, dark bg-slate-700). Indexed by player slot,
+// never cycled, so removing a player does not repaint the others.
+const PLAYER_COLORS_LIGHT = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7'];
+const PLAYER_COLORS_DARK = ['#3987e5', '#199e70', '#c98500', '#008300', '#9085e9'];
 
 interface PlayerSearchInputProps {
   index: number;
@@ -49,6 +53,7 @@ interface PlayerSearchInputProps {
 
 interface SelectedPlayerData {
   PlayerAge: number | null;
+  SeasonYear: number | null;
   playerteamName: string;
   [key: string]: number | string | null;
 }
@@ -57,7 +62,11 @@ interface CustomChartPoint {
   x: number;
   y: number | null;
   team: string | null;
+  season: number | null;
+  age: number | null;
 }
+
+type SlotDataset = ChartDataset<'line', CustomChartPoint[]> & { slot: number };
 
 function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] {
   if (!Array.isArray(data)) return false;
@@ -68,6 +77,7 @@ function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] 
     firstElement !== null &&
     typeof (firstElement as { error?: unknown }).error === 'undefined' &&
     'PlayerAge' in firstElement &&
+    'SeasonYear' in firstElement &&
     'playerteamName' in firstElement
   );
 }
@@ -198,6 +208,14 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
   );
 };
 
+const QUICK_STATS: { value: string; label: string }[] = [
+  { value: 'PTS_per_g', label: 'PPG' },
+  { value: 'TRB_per_g', label: 'RPG' },
+  { value: 'AST_per_g', label: 'APG' },
+  { value: 'FG3_PCT', label: '3P%' },
+  { value: 'TS_PCT', label: 'TS%' },
+];
+
 const availableStats = [
     { value: 'PTS_per_g', label: 'Points Per Game (PPG)' },
     { value: 'AST_per_g', label: 'Assists Per Game (APG)' },
@@ -215,10 +233,11 @@ const availableStats = [
     { value: 'TRB_total', label: 'Total Rebounds (Season)' },
 ];
 
-export default function PlayerComparisonChart({ initialPlayerNames, showShare }: { initialPlayerNames?: string[]; showShare?: boolean }) {
+export default function PlayerComparisonChart({ initialPlayerNames, showShare, showExplore }: { initialPlayerNames?: string[]; showShare?: boolean; showExplore?: boolean }) {
   const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(Array(MAX_PLAYERS).fill(null));
   const [selectedStat, setSelectedStat] = useState<string>(availableStats[0].value);
   const [seasonType, setSeasonType] = useState<'regular' | 'playoffs'>('regular');
+  const [xAxisMode, setXAxisMode] = useState<'age' | 'season'>('age');
   const [chartData, setChartData] = useState<ChartData<'line', CustomChartPoint[]> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -300,49 +319,61 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
 
     setIsLoadingChart(true);
     setError(null);
-    const datasets: ChartDataset<'line', CustomChartPoint[]>[] = [];
-    const allAgesWithData = new Set<number>(); 
+    const datasets: SlotDataset[] = [];
+    const allXValues = new Set<number>();
     const currentTableName = seasonType === 'regular' ? 'regularseasonstats' : 'playoffstats';
 
     try {
-      for (let i = 0; i < activePlayers.length; i++) {
-        const player = activePlayers[i];
+      for (let slot = 0; slot < selectedPlayers.length; slot++) {
+        const player = selectedPlayers[slot];
         if (!player || !player.personId) continue;
 
-        const playerLineColor = PLAYER_COLORS[i % PLAYER_COLORS.length];
-        const columnsToSelect = `PlayerAge, playerteamName, "${selectedStat}"`;
+        const columnsToSelect = `PlayerAge, SeasonYear, playerteamName, "${selectedStat}"`;
 
         const { data: fetchedData, error: dbError } = await supabase
           .from(currentTableName)
           .select<string, SelectedPlayerData>(columnsToSelect)
           .eq('personId', player.personId)
-          .order('PlayerAge', { ascending: true });
+          .order('SeasonYear', { ascending: true });
 
         if (dbError) throw new Error(`Data fetch error for ${player.firstName}: ${dbError.message}`);
 
         let seasonApiData: SelectedPlayerData[] | null = null;
         if (isSelectedPlayerDataArray(fetchedData)) seasonApiData = fetchedData;
         else if (fetchedData !== null) console.warn(`Unexpected data format for ${player.firstName}`, fetchedData);
-        
+
+        const xOf = (s: SelectedPlayerData) => (xAxisMode === 'age' ? s.PlayerAge : s.SeasonYear);
+
         const playerCareerDataPoints: CustomChartPoint[] = [];
         if (seasonApiData && seasonApiData.length > 0) {
-          const validSeasons = seasonApiData.filter((s): s is SelectedPlayerData & { PlayerAge: number } => s.PlayerAge !== null);
+          const validSeasons = seasonApiData.filter((s) => xOf(s) !== null);
           if (validSeasons.length === 0) continue;
 
-          const playerMinAge = validSeasons[0].PlayerAge;
-          const playerMaxAge = validSeasons[validSeasons.length - 1].PlayerAge;
-          
-          const seasonDataMap = new Map(validSeasons.map(s => [s.PlayerAge, { stat: s[selectedStat] === null ? null : Number(s[selectedStat]), team: s.playerteamName }]));
+          const playerMinX = xOf(validSeasons[0])!;
+          const playerMaxX = xOf(validSeasons[validSeasons.length - 1])!;
+
+          const seasonDataMap = new Map(validSeasons.map(s => [xOf(s)!, {
+            stat: s[selectedStat] === null ? null : Number(s[selectedStat]),
+            team: s.playerteamName,
+            season: s.SeasonYear,
+            age: s.PlayerAge,
+          }]));
           let lastKnownTeam = validSeasons[0]?.playerteamName || null;
 
-          for (let age = playerMinAge; age <= playerMaxAge; age++) {
-            allAgesWithData.add(age); 
-            const currentAgeData = seasonDataMap.get(age);
-            if (currentAgeData) {
-              playerCareerDataPoints.push({ x: age, y: (currentAgeData.stat === null || isNaN(currentAgeData.stat)) ? null : currentAgeData.stat, team: currentAgeData.team || lastKnownTeam });
-              if (currentAgeData.team) lastKnownTeam = currentAgeData.team;
+          for (let x = playerMinX; x <= playerMaxX; x++) {
+            allXValues.add(x);
+            const currentData = seasonDataMap.get(x);
+            if (currentData) {
+              playerCareerDataPoints.push({
+                x,
+                y: (currentData.stat === null || isNaN(currentData.stat)) ? null : currentData.stat,
+                team: currentData.team || lastKnownTeam,
+                season: currentData.season,
+                age: currentData.age,
+              });
+              if (currentData.team) lastKnownTeam = currentData.team;
             } else {
-              playerCareerDataPoints.push({ x: age, y: null, team: lastKnownTeam });
+              playerCareerDataPoints.push({ x, y: null, team: lastKnownTeam, season: null, age: null });
             }
           }
         }
@@ -351,15 +382,13 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
           datasets.push({
             label: `${player.firstName || ''} ${player.lastName || ''}`.trim(),
             data: playerCareerDataPoints,
-            borderColor: playerLineColor,
-            backgroundColor: playerLineColor + '33', 
             tension: 0.1,
             fill: false,
             pointRadius: 0,
             pointHoverRadius: (ctx: ScriptableContext<'line'>) => ((ctx.raw as CustomChartPoint | undefined)?.y === null ? 0 : 7),
             pointHitRadius: 3,
-            pointBackgroundColor: playerLineColor,
             spanGaps: false,
+            slot,
           });
         }
       }
@@ -367,21 +396,21 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
       if (datasets.length === 0 && activePlayers.length > 0) {
         setError(`No data found for selected players, stat, and ${seasonType} type.`);
         setChartData(null);
-      } else if (datasets.length > 0 && allAgesWithData.size > 0) {
-        const actualMinDataAge = Math.min(...allAgesWithData);
-        const actualMaxDataAge = Math.max(...allAgesWithData);
+      } else if (datasets.length > 0 && allXValues.size > 0) {
+        const actualMinX = Math.min(...allXValues);
+        const actualMaxX = Math.max(...allXValues);
 
-        const displayMinAge = actualMinDataAge - AGE_AXIS_PADDING;
-        const displayMaxAge = actualMaxDataAge + AGE_AXIS_PADDING;
+        const displayMinX = actualMinX - AGE_AXIS_PADDING;
+        const displayMaxX = actualMaxX + AGE_AXIS_PADDING;
 
         const chartLabels: string[] = [];
-        for (let age = displayMinAge; age <= displayMaxAge; age++) {
-          chartLabels.push(age.toString());
+        for (let x = displayMinX; x <= displayMaxX; x++) {
+          chartLabels.push(x.toString());
         }
         setChartData({ labels: chartLabels, datasets });
 
-      } else if (datasets.length > 0 && allAgesWithData.size === 0) {
-        setError('Chart data exists but no age range determined.');
+      } else if (datasets.length > 0 && allXValues.size === 0) {
+        setError('Chart data exists but no axis range determined.');
         setChartData(null);
       } else {
         setChartData(null);
@@ -393,7 +422,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
     } finally {
       setIsLoadingChart(false);
     }
-  }, [selectedPlayers, selectedStat, seasonType]);
+  }, [selectedPlayers, selectedStat, seasonType, xAxisMode]);
 
   useEffect(() => {
     if (selectedPlayers.some(p => p !== null)) {
@@ -402,7 +431,20 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
         setChartData(null);
         setError(null);
     }
-  }, [selectedPlayers, selectedStat, seasonType, fetchChartDataForAllPlayers]);
+  }, [selectedPlayers, selectedStat, seasonType, xAxisMode, fetchChartDataForAllPlayers]);
+
+  const playerPalette = isDarkMode ? PLAYER_COLORS_DARK : PLAYER_COLORS_LIGHT;
+
+  const themedChartData = React.useMemo(() => {
+    if (!chartData) return null;
+    return {
+      ...chartData,
+      datasets: chartData.datasets.map((ds) => {
+        const color = playerPalette[(ds as SlotDataset).slot] ?? playerPalette[0];
+        return { ...ds, borderColor: color, backgroundColor: color + '33', pointBackgroundColor: color };
+      }),
+    };
+  }, [chartData, playerPalette]);
 
   const chartTextColor = isDarkMode ? '#D1D5DB' : '#374151';
   const chartGridColor = isDarkMode ? 'rgba(71, 85, 105, 0.5)' : 'rgba(209, 213, 219, 0.5)'; 
@@ -424,7 +466,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
           legend: { position: 'top' as const, labels: { color: chartTextColor, usePointStyle: true, padding: 20 }},
           title: {
             display: true,
-            text: `${seasonType.charAt(0).toUpperCase() + seasonType.slice(1)} - ${availableStats.find(s => s.value === selectedStat)?.label || selectedStat} vs. Age`,
+            text: `${seasonType.charAt(0).toUpperCase() + seasonType.slice(1)} - ${availableStats.find(s => s.value === selectedStat)?.label || selectedStat} ${xAxisMode === 'age' ? 'vs. Age' : 'by Season'}`,
             font: { size: 18, weight: 'bold' },
             color: chartTextColor,
             padding: { top: 10, bottom: 20 }
@@ -438,6 +480,11 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
             padding: 10,
             boxPadding: 5,
             callbacks: {
+                title: function(items: TooltipItem<'line'>[]) {
+                    const x = items[0]?.parsed?.x;
+                    if (x == null) return '';
+                    return xAxisMode === 'age' ? `Age ${x}` : `${x} Season`;
+                },
                 label: function(context: TooltipItem<'line'>) {
                     let label = context.dataset.label || '';
                     if (label) label += ': ';
@@ -447,7 +494,9 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
                         if (selectedStat.includes('_PCT')) label += (yValue * 100).toFixed(1) + '%';
                         else if (selectedStat.includes('_per_g')) label += yValue.toFixed(1);
                         else label += yValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: (selectedStat.includes('_per_g') || selectedStat.includes('_PCT') ? 1 : 0) });
-                        if (rawData?.team) label += ` (${rawData.team})`;
+                        const detail = xAxisMode === 'age' ? rawData?.season : rawData?.age != null ? `Age ${rawData.age}` : null;
+                        if (rawData?.team && detail != null) label += ` (${rawData.team}, ${detail})`;
+                        else if (rawData?.team) label += ` (${rawData.team})`;
                     } else {
                         label += 'N/A';
                         if (rawData?.team) label += ` (On ${rawData.team}, No Data)`;
@@ -460,10 +509,10 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
         scales: {
           x: {
             type: 'linear',
-            min: xMin, 
-            max: xMax, 
-            title: { display: true, text: 'Player Age', color: chartTextColor, font: { size: 14, weight: 'bold' }}, 
-            ticks: { color: chartTextColor, stepSize: 1 }, 
+            min: xMin,
+            max: xMax,
+            title: { display: true, text: xAxisMode === 'age' ? 'Player Age' : 'Season', color: chartTextColor, font: { size: 14, weight: 'bold' }},
+            ticks: { color: chartTextColor, stepSize: 1, callback: (value: string | number) => String(Number(value)) },
             grid: { color: chartGridColor }
           },
           y: {
@@ -482,7 +531,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
         },
     };
     return options;
-  }, [selectedStat, seasonType, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]); 
+  }, [selectedStat, seasonType, xAxisMode, chartTextColor, chartGridColor, chartTooltipBgColor, chartTooltipTitleColor, chartTooltipBodyColor, chartTooltipBorderColor, chartData]);
 
   const mainContainerClasses = isDarkMode 
     ? "w-full bg-gray-800 rounded-lg text-slate-100" 
@@ -502,15 +551,28 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
       : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
   }`;
   const buttonGroupPlayoffsClasses = `flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
-    seasonType === 'playoffs' 
-      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' 
+    seasonType === 'playoffs'
+      ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700'
       : (isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300')
+  }`;
+  const idleToggleClasses = isDarkMode ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border border-slate-500' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300';
+  const xAxisAgeClasses = `flex-1 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+    xAxisMode === 'age' ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' : idleToggleClasses
+  }`;
+  const xAxisSeasonClasses = `flex-1 -ml-px px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+    xAxisMode === 'season' ? 'bg-sky-500 dark:bg-sky-600 text-white border-sky-700' : idleToggleClasses
+  }`;
+  const chipClasses = (active: boolean) => `px-3 py-1 text-sm font-medium rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+    active ? 'bg-sky-500 text-white' : idleToggleClasses
   }`;
 
   const activeNames = selectedPlayers
     .filter((p): p is SelectedPlayerForComparison => p !== null)
     .map((p) => `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim())
     .filter((n) => n.length > 0);
+  const activePlayersWithColors = selectedPlayers
+    .map((p, slot) => (p ? { player: p, color: playerPalette[slot] } : null))
+    .filter((x): x is { player: SelectedPlayerForComparison; color: string } => x !== null);
   // Two selected players always share a crawlable permalink (curated slug or the
   // canonical open slug); only fall back to the query-param URL for other counts.
   const shareSlug = activeNames.length === 2 ? compareHref(activeNames[0], activeNames[1]) : null;
@@ -542,6 +604,13 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
             <div className={`${sectionClasses} space-y-5`}>
             <div>
                 <label htmlFor="stat-select" className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Statistic:</label>
+                <div className="flex flex-wrap gap-2 mb-2.5">
+                    {QUICK_STATS.map((stat) => (
+                        <button key={stat.value} type="button" onClick={() => setSelectedStat(stat.value)} className={chipClasses(selectedStat === stat.value)}>
+                            {stat.label}
+                        </button>
+                    ))}
+                </div>
                 <select
                   id="stat-select"
                   value={selectedStat}
@@ -558,6 +627,13 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
                     <button type="button" onClick={() => setSeasonType('playoffs')} className={buttonGroupPlayoffsClasses}>Playoffs</button>
                 </div>
             </div>
+            <div>
+                <label className={`block text-lg font-semibold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>X-Axis:</label>
+                <div className="flex rounded-lg shadow-sm">
+                    <button type="button" onClick={() => setXAxisMode('age')} className={xAxisAgeClasses}>Age</button>
+                    <button type="button" onClick={() => setXAxisMode('season')} className={xAxisSeasonClasses}>Season</button>
+                </div>
+            </div>
             </div>
       </div>
       <div className={chartContainerClasses}>
@@ -572,8 +648,8 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
             <p className="text-center text-red-500 p-4 bg-red-100 rounded-md border border-red-300">{error}</p>
           </div>
         )}
-        {!isLoadingChart && !error && chartData && chartData.datasets.length > 0 && (
-          <Line options={dynamicChartOptions} data={chartData} />
+        {!isLoadingChart && !error && themedChartData && themedChartData.datasets.length > 0 && (
+          <Line options={dynamicChartOptions} data={themedChartData} />
         )}
         {!isLoadingChart && !error && (!chartData || chartData.datasets.length === 0) && (
              <div className="flex justify-center items-center h-full">
@@ -583,6 +659,8 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare }:
             </div>
         )}
       </div>
+      <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} isDarkMode={isDarkMode} />
+      {showExplore && <CompareExploreLinks names={activeNames} isDarkMode={isDarkMode} />}
       {showShare && activeNames.length >= 2 && (
         <div className="mt-4 flex justify-center">
           <ShareResult
