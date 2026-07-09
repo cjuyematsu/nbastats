@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import DegreesOfSeparationClient from './DegreesOfSeparationClient';
+import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
   title: 'NBA Degrees of Separation | Player Connections',
@@ -34,8 +35,17 @@ function LoadingState() {
 
 export default function DegreesOfSeparationPage() {
   return (
-    <Suspense fallback={<LoadingState />}>
-      <DegreesOfSeparationClient />
-    </Suspense>
+    <>
+      <Suspense fallback={<LoadingState />}>
+        <DegreesOfSeparationClient />
+      </Suspense>
+      <GameAbout
+        title="About NBA Degrees of Separation"
+        paragraphs={[
+          'NBA Degrees of Separation measures how any two players are linked through a chain of shared teammates. Pick a start and end player and the tool finds the shortest path between them.',
+          'The connections come from real NBA rosters across every season, so the max separation between any two players is nine degrees. See how few hops it takes to connect your favorites.',
+        ]}
+      />
+    </>
   );
 }
