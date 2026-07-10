@@ -9,6 +9,7 @@ import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
 import { generateOddManOutDaily } from '@/lib/oddManOutDaily';
 import ShareResult from '@/components/ShareResult';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
+import NextUpCard from '@/components/NextUpCard';
 
 interface Player {
   FirstName: string;
@@ -363,6 +364,7 @@ export default function OddManOutGame() {
       </div>
       {status === GameStatus.Answered && isDailyRound && (
         <div className="mt-2 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 pb-4 text-left">
+          <NextUpCard currentGame="oddManOut" className="mb-6" />
           <DailyChallengesStrip className="" />
         </div>
       )}

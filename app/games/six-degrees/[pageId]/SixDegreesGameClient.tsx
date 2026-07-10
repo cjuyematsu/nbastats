@@ -21,6 +21,7 @@ import {
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
+import NextUpCard from '@/components/NextUpCard';
 
 type AdjacencyList = {
   [playerId: string]: number[];
@@ -614,6 +615,7 @@ function SixDegreesGameContent() {
                 {funnelRow}
             </div>
             <div className="mt-8 w-full max-w-3xl px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <NextUpCard currentGame="sixDegrees" className="mb-6" />
                 <DailyChallengesStrip className="" />
             </div>
             </div>
@@ -753,6 +755,7 @@ function SixDegreesGameContent() {
         </div>
         {gameId === 'daily' && (gameStatus === 'won' || gameStatus === 'lost') && (
             <div className="max-w-3xl mx-auto px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <NextUpCard currentGame="sixDegrees" className="mb-6" />
                 <DailyChallengesStrip className="" />
             </div>
         )}

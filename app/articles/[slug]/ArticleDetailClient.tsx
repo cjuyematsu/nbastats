@@ -8,7 +8,9 @@ import remarkGfm from 'remark-gfm';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 import ArticleEngagement from '@/app/articles/_components/ArticleEngagement';
 import AdSlot from '@/components/AdSlot';
+import ExploreNext from '@/components/ExploreNext';
 import { formatDate, relativeTime } from '@/lib/articleDates';
+import { exploreItemsForArticle, type RelatedArticleCandidate } from '@/lib/articleExplore';
 
 export interface Article {
   id: string;
@@ -24,7 +26,13 @@ export interface Article {
   updated_at: string;
 }
 
-export default function ArticleDetailClient({ article }: { article: Article }) {
+export default function ArticleDetailClient({
+  article,
+  related = [],
+}: {
+  article: Article;
+  related?: RelatedArticleCandidate[];
+}) {
   const isComponent = article.kind === 'component';
   const showUpdated =
     !!article.updated_at &&
@@ -75,9 +83,31 @@ export default function ArticleDetailClient({ article }: { article: Article }) {
           </div>
         )}
 
+        <ExploreNext
+          heading="Keep exploring"
+          surface="article_end"
+          variant="cards"
+          items={exploreItemsForArticle(article)}
+          className="mt-10"
+        />
+
         <AdSlot slot="article-page" className="mt-8" />
 
         <ArticleEngagement articleId={article.id} />
+
+        {related.length > 0 && (
+          <ExploreNext
+            heading="More from Hoops Data"
+            surface="article_related"
+            variant="cards"
+            items={related.map((r) => ({
+              href: `/articles/${r.slug}`,
+              title: r.title,
+              subtitle: r.dek ?? undefined,
+            }))}
+            className="mt-10"
+          />
+        )}
       </div>
     </div>
   );

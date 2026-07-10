@@ -2,6 +2,7 @@
 
 import React, { Suspense } from 'react';
 import PlayerComparisonChart from '@/components/PlayerComparisonChart';
+import TodaysMatchupLink from '@/components/TodaysMatchupLink';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -38,6 +39,8 @@ export default function ComparePlayersPage() {
       <Suspense fallback={<div className="text-center p-10">Loading Comparison Chart...</div>}>
         <PlayerComparisonChart showShare showExplore />
       </Suspense>
+
+      <TodaysMatchupLink variant="banner" className="mt-10 max-w-4xl mx-auto" />
 
       <section className="mt-12 text-left max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">How to Compare Players</h2>

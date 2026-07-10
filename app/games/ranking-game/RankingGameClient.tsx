@@ -11,6 +11,7 @@ import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
 import { generateRankingDaily } from '@/lib/rankingDaily';
 import ShareResult from '@/components/ShareResult';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
+import NextUpCard from '@/components/NextUpCard';
 
 interface Player {
   personId: number;
@@ -393,6 +394,7 @@ export default function RankingGame() {
             </div>
             {isDailyRound && (
               <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+                <NextUpCard currentGame="ranking" className="mb-6" />
                 <DailyChallengesStrip className="" />
               </div>
             )}
