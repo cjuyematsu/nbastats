@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 import AdSlot from '@/components/AdSlot';
 
 export const revalidate = 86400;
@@ -193,7 +194,18 @@ export default async function DraftYearPage({ params }: { params: Promise<{ year
                     )}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{p.team ?? 'N/A'}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 hidden sm:table-cell">{p.school ?? 'N/A'}</td>
+                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 hidden sm:table-cell">
+                    {p.school ? (
+                      <Link
+                        href={`/colleges/${schoolSlug(canonicalSchool(p.school))}`}
+                        className="hover:text-sky-600 dark:hover:text-sky-400 hover:underline"
+                      >
+                        {p.school}
+                      </Link>
+                    ) : (
+                      'N/A'
+                    )}
+                  </td>
                   {hasStats && (
                     <>
                       <td className="px-3 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{p.games > 0 ? p.games.toLocaleString() : 'N/A'}</td>

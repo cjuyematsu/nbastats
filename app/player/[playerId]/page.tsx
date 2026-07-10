@@ -10,10 +10,12 @@ import { StatsTable, SeasonBySeasonTable, type SeasonRow } from './PlayerStatsTa
 import { ViewTeammatesButton } from './ViewTeammatesButton';
 import ShareResult from '@/components/ShareResult';
 import AdSlot from '@/components/AdSlot';
+import ExploreNext from '@/components/ExploreNext';
 import { buildPlayerShare } from '@/lib/shareText';
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups';
 import { duoHref } from '@/app/data/duoPages';
 import { strategicComparePairs } from '@/app/data/strategicPlayers';
+import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 
 export const revalidate = 86400;
 
@@ -27,6 +29,19 @@ const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
     return (data as SeasonRow[]) ?? [];
   } catch {
     return [];
+  }
+});
+
+const getDraftRow = cache(async (personId: number) => {
+  try {
+    const { data } = await supabase
+      .from('draft')
+      .select('Year, Round, Pick, "School/Club Team"')
+      .eq('playerId', personId)
+      .maybeSingle();
+    return data;
+  } catch {
+    return null;
   }
 });
 
@@ -95,16 +110,19 @@ export default async function PlayerStatsPage({
   const id = Number(playerId);
   if (!Number.isFinite(id)) notFound();
 
-  const [regular, playoffs, teammates, seasons] = await Promise.all([
+  const [regular, playoffs, teammates, seasons, draftRow] = await Promise.all([
     getCareerStats(id),
     getPlayoffStats(id),
     getTopTeammates(id),
     getSeasonStats(id),
+    getDraftRow(id),
   ]);
   const player = regular ?? playoffs;
   if (!player) notFound();
 
   const name = `${player.firstName ?? ''} ${player.lastName ?? ''}`.trim();
+  const school = draftRow?.['School/Club Team'] ?? null;
+  const collegeHref = school ? `/colleges/${schoolSlug(canonicalSchool(school))}` : null;
 
   // Curated + strategic head-to-head pages that involve this player, so the
   // player page feeds crawlable links into the compare leaf graph (no new URLs).
@@ -149,6 +167,39 @@ export default async function PlayerStatsPage({
                 Career ({player.startYear} - {player.endYear})
               </p>
             )}
+            {draftRow && (
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Drafted{' '}
+                <Link href={`/draft/${draftRow.Year}`} className="text-sky-600 dark:text-sky-400 hover:underline">
+                  {draftRow.Year}
+                </Link>
+                {draftRow.Pick != null && `, Round ${draftRow.Round ?? 1} Pick ${draftRow.Pick}`}
+                {school && collegeHref && (
+                  <>
+                    {' from '}
+                    <Link href={collegeHref} className="text-sky-600 dark:text-sky-400 hover:underline">
+                      {canonicalSchool(school)}
+                    </Link>
+                  </>
+                )}
+              </p>
+            )}
+            <ExploreNext
+              surface="player_hero"
+              className="mt-3"
+              items={[
+                ...(comparisons.length > 0
+                  ? [{ href: `/compare/${comparisons[0].slug}`, title: `vs ${comparisons[0].other}` }]
+                  : []),
+                ...(teammates.length > 0
+                  ? [{ href: `/duos/${duoHref(name, teammates[0].name)}`, title: `Duo with ${teammates[0].name}` }]
+                  : []),
+                {
+                  href: `/compare?players=${encodeURIComponent(name)}`,
+                  title: `Compare ${name} vs anyone`,
+                },
+              ]}
+            />
           </div>
 
           {teammates.length > 0 && <ViewTeammatesButton />}
