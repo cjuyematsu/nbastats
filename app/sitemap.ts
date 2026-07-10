@@ -8,6 +8,7 @@ import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups'
 import { DUO_PAGES } from '@/app/data/duoPages'
 import { strategicCompareSlugs } from '@/app/data/strategicPlayers'
 import { PLAYER_DIRECTORY } from '@/app/data/playerDirectory'
+import { getSchoolGroups } from '@/lib/collegeData'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://hoopsdata.net';
@@ -98,6 +99,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
+      url: `${baseUrl}/games/career-arc`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/games/common-teammate`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/privacy`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
@@ -117,7 +130,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/compare/all`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/duos/all`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/draft`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/colleges`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
   ];
+
+  // School leaf pages: only schools with multiple picks or at least one linked
+  // player profile are advertised; singletons stay reachable via /colleges.
+  let collegeRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const groups = await getSchoolGroups();
+    collegeRoutes = [...groups.values()]
+      .filter((g) => g.picks.length >= 2 || g.picks.some((p) => p.playerId != null))
+      .map((g) => ({
+        url: `${baseUrl}/colleges/${g.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      }));
+  } catch {
+    // ignore; college pages just stay out of the sitemap
+  }
 
   const playerLetterRoutes: MetadataRoute.Sitemap = [
     ...new Set(PLAYER_DIRECTORY.map((p) => p.letter)),
@@ -193,5 +224,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore; player pages just stay out of the sitemap
   }
 
-  return [...staticRoutes, ...directoryRoutes, ...playerLetterRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
+  return [...staticRoutes, ...directoryRoutes, ...collegeRoutes, ...playerLetterRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
 }

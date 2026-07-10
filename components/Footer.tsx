@@ -16,6 +16,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
       { href: '/compare/all', label: 'All Comparisons' },
       { href: '/duos/all', label: 'All Duos' },
       { href: '/draft', label: 'Draft History' },
+      { href: '/colleges', label: 'Players by College' },
     ],
   },
   {
