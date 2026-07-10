@@ -135,6 +135,39 @@ export function buildDraftQuizShare({
   ].join('\n');
 }
 
+export function buildCareerArcShare({
+  guessResults,
+  won,
+  maxGuesses = 5,
+}: {
+  guessResults: GuessResult[];
+  won: boolean;
+  maxGuesses?: number;
+}): string {
+  const score = won ? `${guessResults.length}/${maxGuesses}` : `X/${maxGuesses}`;
+  return [
+    'NBA Career Arc',
+    `${guessEmojiRow(guessResults)} ${score}`,
+    'hoopsdata.net/games/career-arc',
+  ].join('\n');
+}
+
+export function buildCommonTeammateShare({
+  roundResults,
+  points,
+  total,
+}: {
+  roundResults: boolean[];
+  points: number;
+  total: number;
+}): string {
+  return [
+    `NBA Common Teammate ${points}/${total}`,
+    roundResults.map((r) => (r ? HIT : MISS)).join(''),
+    'hoopsdata.net/games/common-teammate',
+  ].join('\n');
+}
+
 export function buildTop100Share({ topFive }: { topFive: string[] }): string {
   return [
     'Fan-voted NBA Top 100 right now:',

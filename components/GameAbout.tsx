@@ -23,7 +23,7 @@ export default function GameAbout({
       ))}
       <p className="mt-3">
         <Link href="/games" className="text-sky-600 dark:text-sky-400 hover:underline">
-          See all five NBA trivia games
+          See all seven NBA trivia games
         </Link>
       </p>
     </section>

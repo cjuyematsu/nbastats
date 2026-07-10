@@ -17,13 +17,13 @@ export interface OddManOutDailyData {
   question: string;
 }
 
-const ANCHORS = [
+export const ANCHORS = [
   'LeBron James', 'Kobe Bryant', 'Michael Jordan', "Shaquille O'Neal", 'Tim Duncan',
   'Kevin Garnett', 'Dirk Nowitzki', 'Steve Nash', 'Jason Kidd', 'Paul Pierce',
   'Ray Allen', 'Vince Carter', 'Dwyane Wade', 'Chris Paul', 'Carmelo Anthony',
   'Kevin Durant', 'Stephen Curry', 'Russell Westbrook', 'James Harden', 'Kyrie Irving',
   'Damian Lillard', 'Klay Thompson', 'Giannis Antetokounmpo', 'Nikola Jokic',
-  'Joel Embiid', 'Jimmy Butler', 'Kawhi Leonard', 'Paul George', 'Anthony Davis',
+  'Joel Embiid', 'Jimmy Butler III', 'Kawhi Leonard', 'Paul George', 'Anthony Davis',
   'Karl Malone', 'John Stockton', 'Charles Barkley', 'Patrick Ewing',
   'Hakeem Olajuwon', 'Scottie Pippen', 'Reggie Miller', 'Allen Iverson',
   'Magic Johnson', 'Larry Bird',

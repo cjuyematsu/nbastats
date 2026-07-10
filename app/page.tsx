@@ -117,7 +117,7 @@ export default async function HomePage() {
         <section className="mb-12 text-left">
           <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-1">Explore everything</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            Stats, analysis, five trivia games, and a community forum.
+            Stats, analysis, seven trivia games, and a community forum.
           </p>
 
           <h3 className="text-sm font-semibold text-sky-600 dark:text-sky-400 mb-3 flex items-center gap-2">
