@@ -4,6 +4,7 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { pickRelatedArticles, type RelatedArticleCandidate } from '@/lib/articleExplore';
 import ArticleDetailClient, { type Article } from './ArticleDetailClient';
 
 // Deduped per request: generateMetadata and the page share one fetch.
@@ -16,6 +17,18 @@ const getArticle = cache(async (slug: string): Promise<Article | null> => {
     .maybeSingle();
   if (error) console.error(`getArticle(${slug}) query failed:`, error.message);
   return data;
+});
+
+const getRelatedCandidates = cache(async (slug: string): Promise<RelatedArticleCandidate[]> => {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('slug, title, dek, kind, published_at')
+    .eq('status', 'published')
+    .neq('slug', slug)
+    .order('published_at', { ascending: false })
+    .limit(12);
+  if (error) console.error(`getRelatedCandidates(${slug}) query failed:`, error.message);
+  return data ?? [];
 });
 
 // Cap the meta description at a word boundary so it can never exceed the
@@ -67,6 +80,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const article = await getArticle(slug);
   if (!article) notFound();
 
+  const related = pickRelatedArticles(article, await getRelatedCandidates(slug));
+
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -90,7 +105,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <ArticleDetailClient article={article} />
+      <ArticleDetailClient article={article} related={related} />
     </>
   );
 }

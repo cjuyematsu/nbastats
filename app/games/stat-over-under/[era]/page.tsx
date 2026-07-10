@@ -17,6 +17,7 @@ import { markDailyPlayed } from '@/lib/dailyProgress';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
+import NextUpCard from '@/components/NextUpCard';
 
 const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" {...props}>
@@ -501,6 +502,7 @@ function StatOverUnderEraGameContent() {
             <button onClick={handlePlayDifferentEra} className={`mt-8 inline-block px-6 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105 ${buttonSecondary} ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Play Different Era</button>
         </div>
         <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+          <NextUpCard currentGame="statOu" className="mb-6" />
           <DailyChallengesStrip className="" />
         </div>
       </div>

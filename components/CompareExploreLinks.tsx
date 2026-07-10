@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { buildCompareSlug } from '@/app/data/compareMatchups';
 import { exploreLinksForNames } from '@/lib/compareExplore';
+import TodaysMatchupLink from '@/components/TodaysMatchupLink';
 
 interface CompareExploreLinksProps {
   names: string[];
@@ -29,6 +30,7 @@ export default function CompareExploreLinks({ names }: CompareExploreLinksProps)
           </Link>
         ))}
       </div>
+      <TodaysMatchupLink className="mt-4" />
     </div>
   );
 }
