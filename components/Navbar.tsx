@@ -77,6 +77,18 @@ const OddManOutIcon = () => (
     </svg>
 );
 
+const CareerArcIcon = () => (
+    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M3 3h2v16h16v2H3V3zm18.29 4.71-5.79 5.79-4-4-4.79 4.79-1.42-1.41 6.21-6.21 4 4 4.38-4.37 1.41 1.41z"/>
+    </svg>
+);
+
+const CommonTeammateIcon = () => (
+    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
+    <path d="M5 7c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm14 0c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm-9 3h4v-2l3 3-3 3v-2h-4v2l-3-3 3-3v2zM5 14.5c1.5 0 4 .75 4 2.25V19H1v-2.25c0-1.5 2.5-2.25 4-2.25zm14 0c1.5 0 4 .75 4 2.25V19h-8v-2.25c0-1.5 2.5-2.25 4-2.25z"/>
+    </svg>
+);
+
 const SixDegreesIcon = () => (
     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" transform="" id="injected-svg">
     <path d="m21,14h-1c0-1.08-.21-2.13-.63-3.11-.4-.95-.98-1.81-1.71-2.54-.54-.54-1.14-.99-1.8-1.35-.45-1.72-2-2.99-3.86-2.99s-3.4,1.28-3.86,2.99c-.66.36-1.26.81-1.8,1.35-.73.73-1.31,1.59-1.71,2.54-.42.99-.63,2.03-.63,3.11h-1c-.55,0-1,.45-1,1v4c0,.55.45,1,1,1h4c.55,0,1-.45,1-1v-4c0-.55-.45-1-1-1h-1c0-.81.16-1.6.47-2.34.3-.71.73-1.36,1.29-1.91.15-.15.33-.27.49-.41.56,1.54,2.02,2.65,3.75,2.65s3.19-1.11,3.75-2.65c.17.13.34.25.49.41.55.55.98,1.19,1.29,1.91.31.74.47,1.52.47,2.33h-1c-.55,0-1,.45-1,1v4c0,.55.45,1,1,1h4c.55,0,1-.45,1-1v-4c0-.55-.45-1-1-1Zm-15,4h-2v-2h2v2Zm6-8c-1.1,0-2-.9-2-2s.9-2,2-2,2,.9,2,2-.9,2-2,2Zm8,8h-2v-2h2v2Z"/>
@@ -260,6 +272,14 @@ export default function Navbar() {
               <div className="flex flex-col space-y-1 p-4">
                 <NavLink href="/" icon={<HomeIcon />} showText={showTextInNav}>Home</NavLink>
                 <div className="pt-2">
+                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
+                  <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Articles</NavLink>
+                  {isAdmin && (
+                    <NavLink href="/articles/review" icon={<ReviewIcon />} showText={showTextInNav}>Review</NavLink>
+                  )}
+                </div>
+                <div className="pt-2">
                   {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Tools</h3>}
                   {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
                   <NavLink href="/compare" icon={<ChartBarIcon />} showText={showTextInNav}>Compare Players</NavLink>
@@ -291,15 +311,12 @@ export default function Navbar() {
                   <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
                     Guess the Ranking
                   </NavLink>
-                </div>
-
-                <div className="pt-2">
-                  {showTextInNav && <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Analysis</h3>}
-                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  <NavLink href="/articles" icon={<ArticlesIcon />} showText={showTextInNav} excludeActiveFor={['/articles/review']}>Articles</NavLink>
-                  {isAdmin && (
-                    <NavLink href="/articles/review" icon={<ReviewIcon />} showText={showTextInNav}>Review</NavLink>
-                  )}
+                  <NavLink href="/games/career-arc" icon={<CareerArcIcon />} showText={showTextInNav}>
+                    Career Arc
+                  </NavLink>
+                  <NavLink href="/games/common-teammate" icon={<CommonTeammateIcon />} showText={showTextInNav}>
+                    Common Teammate
+                  </NavLink>
                 </div>
               </div>
             </div>

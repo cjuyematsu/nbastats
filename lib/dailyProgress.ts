@@ -6,31 +6,19 @@
 
 import { getLaDateString } from '@/lib/dailyTime';
 import { supabase } from '@/lib/supabaseClient';
+import { DAILY_GAMES, DailyGame, DailyProgress } from '@/lib/dailyGames';
 
-export type DailyGame = 'sixDegrees' | 'statOu' | 'ranking' | 'oddManOut' | 'draftQuiz';
-
-export interface DailyProgress {
-  sixDegrees: boolean;
-  statOu: boolean;
-  ranking: boolean;
-  oddManOut: boolean;
-  draftQuiz: boolean;
-}
+export { DAILY_GAMES } from '@/lib/dailyGames';
+export type { DailyGame, DailyProgress } from '@/lib/dailyGames';
 
 export const DAILY_PROGRESS_EVENT = 'hd:daily-progress';
-export const DAILY_GAMES: DailyGame[] = ['sixDegrees', 'statOu', 'ranking', 'oddManOut', 'draftQuiz'];
 
 const KEY = 'hd:dailyProgress_';
 const LOOKBACK_DAYS = 60;
 const STAT_OU_ERAS = ['modern', '2000s', '1990s', '1980s'];
 
-const emptyProgress = (): DailyProgress => ({
-  sixDegrees: false,
-  statOu: false,
-  ranking: false,
-  oddManOut: false,
-  draftQuiz: false,
-});
+const emptyProgress = (): DailyProgress =>
+  Object.fromEntries(DAILY_GAMES.map((g) => [g, false])) as DailyProgress;
 
 const dayBefore = (isoDate: string) =>
   new Date(Date.parse(`${isoDate}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
@@ -65,7 +53,7 @@ function withLegacyRecords(date: string, progress: DailyProgress): DailyProgress
 }
 
 function anyPlayed(p: DailyProgress): boolean {
-  return p.sixDegrees || p.statOu || p.ranking || p.oddManOut || p.draftQuiz;
+  return DAILY_GAMES.some((g) => p[g]);
 }
 
 export function countCompleted(p: DailyProgress): number {
@@ -124,7 +112,7 @@ export function computeSiteStreak(todayLaDate: string = getLaDateString()): numb
 export async function syncDailyProgressFromDb(userId: string): Promise<void> {
   const today = getLaDateString();
   try {
-    const [six, statOu] = await Promise.all([
+    const [six, scores] = await Promise.all([
       supabase
         .from('six_degrees_scores')
         .select('id')
@@ -136,11 +124,15 @@ export async function syncDailyProgressFromDb(userId: string): Promise<void> {
         .select('game_id')
         .eq('user_id', userId)
         .eq('played_on_date', today)
-        .like('game_id', 'STAT_OVER_UNDER_DAILY_V1_%')
-        .limit(1),
+        .or(
+          'game_id.like.STAT_OVER_UNDER_DAILY_V1_%,game_id.eq.CAREER_ARC_DAILY_V1,game_id.eq.COMMON_TEAMMATE_DAILY_V1'
+        ),
     ]);
     if (six.data && six.data.length > 0) markDailyPlayed('sixDegrees');
-    if (statOu.data && statOu.data.length > 0) markDailyPlayed('statOu');
+    const gameIds = new Set((scores.data ?? []).map((r) => r.game_id));
+    if ([...gameIds].some((id) => id.startsWith('STAT_OVER_UNDER_DAILY_V1_'))) markDailyPlayed('statOu');
+    if (gameIds.has('CAREER_ARC_DAILY_V1')) markDailyPlayed('careerArc');
+    if (gameIds.has('COMMON_TEAMMATE_DAILY_V1')) markDailyPlayed('commonTeammate');
   } catch {
     // offline or RLS failure; local records still apply
   }

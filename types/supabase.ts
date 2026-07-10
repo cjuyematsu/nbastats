@@ -995,6 +995,26 @@ export type Database = {
         Args: { p_target_date: string }
         Returns: undefined
       }
+      get_career_arc_daily: {
+        Args: { p_date: string }
+        Returns: {
+          personId: number
+          name: string
+          points: Json
+          reveals: Json
+        }[]
+      }
+      get_common_teammate_daily: {
+        Args: { p_date: string }
+        Returns: {
+          round_no: number
+          a: Json
+          b: Json
+          aMateIds: number[]
+          bMateIds: number[]
+          answers: Json
+        }[]
+      }
       get_aggregated_weekly_votes_for_players: {
         Args: { p_week_start_time: string; player_ids_array: number[] }
         Returns: {

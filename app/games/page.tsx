@@ -4,9 +4,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'NBA Trivia Games: 5 Free Daily Basketball Games',
+  title: 'NBA Trivia Games: 7 Free Daily Basketball Games',
   description:
-    'Five free NBA trivia games with new daily challenges: connect players through teammates, guess stat over/unders, fill in draft classes, rank players, and spot the odd man out.',
+    'Seven free NBA trivia games with new daily challenges: connect players through teammates, guess stat over/unders, fill in draft classes, guess a career from its scoring arc, bridge two stars through a common teammate, and more.',
   keywords: [
     'nba trivia games',
     'daily nba trivia',
@@ -22,9 +22,9 @@ export const metadata: Metadata = {
     canonical: '/games',
   },
   openGraph: {
-    title: 'NBA Trivia Games: 5 Free Daily Basketball Games',
+    title: 'NBA Trivia Games: 7 Free Daily Basketball Games',
     description:
-      'Five free NBA trivia games with new daily challenges. No sign-in required, streaks tracked.',
+      'Seven free NBA trivia games with new daily challenges. No sign-in required, streaks tracked.',
     url: '/games',
   },
 };
@@ -65,6 +65,20 @@ const GAMES = [
     blurb:
       'Four players share something in common; one does not belong. A daily NBA connections-style game where the link might be a team, a season, or a teammate.',
   },
+  {
+    href: '/games/career-arc',
+    daily: null,
+    name: 'Career Arc',
+    blurb:
+      'One mystery player, one unlabeled points-per-game curve across their whole career. Read the shape of the career, use the clues, and name the player in five guesses.',
+  },
+  {
+    href: '/games/common-teammate',
+    daily: null,
+    name: 'Common Teammate',
+    blurb:
+      'Two stars who never shared the court. Name anyone who played with both to bridge them in one move. Five pairs a day, three guesses each.',
+  },
 ];
 
 export default function GamesHubPage() {
@@ -76,7 +90,7 @@ export default function GamesHubPage() {
             NBA Trivia Games
           </h1>
           <p className="mt-4 max-w-3xl mx-auto text-lg text-slate-600 dark:text-slate-300">
-            Five free basketball trivia games with fresh daily challenges. No sign-in required,
+            Seven free basketball trivia games with fresh daily challenges. No sign-in required,
             your streaks are tracked, and every game is built on real NBA stats and rosters.
           </p>
         </header>
@@ -118,7 +132,7 @@ export default function GamesHubPage() {
             Looking for a daily NBA game?
           </h2>
           <p>
-            Every game resets on the same daily clock, so you can run through all five as a daily
+            Every game resets on the same daily clock, so you can run through all seven as a daily
             basketball trivia routine. Finish a game and it counts toward your site-wide daily
             streak, whether or not you have an account.
           </p>

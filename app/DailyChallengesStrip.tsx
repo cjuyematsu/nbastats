@@ -18,17 +18,15 @@ import {
   readTodayProgress,
 } from '@/lib/dailyProgress';
 import { computeDailyStreak } from '@/lib/dailyStreak';
+import { GAME_META } from '@/lib/dailyGames';
 import { readAllLocalStatOuDates } from '@/lib/statOuDaily';
 import { readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
 import { computeSixDegreesStats } from '@/lib/sixDegreesStats';
 
-const GAMES: { game: DailyGame; label: string; href: string }[] = [
-  { game: 'sixDegrees', label: 'Six Degrees', href: '/games/six-degrees/daily' },
-  { game: 'statOu', label: 'Stat Over/Under', href: '/games/stat-over-under' },
-  { game: 'ranking', label: 'Guess the Ranking', href: '/games/ranking-game' },
-  { game: 'oddManOut', label: 'Odd Man Out', href: '/games/odd-man-out' },
-  { game: 'draftQuiz', label: 'Name That Pick', href: '/games/draft-quiz/daily' },
-];
+const GAMES: { game: DailyGame; label: string; href: string }[] = DAILY_GAMES.map((game) => ({
+  game,
+  ...GAME_META[game],
+}));
 
 export default function DailyChallengesStrip({
   className = 'mb-10 scroll-mt-24',
@@ -71,7 +69,7 @@ export default function DailyChallengesStrip({
       {!mounted || !progress ? (
         <>
           <div className="h-7 w-64 mb-3 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
-          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-5">
+          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-4 lg:grid-cols-7">
             {GAMES.map((g) => (
               <div
                 key={g.game}
@@ -101,7 +99,7 @@ export default function DailyChallengesStrip({
               completedText="New challenges are live. Refresh!"
             />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-4 lg:grid-cols-7 sm:overflow-visible sm:pb-0">
             {GAMES.map(({ game, label, href }) => {
               const isDone = progress[game];
               const streak = gameStreaks[game] ?? 0;
