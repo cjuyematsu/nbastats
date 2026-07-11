@@ -294,13 +294,18 @@ export default function Navbar() {
                       <Link href="/games" className="hover:text-sky-600 dark:hover:text-sky-400">Trivia Games</Link>
                     </h3>
                   )}
-                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />}
-                  
+                  {!showTextInNav && <hr className="my-2 border-gray-200 dark:border-gray-700" />} 
+                  <NavLink href="/games/career-arc" icon={<CareerArcIcon />} showText={showTextInNav}>
+                    Career Arc
+                  </NavLink>
                   <NavLink href="/games/six-degrees" icon={<SixDegreesIcon />} showText={showTextInNav}>
                     Six Degrees
                   </NavLink>
                   <NavLink href="/games/draft-quiz" icon={<QuizIcon />} showText={showTextInNav}>
                     Fill in the Draft
+                  </NavLink>
+                  <NavLink href="/games/common-teammate" icon={<CommonTeammateIcon />} showText={showTextInNav}>
+                    Common Teammate
                   </NavLink>
                   <NavLink href="/games/stat-over-under" icon={<OverUnderGameIcon />} showText={showTextInNav}>
                     Over/Under
@@ -310,12 +315,6 @@ export default function Navbar() {
                   </NavLink>
                   <NavLink href="/games/ranking-game" icon={<RankingGameIcon />} showText={showTextInNav}>
                     Guess the Ranking
-                  </NavLink>
-                  <NavLink href="/games/career-arc" icon={<CareerArcIcon />} showText={showTextInNav}>
-                    Career Arc
-                  </NavLink>
-                  <NavLink href="/games/common-teammate" icon={<CommonTeammateIcon />} showText={showTextInNav}>
-                    Common Teammate
                   </NavLink>
                 </div>
               </div>
