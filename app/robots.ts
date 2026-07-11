@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
-// Keep in sync with BLOCKED_BOT_RE in middleware.ts (which 403s the
-// impolite ones that ignore robots.txt).
+// Politeness signal for known offenders; middleware.ts enforces the real
+// rule (allow-list: any self-identified crawler not approved gets 403).
 const BLOCKED_BOTS = [
   'AhrefsBot',
   'SemrushBot',
@@ -17,6 +17,8 @@ const BLOCKED_BOTS = [
   'ZoominfoBot',
   'Barkrowler',
   'meta-externalagent',
+  'meta-webindexer',
+  'Amzn-SearchBot',
 ]
 
 export default function robots(): MetadataRoute.Robots {
