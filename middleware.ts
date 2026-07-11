@@ -10,11 +10,12 @@ const BOT_RE =
 
 // Zero-value crawlers: no Google/Bing/AI-referral upside, real SSR cost.
 // Refused here so they never reach a serverless render.
-// meta-externalagent is Meta's AI-training scraper, not the link-preview
-// fetcher (facebookexternalhit), which stays allowed. HeadlessChrome is
-// anonymous scraping; no real browser sends it.
-const BLOCKED_BOT_RE =
-  /(AhrefsBot|SemrushBot|MJ12bot|DotBot|Bytespider|PetalBot|CCBot|Amazonbot|DataForSeoBot|BLEXBot|serpstatbot|ZoominfoBot|Barkrowler|meta-externalagent|HeadlessChrome)/i;
+// Allow-list, not deny-list: blocked crawlers (Amazon, Meta) rotated to new
+// UA names within hours of being denied, so any self-identified crawler NOT
+// on this list gets a 403. "google" covers Googlebot, GoogleOther,
+// Google-InspectionTool, and Mediapartners/AdsBot for AdSense later.
+const ALLOWED_BOT_RE =
+  /(google|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
@@ -49,7 +50,7 @@ export function middleware(request: NextRequest) {
   const ua = request.headers.get('user-agent');
   const referer = request.headers.get('referer');
   const botMatch = ua ? ua.match(BOT_RE) : null;
-  const blocked = !!(ua && BLOCKED_BOT_RE.test(ua));
+  const blocked = !!(botMatch && ua && !ALLOWED_BOT_RE.test(ua));
 
   waitUntil(
     logRequest({
