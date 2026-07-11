@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 import AdSlot from '@/components/AdSlot';
 
-export const revalidate = 86400;
+export const revalidate = 7776000;
 
 const FIRST_DRAFT_YEAR = 1955;
 
