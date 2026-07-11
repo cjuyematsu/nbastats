@@ -21,6 +21,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { getLaDateString, getNextLaMidnightIso } from '@/lib/dailyTime';
 import { generateCareerArcDaily, type CareerArcDailyData } from '@/lib/careerArcDaily';
 import { markDailyPlayed } from '@/lib/dailyProgress';
+import { recordPlayers } from '@/lib/collection';
 import { buildCareerArcShare, type GuessResult } from '@/lib/shareText';
 import { PlayerSuggestion } from '@/types/stats';
 import ShareResult from '@/components/ShareResult';
@@ -203,6 +204,10 @@ export default function CareerArcClient() {
       markDailyPlayed('careerArc');
       track('daily_played', { game: 'career_arc', won: hit, guesses: nextNames.length });
       saveScore(hit, nextNames.length);
+      recordPlayers([{ name: puzzle.name, personId: puzzle.personId }], {
+        status: hit ? 'collected' : 'seen',
+        via: 'careerArc',
+      });
     }
   };
 

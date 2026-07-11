@@ -95,6 +95,13 @@ const SixDegreesIcon = () => (
     </svg>
 );
 
+const CollectionIcon = () => (
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2m-10-2h4v2h-4zM4 19V8h16v11z"/>
+      <path d="M12 9.5 13.09 12.26 16 12.5 13.82 14.39 14.55 17.25 12 15.65 9.45 17.25 10.18 14.39 8 12.5 10.91 12.26z"/>
+  </svg>
+);
+
 const ArticlesIcon = () => (
   <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
       <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 16H4V5h16zM6 7h8v2H6zm0 4h8v2H6zm0 4h5v2H6zm10-8h2v10h-2z"/>
@@ -286,6 +293,7 @@ export default function Navbar() {
                   <NavLink href="/degrees-of-separation" icon={<LinkIcon />} showText={showTextInNav}>Teammates</NavLink>
                   <NavLink href="/duos" icon={<UsersIcon />} showText={showTextInNav}>Duos</NavLink>
                   <NavLink href="/top-100-players" icon={<TrophyIcon />} showText={showTextInNav}>Top 100</NavLink>
+                  <NavLink href="/collection" icon={<CollectionIcon />} showText={showTextInNav}>My Collection</NavLink>
                 </div>
 
                 <div className="pt-2">

@@ -12,6 +12,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { readDailyResult, writeDailyResult, readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
 import { computeSixDegreesStats, ScoreHistoryRecord } from '@/lib/sixDegreesStats';
 import { getLaDateString, getNextLaMidnightIso, sixDegreesPuzzleNumber } from '@/lib/dailyTime';
+import { recordPlayers } from '@/lib/collection';
 import {
   GuessResult,
   buildSixDegreesShare,
@@ -441,6 +442,16 @@ function SixDegreesGameContent() {
             }
         };
 
+        const recordEndpointsSeen = () => {
+            recordPlayers(
+                [
+                    { name: puzzle.player_a_name, personId: puzzle.player_a_id },
+                    { name: puzzle.player_b_name, personId: puzzle.player_b_id },
+                ],
+                { status: 'seen', via: 'sixDegrees' }
+            );
+        };
+
         const guessesUsed = newGuessHistory.length;
 
         if (teammatesOfLastPlayer.includes(guessedPlayer.id)) {
@@ -455,6 +466,20 @@ function SixDegreesGameContent() {
                 setFeedbackMessage(`Success! You solved it in ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'}.`);
                 saveDailyResult(true, newPath, guessesUsed);
                 finishDaily('won');
+                // Fixed reward: endpoints + the canonical solution path, NOT the
+                // user's own chain, so padding the route with extra links never
+                // farms extra players.
+                recordPlayers(
+                    [
+                        { name: puzzle.player_a_name, personId: puzzle.player_a_id },
+                        { name: puzzle.player_b_name, personId: puzzle.player_b_id },
+                        ...(puzzle.solution_path_names ?? []).map((name, i) => ({
+                            name,
+                            personId: puzzle.solution_path_ids?.[i],
+                        })),
+                    ],
+                    { status: 'collected', via: 'sixDegrees' }
+                );
                 sessionStorage.removeItem(SESSION_STORAGE_KEY);
             } else {
                 setFeedbackMessage(`Correct! Now find a teammate of ${guessedPlayer.name}.`);
@@ -463,6 +488,7 @@ function SixDegreesGameContent() {
                     setFeedbackMessage('You ran out of guesses!');
                     saveDailyResult(false, newGuessHistory, guessesUsed);
                     finishDaily('lost');
+                    recordEndpointsSeen();
                     sessionStorage.removeItem(SESSION_STORAGE_KEY);
                 }
             }
@@ -473,6 +499,7 @@ function SixDegreesGameContent() {
                 setGameStatus('lost');
                 saveDailyResult(false, newGuessHistory, guessesUsed);
                 finishDaily('lost');
+                recordEndpointsSeen();
                 sessionStorage.removeItem(SESSION_STORAGE_KEY);
             }
         }
@@ -556,6 +583,8 @@ function SixDegreesGameContent() {
                     guessResults: priorPlayResult.guess_results,
                     won: priorPlayResult.is_successful,
                     streak: streak ?? undefined,
+                    playerA: puzzle?.player_a_name,
+                    playerB: puzzle?.player_b_name,
                 })
                 : buildSixDegreesShareFromCount({
                     puzzleNumber,
@@ -639,6 +668,8 @@ function SixDegreesGameContent() {
                 guessResults,
                 won: gameStatus === 'won',
                 streak: streak ?? undefined,
+                playerA: puzzle.player_a_name,
+                playerB: puzzle.player_b_name,
             })
             : null)
         : (gameStatus === 'won'

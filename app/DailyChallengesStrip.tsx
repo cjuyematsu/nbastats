@@ -22,6 +22,9 @@ import { GAME_META } from '@/lib/dailyGames';
 import { readAllLocalStatOuDates } from '@/lib/statOuDaily';
 import { readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
 import { computeSixDegreesStats } from '@/lib/sixDegreesStats';
+import { buildDailySevenShare } from '@/lib/shareText';
+import ShareResult from '@/components/ShareResult';
+import { COLLECTION_EVENT, countCollection, readCollection } from '@/lib/collection';
 
 const GAMES: { game: DailyGame; label: string; href: string }[] = DAILY_GAMES.map((game) => ({
   game,
@@ -36,12 +39,14 @@ export default function DailyChallengesStrip({
   const [progress, setProgress] = useState<DailyProgress | null>(null);
   const [siteStreak, setSiteStreak] = useState(0);
   const [gameStreaks, setGameStreaks] = useState<Partial<Record<DailyGame, number>>>({});
+  const [collectedCount, setCollectedCount] = useState(0);
   const nextMidnightIso = useMemo(() => getNextLaMidnightIso(), []);
 
   useEffect(() => {
     const refresh = () => {
       setProgress(readTodayProgress());
       setSiteStreak(computeSiteStreak());
+      setCollectedCount(countCollection(readCollection()).collected);
       const streaks: Partial<Record<DailyGame, number>> = {
         sixDegrees: computeSixDegreesStats(readAllLocalDailyResults(), getLaDateString()).currentStreak,
         statOu: computeDailyStreak(readAllLocalStatOuDates()),
@@ -51,9 +56,11 @@ export default function DailyChallengesStrip({
     refresh();
     setMounted(true);
     window.addEventListener(DAILY_PROGRESS_EVENT, refresh);
+    window.addEventListener(COLLECTION_EVENT, refresh);
     window.addEventListener('storage', refresh);
     return () => {
       window.removeEventListener(DAILY_PROGRESS_EVENT, refresh);
+      window.removeEventListener(COLLECTION_EVENT, refresh);
       window.removeEventListener('storage', refresh);
     };
   }, [user]);
@@ -91,6 +98,14 @@ export default function DailyChallengesStrip({
                   {siteStreak} day streak
                 </span>
               )}
+              {collectedCount > 0 && (
+                <Link
+                  href="/collection"
+                  className="text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-700 rounded-full px-2 py-0.5 hover:bg-sky-50 dark:hover:bg-sky-900/30 transition-colors"
+                >
+                  {collectedCount} collected
+                </Link>
+              )}
             </div>
             <CountdownTimer
               compact
@@ -99,6 +114,19 @@ export default function DailyChallengesStrip({
               completedText="New challenges are live. Refresh!"
             />
           </div>
+          {done === DAILY_GAMES.length && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3">
+              <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                Perfect day: all {DAILY_GAMES.length} challenges done. New puzzles at midnight.
+              </p>
+              <ShareResult
+                shareText={buildDailySevenShare({ completed: done, total: DAILY_GAMES.length, streak: siteStreak })}
+                game="dailySeven"
+                surface="home_strip"
+                label="Share your day"
+              />
+            </div>
+          )}
           <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-4 lg:grid-cols-7 sm:overflow-visible sm:pb-0">
             {GAMES.map(({ game, label, href }) => {
               const isDone = progress[game];

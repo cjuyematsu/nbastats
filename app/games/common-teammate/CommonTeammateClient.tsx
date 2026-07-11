@@ -18,6 +18,7 @@ import {
   pointsForRound,
 } from '@/lib/commonTeammateCore';
 import { markDailyPlayed } from '@/lib/dailyProgress';
+import { recordPlayers } from '@/lib/collection';
 import { buildCommonTeammateShare } from '@/lib/shareText';
 import { findDuoSlugForPair } from '@/app/data/duoPages';
 import { PlayerSuggestion } from '@/types/stats';
@@ -211,6 +212,14 @@ export default function CommonTeammateClient() {
 
     if (result === 'correct') {
       setFeedback(null);
+      recordPlayers(
+        [
+          { name: round.a.name, personId: round.a.personId },
+          { name: round.b.name, personId: round.b.personId },
+          { name: picked.name, personId: picked.id },
+        ],
+        { status: 'collected', via: 'commonTeammate' }
+      );
       finishRound(true, used, picked.name);
       return;
     }
@@ -224,6 +233,13 @@ export default function CommonTeammateClient() {
 
     if (used >= CT_GUESSES_PER_ROUND) {
       setFeedback(message);
+      recordPlayers(
+        [
+          { name: round.a.name, personId: round.a.personId },
+          { name: round.b.name, personId: round.b.personId },
+        ],
+        { status: 'seen', via: 'commonTeammate' }
+      );
       finishRound(false, used, null);
       return;
     }
@@ -272,6 +288,7 @@ export default function CommonTeammateClient() {
     roundResults: record.solved,
     points,
     total: CT_POTENTIAL_POINTS,
+    pairs: rounds.map((r) => [r.a.name, r.b.name] as [string, string]),
   });
   const roundIndex = Math.min(record.completed, CT_ROUNDS - 1);
   const round = rounds[betweenRounds ? record.completed - 1 : roundIndex];

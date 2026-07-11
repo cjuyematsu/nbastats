@@ -6,8 +6,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { PostgrestError } from '@supabase/supabase-js';
-import { buildStreakShare } from '@/lib/shareText';
+import { buildRankingChallengeShare } from '@/lib/shareText';
 import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
+import { recordPlayers } from '@/lib/collection';
 import { generateRankingDaily } from '@/lib/rankingDaily';
 import ShareResult from '@/components/ShareResult';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
@@ -81,7 +82,6 @@ export default function RankingGame() {
   const [maxStreak, setMaxStreak] = useState<number>(0);
   const [totalCorrect, setTotalCorrect] = useState<number>(0);
   const [totalIncorrect, setTotalIncorrect] = useState<number>(0);
-  const [endedStreak, setEndedStreak] = useState<number | null>(null);
   const [isDailyRound, setIsDailyRound] = useState(false);
 
   const fetchUserStreak = useCallback(async () => {
@@ -226,7 +226,6 @@ export default function RankingGame() {
       const newStreak = currentStreak + 1;
       const newMax = Math.max(maxStreak, newStreak);
       const newCorrect = totalCorrect + 1;
-      setEndedStreak(null);
       setCurrentStreak(newStreak);
       setMaxStreak(newMax);
       setTotalCorrect(newCorrect);
@@ -241,7 +240,6 @@ export default function RankingGame() {
       }
     } else {
       const newIncorrect = totalIncorrect + 1;
-      setEndedStreak(currentStreak);
       setCurrentStreak(0);
       setTotalIncorrect(newIncorrect);
       setMessage(`Sorry, the correct category was ${categoryName}.`);
@@ -255,6 +253,10 @@ export default function RankingGame() {
       }
     }
     if (isDailyRound) markDailyPlayed('ranking');
+    recordPlayers(
+      correctOrder.map((p) => ({ name: `${p.firstName} ${p.lastName}`.trim(), personId: p.personId })),
+      { status: isCorrect ? 'collected' : 'seen', via: 'ranking' }
+    );
     setStatus(GameStatus.Finished);
   };
 
@@ -373,21 +375,17 @@ export default function RankingGame() {
                 </div>
             )}
             <div className="mt-6 flex flex-wrap justify-center items-center gap-3">
-              {(() => {
-                const shareStreak = message.startsWith('Correct') ? currentStreak : endedStreak ?? 0;
-                return shareStreak > 0 ? (
-                  <ShareResult
-                    shareText={buildStreakShare({
-                      gameLabel: 'the NBA Ranking Game',
-                      streak: shareStreak,
-                      url: 'hoopsdata.net/games/ranking-game',
-                    })}
-                    game="ranking_game"
-                    surface="game_end"
-                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-all"
-                  />
-                ) : null;
-              })()}
+              <ShareResult
+                shareText={buildRankingChallengeShare({
+                  names: correctOrder.map((p) => `${p.firstName} ${p.lastName}`.trim()),
+                  season: correctOrder[0]?.SeasonYear ?? 0,
+                  won: message.startsWith('Correct'),
+                })}
+                game="ranking_game"
+                surface="game_end"
+                label="Challenge a friend"
+                className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-all"
+              />
               <button onClick={handlePlayAgain} className={playAgainButtonClasses}>
                 Play Again
               </button>

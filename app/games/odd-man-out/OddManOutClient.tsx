@@ -4,7 +4,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { buildStreakShare } from '@/lib/shareText';
+import { buildOddManOutChallengeShare } from '@/lib/shareText';
+import { recordPlayers } from '@/lib/collection';
 import { markDailyPlayed, readTodayProgress } from '@/lib/dailyProgress';
 import { generateOddManOutDaily } from '@/lib/oddManOutDaily';
 import ShareResult from '@/components/ShareResult';
@@ -62,7 +63,6 @@ export default function OddManOutGame() {
   const [maxStreak, setMaxStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalIncorrect, setTotalIncorrect] = useState(0);
-  const [endedStreak, setEndedStreak] = useState<number | null>(null);
   const [isDailyRound, setIsDailyRound] = useState(false);
 
   const fetchUserStreak = useCallback(async () => {
@@ -191,13 +191,16 @@ export default function OddManOutGame() {
     setStatus(GameStatus.Answered);
     if (isDailyRound) markDailyPlayed('oddManOut');
     const isCorrect = guessedPlayerName === gameData.oddManOutName;
-    
+    const featured = gameData.players.map((p) => ({ name: `${p.FirstName} ${p.LastName}`.trim() }));
+    const anchor = gameData.connectionName.replace(/^playing with /, '');
+    if (anchor && anchor !== gameData.connectionName) featured.push({ name: anchor });
+    recordPlayers(featured, { status: isCorrect ? 'collected' : 'seen', via: 'oddManOut' });
+
     if (isCorrect) {
       const newStreak = currentStreak + 1;
       const newMax = Math.max(maxStreak, newStreak);
       const newCorrect = totalCorrect + 1;
 
-      setEndedStreak(null);
       setCurrentStreak(newStreak);
       setMaxStreak(newMax);
       setTotalCorrect(newCorrect);
@@ -224,7 +227,6 @@ export default function OddManOutGame() {
     } else {
       const newIncorrect = totalIncorrect + 1;
 
-      setEndedStreak(currentStreak);
       setCurrentStreak(0);
       setTotalIncorrect(newIncorrect);
       setMessage(`The connection was ${gameData.connectionName}.`);
@@ -336,22 +338,18 @@ export default function OddManOutGame() {
           <div className="animate-fadeIn">
             <p className="text-2xl font-bold mb-4">{message}</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
-              {(() => {
-                const wasCorrect = !!gameData && userGuessName === gameData.oddManOutName;
-                const shareStreak = wasCorrect ? currentStreak : endedStreak ?? 0;
-                return shareStreak > 0 ? (
-                  <ShareResult
-                    shareText={buildStreakShare({
-                      gameLabel: 'Odd Man Out',
-                      streak: shareStreak,
-                      url: 'hoopsdata.net/games/odd-man-out',
-                    })}
-                    game="odd_man_out"
-                    surface="game_end"
-                    className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-8 rounded-lg transition-all text-xl"
-                  />
-                ) : null;
-              })()}
+              {gameData && (
+                <ShareResult
+                  shareText={buildOddManOutChallengeShare({
+                    names: gameData.players.map((p) => `${p.FirstName} ${p.LastName}`.trim()),
+                    won: userGuessName === gameData.oddManOutName,
+                  })}
+                  game="odd_man_out"
+                  surface="game_end"
+                  label="Challenge a friend"
+                  className="bg-green-500 hover:bg-green-600 dark:bg-[rgb(60,192,103)] dark:hover:bg-green-400 text-white font-bold py-3 px-8 rounded-lg transition-all text-xl"
+                />
+              )}
               <button
                 onClick={handleNextRound}
                 className="bg-sky-500 dark:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-colors text-xl"
