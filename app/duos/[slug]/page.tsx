@@ -13,7 +13,7 @@ import { resolveDuoBySlug } from '@/lib/serverStats';
 import { buildDuoShare } from '@/lib/shareText';
 import DuoStats from '@/app/duos/DuoStats';
 
-export const revalidate = 86400;
+export const revalidate = 7776000;
 
 export function generateStaticParams() {
   return DUO_PAGES.map((d) => ({ slug: d.slug }));

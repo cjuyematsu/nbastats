@@ -13,7 +13,7 @@ import { resolveMatchupBySlug, type ResolvedPlayer } from '@/lib/serverStats';
 import { COMPARE_TABLE_ROWS } from '@/lib/compareCareer';
 import { CareerStatsData } from '@/types/stats';
 
-export const revalidate = 86400;
+export const revalidate = 7776000;
 
 export function generateStaticParams() {
   return COMPARE_MATCHUPS.map((m) => ({ matchup: m.slug }));
