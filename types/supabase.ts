@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       request_logs: {
         Row: {
+          blocked: boolean
           bot_name: string | null
           country: string | null
           created_at: string
@@ -27,6 +28,7 @@ export type Database = {
           ua: string | null
         }
         Insert: {
+          blocked?: boolean
           bot_name?: string | null
           country?: string | null
           created_at?: string
@@ -38,6 +40,7 @@ export type Database = {
           ua?: string | null
         }
         Update: {
+          blocked?: boolean
           bot_name?: string | null
           country?: string | null
           created_at?: string

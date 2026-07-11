@@ -8,6 +8,11 @@ export const config = {
 const BOT_RE =
   /(bot|crawl|spider|slurp|facebookexternalhit|Slackbot|Twitterbot|Discordbot|LinkedInBot|WhatsApp|TelegramBot|GPTBot|ClaudeBot|anthropic|PerplexityBot|Bytespider|Amazonbot|Applebot|Ahrefs|Semrush|CCBot|Google-Extended|headless)/i;
 
+// Zero-value crawlers: no Google/Bing/AI-referral upside, real SSR cost.
+// Refused here so they never reach a serverless render.
+const BLOCKED_BOT_RE =
+  /(AhrefsBot|SemrushBot|MJ12bot|DotBot|Bytespider|PetalBot|CCBot|Amazonbot|DataForSeoBot|BLEXBot|serpstatbot|ZoominfoBot|Barkrowler)/i;
+
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
   try {
@@ -41,6 +46,7 @@ export function middleware(request: NextRequest) {
   const ua = request.headers.get('user-agent');
   const referer = request.headers.get('referer');
   const botMatch = ua ? ua.match(BOT_RE) : null;
+  const blocked = !!(ua && BLOCKED_BOT_RE.test(ua));
 
   waitUntil(
     logRequest({
@@ -50,9 +56,14 @@ export function middleware(request: NextRequest) {
       ua,
       is_bot: !!botMatch,
       bot_name: botMatch ? botMatch[1] : null,
+      blocked,
       country: request.headers.get('x-vercel-ip-country'),
     }),
   );
+
+  if (blocked) {
+    return new NextResponse(null, { status: 403 });
+  }
 
   return NextResponse.next();
 }
