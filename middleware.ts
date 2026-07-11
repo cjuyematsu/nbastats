@@ -10,8 +10,11 @@ const BOT_RE =
 
 // Zero-value crawlers: no Google/Bing/AI-referral upside, real SSR cost.
 // Refused here so they never reach a serverless render.
+// meta-externalagent is Meta's AI-training scraper, not the link-preview
+// fetcher (facebookexternalhit), which stays allowed. HeadlessChrome is
+// anonymous scraping; no real browser sends it.
 const BLOCKED_BOT_RE =
-  /(AhrefsBot|SemrushBot|MJ12bot|DotBot|Bytespider|PetalBot|CCBot|Amazonbot|DataForSeoBot|BLEXBot|serpstatbot|ZoominfoBot|Barkrowler)/i;
+  /(AhrefsBot|SemrushBot|MJ12bot|DotBot|Bytespider|PetalBot|CCBot|Amazonbot|DataForSeoBot|BLEXBot|serpstatbot|ZoominfoBot|Barkrowler|meta-externalagent|HeadlessChrome)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;

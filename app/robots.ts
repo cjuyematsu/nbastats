@@ -16,6 +16,7 @@ const BLOCKED_BOTS = [
   'serpstatbot',
   'ZoominfoBot',
   'Barkrowler',
+  'meta-externalagent',
 ]
 
 export default function robots(): MetadataRoute.Robots {
