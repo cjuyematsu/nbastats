@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getCareerTotals, getSchoolGroups, type CareerTotals, type SchoolGroup } from '@/lib/collegeData';
 
-export const revalidate = 86400;
+export const revalidate = 7776000;
 
 interface Leader {
   label: string;

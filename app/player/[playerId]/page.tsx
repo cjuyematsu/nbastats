@@ -17,7 +17,7 @@ import { duoHref } from '@/app/data/duoPages';
 import { strategicComparePairs } from '@/app/data/strategicPlayers';
 import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 
-export const revalidate = 86400;
+export const revalidate = 7776000;
 
 const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
   try {
@@ -50,8 +50,18 @@ const getDraftRow = cache(async (personId: number) => {
 const getTopTeammates = cache(async (personId: number) => {
   try {
     const [asPlayer, asTeammate] = await Promise.all([
-      supabase.from('teammates').select('TeammateID, TeammateName, SharedGamesTotal').eq('PlayerID', personId),
-      supabase.from('teammates').select('PlayerID, PlayerName, SharedGamesTotal').eq('TeammateID', personId),
+      supabase
+        .from('teammates')
+        .select('TeammateID, TeammateName, SharedGamesTotal')
+        .eq('PlayerID', personId)
+        .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
+        .limit(8),
+      supabase
+        .from('teammates')
+        .select('PlayerID, PlayerName, SharedGamesTotal')
+        .eq('TeammateID', personId)
+        .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
+        .limit(8),
     ]);
     const rows = [
       ...(asPlayer.data ?? []).map((r) => ({ id: r.TeammateID, name: r.TeammateName, games: r.SharedGamesTotal ?? 0 })),
