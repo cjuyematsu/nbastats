@@ -1,8 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { waitUntil } from '@vercel/functions';
 
+// Only the SSR/ISR render routes: static pages are served by the CDN for
+// free, so running middleware (and its log write) there is pure Fluid CPU
+// overhead. Bot blocking only matters where a render would be paid for.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|.*\\..*|opengraph-image|sitemap|robots).*)'],
+  matcher: [
+    '/duos/:path+',
+    '/player/:path+',
+    '/colleges/:path+',
+    '/compare/:path+',
+    '/draft/:path+',
+    '/articles/:path+',
+    '/games/draft-quiz/:path+',
+    '/games/six-degrees/:path+',
+    '/games/stat-over-under/:path+',
+  ],
 };
 
 const BOT_RE =
@@ -14,8 +27,10 @@ const BOT_RE =
 // UA names within hours of being denied, so any self-identified crawler NOT
 // on this list gets a 403. "google" covers Googlebot, GoogleOther,
 // Google-InspectionTool, and Mediapartners/AdsBot for AdSense later.
+// GPTBot (OpenAI training crawler) is deliberately NOT allowed: it has no
+// referral value, unlike OAI-SearchBot/ChatGPT-User which power citations.
 const ALLOWED_BOT_RE =
-  /(google|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
+  /(google|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
@@ -51,6 +66,16 @@ export function middleware(request: NextRequest) {
   const referer = request.headers.get('referer');
   const botMatch = ua ? ua.match(BOT_RE) : null;
   const blocked = !!(botMatch && ua && !ALLOWED_BOT_RE.test(ua));
+
+  // Router prefetches are speculative, not pageviews; don't log them.
+  const isPrefetch =
+    request.headers.get('next-router-prefetch') !== null ||
+    request.headers.get('purpose') === 'prefetch' ||
+    request.headers.get('sec-purpose')?.includes('prefetch');
+
+  if (isPrefetch && !blocked) {
+    return NextResponse.next();
+  }
 
   waitUntil(
     logRequest({
