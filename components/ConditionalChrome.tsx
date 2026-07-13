@@ -9,7 +9,6 @@
 import Script from 'next/script';
 import ScrollRestoration from '@/components/ScrollRestoration';
 import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default function ConditionalChrome({
   children,
@@ -66,7 +65,6 @@ export default function ConditionalChrome({
         />
       )}
       <Analytics />
-      <SpeedInsights />
     </>
   );
 }
