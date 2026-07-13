@@ -25,12 +25,12 @@ const BOT_RE =
 // Refused here so they never reach a serverless render.
 // Allow-list, not deny-list: blocked crawlers (Amazon, Meta) rotated to new
 // UA names within hours of being denied, so any self-identified crawler NOT
-// on this list gets a 403. "google" covers Googlebot, GoogleOther,
-// Google-InspectionTool, and Mediapartners/AdsBot for AdSense later.
-// GPTBot (OpenAI training crawler) is deliberately NOT allowed: it has no
-// referral value, unlike OAI-SearchBot/ChatGPT-User which power citations.
+// on this list gets a 403. Google terms are explicit: Googlebot (search),
+// InspectionTool (GSC), Mediapartners/AdsBot (AdSense later). GoogleOther
+// (R&D/AI crawler) and GPTBot (OpenAI training) are deliberately excluded:
+// no referral value, unlike OAI-SearchBot/ChatGPT-User which power citations.
 const ALLOWED_BOT_RE =
-  /(google|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
+  /(googlebot|google-inspectiontool|mediapartners|adsbot|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
