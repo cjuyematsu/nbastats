@@ -112,12 +112,18 @@ deliberately NOT a daily-hub task (user decision). "Your vote" reads MUST be cyc
 vote buttons from prior cycles. The rearrangement RPC **consumes** (deletes) the votes it
 counts. Full RPC internals + the pg_cron history: `docs/top-100-rpcs.md`. Only the Vercel
 cron route may call `perform_weekly_player_rearrangement`; a direct pg_cron job doing so
-was the source of the flaky-reranking era. The **Vercel Hobby cron silently skipped the
-2026-07-03 and 2026-07-06 fires** (board stranded, votes uncleared); the route logic is fine,
-so when the board looks stale first check `CRON_SECRET` is set in Vercel Production (missing =
-route 401s) and that the cron shows recent invocations. A redundant GitHub Actions trigger
-(`.github/workflows/top100-reshuffle.yml`) backs up the Hobby cron and offers a manual
-"Run workflow" catch-up; the page shows an honest "reshuffle pending" banner
+was the source of the flaky-reranking era. Reports that the board "didn't reshuffle" are often
+a LATE fire, not a real failure: the LA-midnight boundary is 07:00 UTC in summer but the fire
+can land ~1h+ later (on 2026-07-12 it applied at 08:35 UTC), and during that window the page
+shows the amber "Reshuffle in progress" banner and looks broken. **Always check
+`currentweeklyrankings.ranked_at` first** (curl the route locally with the `.env.local`
+`CRON_SECRET`, or read the column) before assuming a stranding — a `skipped: "boundary already
+applied"` with a same-day `rankedAt` means it worked. Only if `ranked_at` predates the boundary
+is it truly stuck; then check `CRON_SECRET` is set in Vercel Production (missing = route 401s,
+redeploy after setting) and the GH repo secrets (`CRON_SECRET`, `PRODUCTION_URL`) are set. The
+redundant GitHub Actions trigger (`.github/workflows/top100-reshuffle.yml`) polls **every 2h**
+so the 08:00 UTC fire settles the board promptly and one skipped fire can't strand it; it also
+offers a manual "Run workflow" catch-up. The page shows the honest "reshuffle pending" banner
 (`isBoundaryUnapplied`) instead of resetting the countdown when a boundary has not applied.
 
 ## Data & schema
@@ -185,6 +191,11 @@ Static / hardcoded data:
 - **Schema drift**: a Supabase change that isn't reflected in `types/supabase.ts` will pass
   the editor but produce wrong/`any` types — regenerate after schema edits.
 - `migrations/` being empty is **intentional** — don't treat it as missing setup.
+- **Pre-1971 box scores are missing minutes and shot attempts** for many games (league TS%
+  computed from the logs reads 84% in 1958; recorded MPG is single-digit league-wide in the
+  50s/60s). Points and games ARE complete for all eras. Gate any MPG/per-36/TS%/FGA-derived
+  stat to 1971+ seasons — precedent: `DETAIL_RELIABLE_FROM` in
+  `scripts/generate-playoff-risers.ts` (plus a 75% coverage rule, null + dash in the UI).
 - **Daily challenges are LA-date seeded.** `lib/dailySeed.ts` (deterministic RNG),
   `lib/rankingDaily.ts` and `lib/oddManOutDaily.ts` (client-side generated dailies from
   `regularseasonstats` / `teammates`), `lib/dailyProgress.ts` (cross-game completion +

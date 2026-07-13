@@ -35,6 +35,10 @@ const COMPONENTS: Record<string, ComponentType> = {
   'greatest-duos': dynamic(() => import('@/app/articles/_components/GreatestDuosArticle'), {
     loading: Loading,
   }),
+  // ssr on: riser cards, tables, and methodology text must be in the initial HTML
+  'playoff-risers': dynamic(() => import('@/app/articles/_components/PlayoffRisersArticle'), {
+    loading: Loading,
+  }),
 };
 
 export default function ComponentArticle({ componentKey }: { componentKey: string | null }) {
