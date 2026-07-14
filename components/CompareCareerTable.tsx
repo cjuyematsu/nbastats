@@ -8,12 +8,24 @@ import { COMPARE_TABLE_ROWS, rowLeaderFlags } from '@/lib/compareCareer';
 interface CompareCareerTableProps {
   players: { player: SelectedPlayerForComparison; color: string }[];
   seasonType: 'regular' | 'playoffs';
+  // Regular-season career stats keyed by personId, resolved on the server so the
+  // initial players' rows render during SSR (crawlable) without a client fetch.
+  initialStats?: Record<string, CareerStatsData | null>;
 }
 
-export default function CompareCareerTable({ players, seasonType }: CompareCareerTableProps) {
-  const [stats, setStats] = useState<Record<string, CareerStatsData | null>>({});
+export default function CompareCareerTable({ players, seasonType, initialStats }: CompareCareerTableProps) {
+  const [stats, setStats] = useState<Record<string, CareerStatsData | null>>(
+    () => (seasonType === 'regular' && initialStats ? { ...initialStats } : {}),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const cacheRef = useRef(new Map<string, CareerStatsData | null>());
+  const seededRef = useRef(false);
+  if (!seededRef.current) {
+    seededRef.current = true;
+    if (initialStats) {
+      for (const [id, s] of Object.entries(initialStats)) cacheRef.current.set(`${id}-regular`, s);
+    }
+  }
 
   const idsKey = players.map((p) => p.player.personId).join(',');
 
