@@ -240,9 +240,9 @@ function DegreesOfSeparationClientContent() {
   return (
     <div className={`${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
       <div className={`container mx-auto p-4 min-h-screen ${textColor}`}>
-        <h1 className={`mt-4 text-3xl sm:text-4xl font-bold text-center mb-3 ${highlightColor}`}>
+        <h2 className={`mt-4 text-3xl sm:text-4xl font-bold text-center mb-3 ${highlightColor}`}>
             NBA Degrees of Separation
-        </h1>
+        </h2>
         <h2 className="text-xl font-bold sm:text-2xl text-center mb-2 text-gray-800 dark:text-slate-200">
           The max separation between any two players is nine degrees.
         </h2>

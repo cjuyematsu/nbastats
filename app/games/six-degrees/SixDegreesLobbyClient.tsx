@@ -147,7 +147,7 @@ export default function SixDegreesLobby() {
     return (
         <div className={`w-full flex flex-col items-center justify-center min-h-screen rounded-lg py-12 px-4 ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
             <div className="text-center w-full max-w-md">
-                <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-3">Six Degrees of NBA</h1>
+                <h2 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-3">Six Degrees of NBA</h2>
                 <p className={`text-lg mb-10 ${mutedTextClasses}`}>Connect two NBA players through a chain of former teammates.</p>
                 <div className="space-y-4">
                     <button

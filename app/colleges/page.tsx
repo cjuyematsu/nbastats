@@ -9,7 +9,7 @@ import { getSchoolGroups, type SchoolGroup } from '@/lib/collegeData';
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'NBA Players by College: Every School with a Draft Pick',
+  title: 'NBA Players by College: Draft Picks by School',
   description:
     'Browse every college, high school, and international club that has produced an NBA draft pick, from Duke and Kentucky to Real Madrid. Full pick lists with career stat links.',
   alternates: {

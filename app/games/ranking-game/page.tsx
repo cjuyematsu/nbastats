@@ -30,6 +30,7 @@ function Loading() {
 export default function RankingGamePage() {
   return (
     <>
+      <h1 className="sr-only">NBA Player Ranking Game</h1>
       <Suspense fallback={<Loading />}>
         <RankingGameClient />
       </Suspense>

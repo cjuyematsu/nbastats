@@ -33,6 +33,7 @@ function Loading() {
 export default function CommonTeammatePage() {
   return (
     <>
+      <h1 className="sr-only">NBA Common Teammate</h1>
       <Suspense fallback={<Loading />}>
         <CommonTeammateClient />
       </Suspense>

@@ -6,7 +6,7 @@ import CareerArcClient from './CareerArcClient';
 import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
-  title: 'NBA Career Arc | Guess the Player from Their Scoring Curve',
+  title: 'NBA Career Arc | Guess the Player by Scoring Curve',
   description:
     'A daily NBA guessing game: one mystery player, one unlabeled points-per-game curve across their whole career. Read the shape, use the hints, name the player in five guesses.',
   keywords: [
@@ -33,6 +33,7 @@ function Loading() {
 export default function CareerArcPage() {
   return (
     <>
+      <h1 className="sr-only">NBA Career Arc</h1>
       <Suspense fallback={<Loading />}>
         <CareerArcClient />
       </Suspense>
