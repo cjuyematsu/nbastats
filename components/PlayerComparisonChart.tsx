@@ -5,7 +5,7 @@
 import { useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { PlayerSuggestion, SelectedPlayerForComparison } from '@/types/stats';
+import { PlayerSuggestion, SelectedPlayerForComparison, CareerStatsData } from '@/types/stats';
 import { compareHref } from '@/app/data/compareMatchups';
 import { buildCompareShare } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
@@ -226,8 +226,15 @@ const availableStats = [
     { value: 'TRB_total', label: 'Total Rebounds (Season)' },
 ];
 
-export default function PlayerComparisonChart({ initialPlayerNames, showShare, showExplore }: { initialPlayerNames?: string[]; showShare?: boolean; showExplore?: boolean }) {
-  const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(Array(MAX_PLAYERS).fill(null));
+export default function PlayerComparisonChart({ initialPlayerNames, initialPlayers, initialStats, showShare, showExplore, showTable = true }: { initialPlayerNames?: string[]; initialPlayers?: SelectedPlayerForComparison[]; initialStats?: Record<string, CareerStatsData | null>; showShare?: boolean; showExplore?: boolean; showTable?: boolean }) {
+  // Seed the selection synchronously from server-resolved players so the chart
+  // and the career table render the initial pair during SSR (crawlable) instead
+  // of waiting on a client name-lookup.
+  const [selectedPlayers, setSelectedPlayers] = useState<(SelectedPlayerForComparison | null)[]>(() => {
+    const arr: (SelectedPlayerForComparison | null)[] = Array(MAX_PLAYERS).fill(null);
+    if (initialPlayers) initialPlayers.slice(0, MAX_PLAYERS).forEach((p, i) => { arr[i] = p; });
+    return arr;
+  });
   const [selectedStat, setSelectedStat] = useState<string>(availableStats[0].value);
   const [seasonType, setSeasonType] = useState<'regular' | 'playoffs'>('regular');
   const [xAxisMode, setXAxisMode] = useState<'age' | 'season'>('age');
@@ -238,8 +245,10 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
 
   const searchParams = useSearchParams();
   const initialNamesKey = (initialPlayerNames ?? []).join(',');
+  const hasSeededPlayers = !!(initialPlayers && initialPlayers.length > 0);
 
   useEffect(() => {
+    if (hasSeededPlayers && !searchParams.get('players')) return;
     const playersQuery = searchParams.get('players') || initialNamesKey;
     if (playersQuery) {
       const playerNames = playersQuery.split(',').slice(0, MAX_PLAYERS);
@@ -276,7 +285,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
 
       fetchInitialPlayers();
     }
-  }, [searchParams, initialNamesKey]);
+  }, [searchParams, initialNamesKey, hasSeededPlayers]);
 
 
   useEffect(() => {
@@ -396,6 +405,19 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
         const displayMinX = actualMinX - AGE_AXIS_PADDING;
         const displayMaxX = actualMaxX + AGE_AXIS_PADDING;
 
+        // Pad every dataset to the same [displayMinX, displayMaxX] domain so the
+        // point at array index i is the same x (age/season) for every player.
+        // Index-mode tooltips then show one vertical slice (one age, all players)
+        // without the offset that appears when players start at different ages.
+        for (const ds of datasets) {
+          const byX = new Map(ds.data.map((p) => [p.x, p]));
+          const full: CustomChartPoint[] = [];
+          for (let x = displayMinX; x <= displayMaxX; x++) {
+            full.push(byX.get(x) ?? { x, y: null, team: null, season: null, age: null });
+          }
+          ds.data = full;
+        }
+
         const chartLabels: string[] = [];
         for (let x = displayMinX; x <= displayMaxX; x++) {
           chartLabels.push(x.toString());
@@ -454,7 +476,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
     const options: ChartOptions<'line'> = {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'x' },
+        interaction: { intersect: false, mode: 'index' },
         plugins: {
           legend: { position: 'top' as const, labels: { color: chartTextColor, usePointStyle: true, padding: 20 }},
           title: {
@@ -472,6 +494,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
             borderWidth: 1,
             padding: 10,
             boxPadding: 5,
+            filter: (item: TooltipItem<'line'>) => (item.raw as CustomChartPoint | undefined)?.y != null,
             callbacks: {
                 title: function(items: TooltipItem<'line'>[]) {
                     const x = items[0]?.parsed?.x;
@@ -643,7 +666,7 @@ export default function PlayerComparisonChart({ initialPlayerNames, showShare, s
             </div>
         )}
       </div>
-      <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} />
+      {showTable && <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} initialStats={initialStats} />}
       {showExplore && <CompareExploreLinks names={activeNames} />}
       {showShare && activeNames.length >= 2 && (
         <div className="mt-4 flex justify-center">
