@@ -568,7 +568,7 @@ function SixDegreesGameContent() {
         return (
             <div className={`flex flex-col justify-center items-center rounded-lg min-h-screen ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
              <div className={`w-full p-4 text-center max-w-lg mx-auto animate-fadeIn ${alreadyPlayedContainer}`}>
-                <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h1>
+                <h2 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h2>
                 <h2 className={`text-2xl font-bold ${highlightColor} mb-6`}>
                     Daily Challenge Complete{puzzleNumber ? ` (#${puzzleNumber})` : ''}
                 </h2>
@@ -653,7 +653,7 @@ function SixDegreesGameContent() {
     return (
         <div className={`w-full min-h-screen rounded-lg ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
         <div className="container mx-auto p-4 text-center max-w-lg">
-            <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h1>
+            <h2 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mb-4">Six Degrees of NBA</h2>
             {gameId === 'daily' && puzzleNumber ? (
                 <h2 className="text-2xl font-bold mb-4">Puzzle #{puzzleNumber}</h2>
             ) : null}

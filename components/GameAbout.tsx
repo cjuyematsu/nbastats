@@ -15,7 +15,7 @@ export default function GameAbout({
 }) {
   return (
     <section className="w-full mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6 text-slate-700 dark:text-slate-300">
-      <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-3">{title}</h1>
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-3">{title}</h2>
       {paragraphs.map((p) => (
         <p key={p.slice(0, 40)} className="mb-2 last:mb-0">
           {p}

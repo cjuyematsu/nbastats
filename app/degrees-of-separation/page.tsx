@@ -36,6 +36,7 @@ function LoadingState() {
 export default function DegreesOfSeparationPage() {
   return (
     <>
+      <h1 className="sr-only">NBA Degrees of Separation</h1>
       <Suspense fallback={<LoadingState />}>
         <DegreesOfSeparationClient />
       </Suspense>

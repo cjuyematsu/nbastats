@@ -6,7 +6,7 @@ import SixDegreesLobbyClient from './SixDegreesLobbyClient';
 import GameAbout from '@/components/GameAbout';
 
 export const metadata: Metadata = {
-  title: 'Six Degrees of NBA | The Ultimate Player Connection Game',
+  title: 'Six Degrees of NBA | Player Connection Game',
   description: 'Play Six Degrees of NBA: connect any two players through a chain of former teammates. Try the daily challenge or a random game and track your stats.',
   keywords: [
     'six degrees of separation',
@@ -32,6 +32,7 @@ function Loading() {
 export default function SixDegreesPage() {
   return (
     <>
+      <h1 className="sr-only">Six Degrees of NBA</h1>
       <Suspense fallback={<Loading />}>
         <SixDegreesLobbyClient />
       </Suspense>

@@ -187,7 +187,7 @@ export default function DraftQuizYearClient() {
           >
             Pick Year
           </button>
-          <h1 className="text-3xl font-bold text-center">{year}</h1>
+          <h2 className="text-3xl font-bold text-center">{year}</h2>
         </div>
 
         <div className="text-center mb-4 text-xl flex items-center justify-center gap-3">

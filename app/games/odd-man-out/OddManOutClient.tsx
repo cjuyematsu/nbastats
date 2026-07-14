@@ -274,9 +274,9 @@ export default function OddManOutGame() {
 
   return (
     <div className={`w-full min-h-screen rounded-lg p-4 text-center flex flex-col ${mainContainerClasses} border border-gray-200 dark:border-gray-700`}>
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mt-2 mb-4">
+      <h2 className="text-3xl sm:text-4xl font-bold text-center text-sky-600 dark:text-sky-400 mt-2 mb-4">
         Odd Man Out
-      </h1>
+      </h2>
       <div className="flex-grow flex flex-col items-center justify-center w-full py-4">
 
         <div>

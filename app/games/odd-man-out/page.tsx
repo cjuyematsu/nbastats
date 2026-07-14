@@ -31,6 +31,7 @@ function Loading() {
 export default function OddManOutPage() {
   return (
     <>
+      <h1 className="sr-only">NBA Odd Man Out</h1>
       <Suspense fallback={<Loading />}>
         <OddManOutClient />
       </Suspense>

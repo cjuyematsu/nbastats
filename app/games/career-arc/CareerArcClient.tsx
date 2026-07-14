@@ -274,7 +274,7 @@ export default function CareerArcClient() {
           <span className="inline-block mb-2 text-xs font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/40 border border-sky-300 dark:border-sky-700 rounded-full px-3 py-0.5">
             Daily Challenge
           </span>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Career Arc</h1>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Career Arc</h2>
           <p className="mt-1 text-slate-500 dark:text-slate-400">
             One mystery player. Their points per game, season by season. Who is it?
           </p>

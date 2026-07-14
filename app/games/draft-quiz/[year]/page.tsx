@@ -24,6 +24,16 @@ export async function generateMetadata({
   };
 }
 
-export default function DraftQuizYearPage() {
-  return <DraftQuizYearClient />;
+export default async function DraftQuizYearPage({
+  params,
+}: {
+  params: Promise<{ year: string }>;
+}) {
+  const { year } = await params;
+  return (
+    <>
+      <h1 className="sr-only">{year} NBA Draft Quiz</h1>
+      <DraftQuizYearClient />
+    </>
+  );
 }
