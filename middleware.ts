@@ -21,16 +21,16 @@ export const config = {
 const BOT_RE =
   /(bot|crawl|spider|slurp|facebookexternalhit|Slackbot|Twitterbot|Discordbot|LinkedInBot|WhatsApp|TelegramBot|GPTBot|ClaudeBot|anthropic|PerplexityBot|Bytespider|Amazonbot|Applebot|Ahrefs|Semrush|CCBot|Google-Extended|headless)/i;
 
-// Zero-value crawlers: no Google/Bing/AI-referral upside, real SSR cost.
-// Refused here so they never reach a serverless render.
-// Allow-list, not deny-list: blocked crawlers (Amazon, Meta) rotated to new
-// UA names within hours of being denied, so any self-identified crawler NOT
-// on this list gets a 403. Google terms are explicit: Googlebot (search),
-// InspectionTool (GSC), Mediapartners/AdsBot (AdSense later). GoogleOther
-// (R&D/AI crawler) and GPTBot (OpenAI training) are deliberately excluded:
-// no referral value, unlike OAI-SearchBot/ChatGPT-User which power citations.
-const ALLOWED_BOT_RE =
-  /(googlebot|google-inspectiontool|mediapartners|adsbot|bingbot|bingpreview|msnbot|applebot|duckduck|facebookexternalhit|meta-externalfetcher|twitterbot|slackbot|discordbot|linkedinbot|whatsapp|telegrambot|pinterest|redditbot|chatgpt-user|oai-searchbot|claudebot|claude-user|anthropic|perplexitybot)/i;
+// Deny-list, not allow-list (since Vercel Pro, 2026-07-14): only known
+// SSR-burners with no search/referral upside get refused. Everything else
+// passes, so no Google/Bing UA variant (Site Scan, GoogleOther, ads checks)
+// can ever be caught the way the old allow-list risked. Tradeoff: scrapers
+// that rotate UA names (Amazon, Meta did within hours in July 2026) slip
+// through until named here; that render cost is now acceptable.
+// GPTBot stays blocked: OpenAI training crawler, no citations, unlike
+// OAI-SearchBot/ChatGPT-User which pass.
+const BLOCKED_BOT_RE =
+  /(ahrefs|semrush|mj12bot|dotbot|bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|headless)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
@@ -65,7 +65,7 @@ export function middleware(request: NextRequest) {
   const ua = request.headers.get('user-agent');
   const referer = request.headers.get('referer');
   const botMatch = ua ? ua.match(BOT_RE) : null;
-  const blocked = !!(botMatch && ua && !ALLOWED_BOT_RE.test(ua));
+  const blocked = !!(ua && BLOCKED_BOT_RE.test(ua));
 
   // Router prefetches are speculative, not pageviews; don't log them.
   const isPrefetch =
