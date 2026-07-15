@@ -2,13 +2,15 @@
 //
 // Signed-in account hub: a plain summary of the user's game scores/streaks plus
 // newsletter subscribe/unsubscribe (matched on the account email via
-// /api/newsletter/account). All per-user reads mirror the ones the games use.
+// /api/newsletter/account) and account deletion. All per-user reads mirror the ones
+// the games use.
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
+import { clearLocalUserData } from '@/lib/localUserData';
 
 type NewsletterStatus = 'confirmed' | 'pending' | 'unsubscribed' | 'none' | 'unknown';
 
@@ -64,7 +66,7 @@ function GameTile({
 const NotPlayed = () => <p className="text-sm text-slate-400 dark:text-slate-500">Not played yet.</p>;
 
 export default function AccountClient() {
-  const { user, session, isLoading, supabase } = useAuth();
+  const { user, session, isLoading, supabase, isAdmin, signOut } = useAuth();
 
   const [nlStatus, setNlStatus] = useState<NewsletterStatus>('unknown');
   const [nlBusy, setNlBusy] = useState(false);
@@ -72,6 +74,11 @@ export default function AccountClient() {
 
   const [stats, setStats] = useState<GameStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const token = session?.access_token;
 
@@ -192,6 +199,35 @@ export default function AccountClient() {
       setNlMessage('Something went wrong. Try again.');
     } finally {
       setNlBusy(false);
+    }
+  };
+
+  // Typing the full email is the guard against an accidental click; deletion is
+  // irreversible and there's no grace period to undo it.
+  const emailConfirmed =
+    !!user?.email && confirmEmail.trim().toLowerCase() === user.email.trim().toLowerCase();
+
+  const deleteAccount = async () => {
+    if (!token || deleteBusy || !emailConfirmed) return;
+    setDeleteBusy(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDeleteError(data.error || 'Something went wrong. Try again.');
+        setDeleteBusy(false);
+        return;
+      }
+      clearLocalUserData();
+      await signOut();
+      window.location.href = '/';
+    } catch {
+      setDeleteError('Something went wrong. Try again.');
+      setDeleteBusy(false);
     }
   };
 
@@ -330,6 +366,69 @@ export default function AccountClient() {
         )}
         {nlMessage && <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{nlMessage}</p>}
       </div>
+
+      {/* Danger zone. Hidden for admins: the API refuses to delete them anyway. */}
+      {!isAdmin && (
+        <div className="w-full p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Delete account</h2>
+          {confirmingDelete ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                This permanently deletes your account and all your scores, streaks, and votes. It
+                cannot be undone.
+              </p>
+              <label htmlFor="delete-confirm" className="text-sm text-slate-700 dark:text-slate-300">
+                Type <span className="font-medium">{user.email}</span> to confirm:
+              </label>
+              <input
+                id="delete-confirm"
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
+                disabled={deleteBusy}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                className="w-full sm:max-w-sm px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={deleteAccount}
+                  disabled={deleteBusy || !emailConfirmed}
+                  className={`${buttonBase} text-white bg-red-600 hover:bg-red-700`}
+                >
+                  {deleteBusy ? 'Deleting...' : 'Delete my account'}
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    setConfirmEmail('');
+                    setDeleteError('');
+                  }}
+                  disabled={deleteBusy}
+                  className={`${buttonBase} text-slate-700 dark:text-slate-200 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600`}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                Permanently delete your account and everything tied to it. Comments you posted stay
+                up, but are no longer shown under your name.
+              </p>
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                className={`${buttonBase} shrink-0 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-950/70`}
+              >
+                Delete account
+              </button>
+            </div>
+          )}
+          {deleteError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p>}
+        </div>
+      )}
     </div>
   );
 }

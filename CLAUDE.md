@@ -70,6 +70,14 @@ Most data flows client→Supabase, but `app/api/` holds the exceptions:
 - `app/api/quiz/save/route.ts` — upserts draft-quiz progress into `quiz_attempts`. It reads
   the `Authorization: Bearer <token>` header, verifies the user with Supabase, then writes as
   that user.
+- `app/api/account/delete/route.ts` — self-service account deletion, driven by the Danger Zone
+  on `/account` (typed-email confirm; hidden for admins, and the route 403s them so the owner
+  can't lock itself out of article review). Order is load-bearing: **app rows first, then
+  `auth.admin.deleteUser`** — the FKs to `auth.users` do NOT cascade, so deleting the auth user
+  while rows remain fails `23503` (`gamescores_user_id_fkey`). Comments are anonymized
+  (`user_id` null + `author_name` 'Deleted user'), not deleted, so reply threads survive; the
+  client then calls `clearLocalUserData()` (`lib/localUserData.ts`) since `signOut` clears only
+  the session, never the per-user localStorage.
 - `app/api/cron/weekly-rankings/route.ts` — Vercel Cron target (`vercel.json`, once daily at
   **08:00 UTC**; Hobby allows one cron/day and fires can be **up to ~1h late**, so never gate
   on a tight time window — a late-refused fire on 2026-07-03 silently lost a whole cycle.
@@ -191,6 +199,10 @@ Static / hardcoded data:
 - **Schema drift**: a Supabase change that isn't reflected in `types/supabase.ts` will pass
   the editor but produce wrong/`any` types — regenerate after schema edits.
 - `migrations/` being empty is **intentional** — don't treat it as missing setup.
+- **`article_comments.author_name` is assigned by a DB trigger** (pseudonyms like `hoopsfan27`)
+  which overrides whatever the insert passes — so `displayName()` in
+  `app/api/articles/comments/route.ts` is effectively dead. The trigger is INSERT-only, which is
+  why the deletion route can still rewrite it to 'Deleted user' on UPDATE.
 - **Pre-1971 box scores are missing minutes and shot attempts** for many games (league TS%
   computed from the logs reads 84% in 1958; recorded MPG is single-digit league-wide in the
   50s/60s). Points and games ARE complete for all eras. Gate any MPG/per-36/TS%/FGA-derived
