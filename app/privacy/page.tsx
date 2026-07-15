@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const CONTACT_EMAIL = 'uyeyu@icloud.com';
-const LAST_UPDATED = 'July 6, 2026';
+const LAST_UPDATED = 'July 15, 2026';
 
 export default function PrivacyPage() {
   return (
@@ -121,8 +121,38 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Data retention</h2>
             <p>
               We keep account and activity data for as long as your account is active or as needed to provide the
-              Site. Anonymous identifiers expire automatically after a short period. You can request deletion of
-              your account and associated data at any time.
+              Site. Anonymous identifiers expire automatically after a short period. You can delete your account
+              and associated data yourself at any time, as described below.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Deleting your account</h2>
+            <p>
+              You can permanently delete your account at any time from your{' '}
+              <Link href="/account" className="text-sky-600 dark:text-sky-400 hover:underline">
+                account page
+              </Link>
+              . No request or email to us is required. Deletion happens immediately and cannot be undone.
+            </p>
+            <p className="mt-3">Deleting your account removes:</p>
+            <ul className="mt-2 list-disc list-outside pl-5 space-y-2">
+              <li>Your login and email address, so you can no longer sign in.</li>
+              <li>Your game scores, streaks, and quiz progress.</li>
+              <li>Your Top 100 and article votes.</li>
+              <li>Your newsletter subscription, if you had one.</li>
+              <li>
+                The game progress stored in your browser&apos;s local storage on the device you delete from.
+              </li>
+            </ul>
+            <p className="mt-3">
+              Comments you posted on articles are kept so that replies and discussions stay readable, but they are
+              detached from your account and no longer shown under your name. If you want a comment removed
+              entirely, delete it before deleting your account, or{' '}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-600 dark:text-sky-400 hover:underline">
+                contact us
+              </a>
+              . Backups and server logs may retain some data for a limited period before being overwritten.
             </p>
           </section>
 
@@ -130,7 +160,13 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Your choices and rights</h2>
             <ul className="list-disc list-outside pl-5 space-y-2">
               <li>You can access or update your account information while signed in.</li>
-              <li>You can request that we delete your account and associated data by contacting us.</li>
+              <li>
+                You can delete your account and associated data yourself from your{' '}
+                <Link href="/account" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  account page
+                </Link>
+                .
+              </li>
               <li>You can clear your browser&apos;s local storage to remove anonymous identifiers and progress.</li>
               <li>You can opt out of personalized ads through your Google Ad settings.</li>
             </ul>
