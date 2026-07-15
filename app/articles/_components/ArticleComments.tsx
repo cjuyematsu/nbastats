@@ -15,7 +15,9 @@ import { useAuth } from '@/app/contexts/AuthContext';
 interface CommentRow {
   id: string;
   parent_comment_id: string | null;
-  user_id: string;
+  // Null once the author deletes their account: the body stays so threads still
+  // read, but the comment is detached from the person.
+  user_id: string | null;
   author_name: string;
   body: string;
   status: string;
