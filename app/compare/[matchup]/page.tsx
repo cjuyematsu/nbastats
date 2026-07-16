@@ -12,6 +12,7 @@ import { buildCompareShare } from '@/lib/shareText';
 import { resolveMatchupBySlug, type ResolvedPlayer } from '@/lib/serverStats';
 import { CareerStatsData } from '@/types/stats';
 import TodaysMatchupLink from '@/components/TodaysMatchupLink';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const revalidate = 7776000;
 
@@ -63,8 +64,33 @@ export default async function CompareMatchupPage({
 
   const related = relatedMatchups({ slug: canonicalSlug, a, b });
 
+  // Breadcrumb + the two players as linked entities, so the compare graph ties
+  // back to each player's canonical page. Name + url only — no unverified claims.
+  const jsonLd = [
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Comparison Tool', path: '/compare' },
+      { name: `${a} vs ${b}`, path: `/compare/${canonicalSlug}` },
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: a,
+      url: `https://hoopsdata.net/player/${pa.suggestion.personId}`,
+      jobTitle: 'Professional Basketball Player',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: b,
+      url: `https://hoopsdata.net/player/${pb.suggestion.personId}`,
+      jobTitle: 'Professional Basketball Player',
+    },
+  ];
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl md:text-5xl">

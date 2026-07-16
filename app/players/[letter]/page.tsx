@@ -8,6 +8,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PLAYER_DIRECTORY } from '@/app/data/playerDirectory';
+import PlayerDirectoryBrowser from '../PlayerDirectoryBrowser';
+import ExploreNext from '@/components/ExploreNext';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 const presentLetters = [...new Set(PLAYER_DIRECTORY.map((p) => p.letter))].sort((a, b) =>
   a.localeCompare(b),
@@ -56,8 +59,15 @@ export default async function PlayersByLetterPage({
   const prev = idx > 0 ? presentLetters[idx - 1] : null;
   const next = idx < presentLetters.length - 1 ? presentLetters[idx + 1] : null;
 
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Player Directory', path: '/players' },
+    { name: letter, path: `/players/${letter.toLowerCase()}` },
+  ]);
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="text-sm text-slate-500 dark:text-slate-400 mb-4">
           <Link href="/players" className="hover:underline text-sky-600 dark:text-sky-400">
@@ -75,19 +85,19 @@ export default async function PlayersByLetterPage({
           </p>
         </header>
 
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
-          {players.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/player/${p.id}`}
-                className="text-sky-600 dark:text-sky-400 hover:underline"
-                title={`${p.points.toLocaleString()} career points, ${p.games.toLocaleString()} games`}
-              >
-                {p.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <PlayerDirectoryBrowser players={players} mode="all" />
+
+        <ExploreNext
+          heading="Keep exploring"
+          surface="players_letter"
+          variant="cards"
+          className="mt-10 pt-8 border-t border-gray-200 dark:border-slate-600"
+          items={[
+            { href: '/compare', title: 'Compare any two players', subtitle: 'Side-by-side career stats' },
+            { href: '/top-100-players', title: 'Vote the Top 100', subtitle: 'Fan-ranked, updated live' },
+            { href: '/#daily', title: "Today's challenges", subtitle: 'Daily NBA trivia games' },
+          ]}
+        />
 
         <nav className="flex justify-between mt-10 pt-6 border-t border-gray-200 dark:border-slate-600 text-sky-600 dark:text-sky-400">
           {prev ? (

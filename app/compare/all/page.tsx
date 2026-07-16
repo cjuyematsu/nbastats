@@ -3,12 +3,15 @@
 // Crawlable directory of every comparison page. Curated matchups plus the full
 // strategic cross-product — the latter are otherwise sitemap-only orphans with
 // no internal links, which keeps them out of the index. This page is the shallow
-// door that lets crawlers reach them.
+// door that lets crawlers reach them. A client filter narrows the (large) list
+// by player name without hiding anything from the initial SSR HTML.
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups';
 import { strategicComparePairs } from '@/app/data/strategicPlayers';
+import DirectoryFilter, { type FilterGroup } from '@/components/DirectoryFilter';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const metadata: Metadata = {
   title: 'All NBA Player Comparisons',
@@ -28,8 +31,36 @@ export default function AllComparisonsPage() {
     (x, y) => x.a.localeCompare(y.a) || x.b.localeCompare(y.b),
   );
 
+  const groups: FilterGroup[] = [
+    {
+      title: 'Featured Matchups',
+      entries: COMPARE_MATCHUPS.map((m) => ({
+        key: m.slug,
+        label: `${m.a} vs ${m.b}`,
+        href: `/compare/${m.slug}`,
+        keywords: `${m.a} ${m.b}`,
+      })),
+    },
+    {
+      title: 'All-Time & Cross-Era Matchups',
+      entries: strategic.map((m) => ({
+        key: m.slug,
+        label: `${m.a} vs ${m.b}`,
+        href: `/compare/${m.slug}`,
+        keywords: `${m.a} ${m.b}`,
+      })),
+    },
+  ];
+
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Comparison Tool', path: '/compare' },
+    { name: 'All Comparisons', path: '/compare/all' },
+  ]);
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="text-sm text-slate-500 dark:text-slate-400 mb-4">
           <Link href="/compare" className="hover:underline text-sky-600 dark:text-sky-400">
@@ -52,33 +83,7 @@ export default function AllComparisonsPage() {
           </p>
         </header>
 
-        <section className="mb-10">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">Featured Matchups</h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
-            {COMPARE_MATCHUPS.map((m) => (
-              <li key={m.slug}>
-                <Link href={`/compare/${m.slug}`} className="text-sky-600 dark:text-sky-400 hover:underline">
-                  {m.a} vs {m.b}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-            All-Time &amp; Cross-Era Matchups
-          </h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
-            {strategic.map((m) => (
-              <li key={m.slug}>
-                <Link href={`/compare/${m.slug}`} className="text-sky-600 dark:text-sky-400 hover:underline">
-                  {m.a} vs {m.b}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <DirectoryFilter groups={groups} placeholder="Filter comparisons by player…" />
       </div>
     </div>
   );

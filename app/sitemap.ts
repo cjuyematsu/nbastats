@@ -183,15 +183,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const latestDraftYear = new Date().getFullYear();
-  const draftRoutes: MetadataRoute.Sitemap = Array.from(
-    { length: latestDraftYear - 1955 + 1 },
-    (_, i) => ({
-      url: `${baseUrl}/draft/${1955 + i}`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    })
-  );
+  const draftYears = Array.from({ length: latestDraftYear - 1955 + 1 }, (_, i) => 1955 + i);
+  const draftRoutes: MetadataRoute.Sitemap = draftYears.map((y) => ({
+    url: `${baseUrl}/draft/${y}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  }));
+
+  // Per-year draft quizzes: one crawlable page per class, cross-linked from each
+  // /draft/[year] page.
+  const draftQuizRoutes: MetadataRoute.Sitemap = draftYears.map((y) => ({
+    url: `${baseUrl}/games/draft-quiz/${y}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.5,
+  }));
 
   // Published articles (best-effort: never break the build if the table or DB is unavailable).
   let articleRoutes: MetadataRoute.Sitemap = [];
@@ -224,5 +231,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore; player pages just stay out of the sitemap
   }
 
-  return [...staticRoutes, ...directoryRoutes, ...collegeRoutes, ...playerLetterRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...articleRoutes, ...playerRoutes];
+  return [...staticRoutes, ...directoryRoutes, ...collegeRoutes, ...playerLetterRoutes, ...matchupRoutes, ...strategicMatchupRoutes, ...duoRoutes, ...draftRoutes, ...draftQuizRoutes, ...articleRoutes, ...playerRoutes];
 }

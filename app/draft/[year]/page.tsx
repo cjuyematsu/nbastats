@@ -5,8 +5,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 import AdSlot from '@/components/AdSlot';
+import ExploreNext from '@/components/ExploreNext';
+import DraftClassTable from './DraftClassTable';
+import { buildCompareSlug } from '@/app/data/compareMatchups';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const revalidate = 7776000;
 
@@ -143,9 +146,34 @@ export default async function DraftYearPage({ params }: { params: Promise<{ year
     })),
   };
 
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'NBA Draft', path: '/draft' },
+    { name: `${year} Draft`, path: `/draft/${year}` },
+  ]);
+
+  // Two linked players for a "compare the top two picks" recirculation chip.
+  const linkedPicks = [...picks]
+    .filter((p) => p.playerId != null)
+    .sort((a, b) => a.round - b.round || a.pick - b.pick);
+  const exploreItems = [
+    ...(topScorer && topScorer.playerId != null && topScorer.points > 0
+      ? [{ href: `/player/${topScorer.playerId}`, title: `${topScorer.name}'s career`, subtitle: `Top scorer of the ${year} class` }]
+      : []),
+    ...(linkedPicks.length >= 2
+      ? [{
+          href: `/compare/${buildCompareSlug(linkedPicks[0].name, linkedPicks[1].name)}`,
+          title: `${linkedPicks[0].name} vs ${linkedPicks[1].name}`,
+          subtitle: 'Compare the top two picks',
+        }]
+      : []),
+    { href: `/games/draft-quiz/${year}`, title: `Play the ${year} draft quiz`, subtitle: 'Name the picks from memory' },
+  ];
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
@@ -161,63 +189,7 @@ export default async function DraftYearPage({ params }: { params: Promise<{ year
           </p>
         </header>
 
-        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-slate-600 mb-10">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
-            <thead className="bg-gray-50 dark:bg-slate-600">
-              <tr>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Pick</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Player</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Team</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider hidden sm:table-cell">School / Club</th>
-                {hasStats && (
-                  <>
-                    <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">G</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">PTS</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">PPG</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-slate-700 divide-y divide-gray-200 dark:divide-slate-600">
-              {picks.map((p) => (
-                <tr key={`${p.round}-${p.pick}`}>
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                    {p.round === 2 ? `R2 · ${p.pick}` : p.pick}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-sm font-semibold">
-                    {p.playerId != null ? (
-                      <Link href={`/player/${p.playerId}`} className="text-sky-600 dark:text-sky-400 hover:underline">
-                        {p.name}
-                      </Link>
-                    ) : (
-                      <span className="text-slate-800 dark:text-slate-100">{p.name}</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{p.team ?? 'N/A'}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 hidden sm:table-cell">
-                    {p.school ? (
-                      <Link
-                        href={`/colleges/${schoolSlug(canonicalSchool(p.school))}`}
-                        className="hover:text-sky-600 dark:hover:text-sky-400 hover:underline"
-                      >
-                        {p.school}
-                      </Link>
-                    ) : (
-                      'N/A'
-                    )}
-                  </td>
-                  {hasStats && (
-                    <>
-                      <td className="px-3 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{p.games > 0 ? p.games.toLocaleString() : 'N/A'}</td>
-                      <td className="px-3 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{p.points > 0 ? p.points.toLocaleString() : 'N/A'}</td>
-                      <td className="px-3 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100">{p.ppg != null ? p.ppg.toFixed(1) : 'N/A'}</td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DraftClassTable picks={picks} hasStats={hasStats} />
 
         <section className="mb-10 max-w-3xl">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
@@ -235,6 +207,14 @@ export default async function DraftYearPage({ params }: { params: Promise<{ year
 
         <AdSlot slot="draft-page" className="mb-10 max-w-4xl mx-auto" />
 
+        <ExploreNext
+          heading="Keep exploring"
+          surface="draft_year"
+          variant="cards"
+          className="mb-10"
+          items={exploreItems}
+        />
+
         <section className="flex flex-wrap items-center gap-4">
           {year > FIRST_DRAFT_YEAR && (
             <Link href={`/draft/${year - 1}`} className="text-sky-600 dark:text-sky-400 hover:underline">
@@ -249,7 +229,7 @@ export default async function DraftYearPage({ params }: { params: Promise<{ year
           <Link href={`/games/draft-quiz/${year}`} className="text-sky-600 dark:text-sky-400 hover:underline">
             Think you know this class? Play the {year} draft quiz
           </Link>
-          <Link href="/analysis/draft-points" className="text-sky-600 dark:text-sky-400 hover:underline">
+          <Link href="/articles/draft-points" className="text-sky-600 dark:text-sky-400 hover:underline">
             Points by draft position
           </Link>
         </section>

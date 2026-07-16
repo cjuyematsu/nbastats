@@ -1,10 +1,13 @@
 // app/colleges/page.tsx
 //
-// Crawlable hub for the per-school draft pages.
+// Crawlable hub for the per-school draft pages. A client filter searches across
+// hundreds of schools without hiding pills from the initial SSR HTML.
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSchoolGroups, type SchoolGroup } from '@/lib/collegeData';
+import DirectoryFilter, { type FilterGroup } from '@/components/DirectoryFilter';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const revalidate = 86400;
 
@@ -41,8 +44,27 @@ export default async function CollegesIndexPage() {
     (a, b) => b.picks.length - a.picks.length || a.name.localeCompare(b.name)
   );
 
+  const filterGroups: FilterGroup[] = SECTIONS.map((section) => ({
+    title: section.title,
+    blurb: section.blurb,
+    entries: all
+      .filter((g) => g.kind === section.kind)
+      .map((g) => ({
+        key: g.slug,
+        label: g.name,
+        href: `/colleges/${g.slug}`,
+        badge: g.picks.length,
+      })),
+  })).filter((g) => g.entries.length > 0);
+
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Players by College', path: '/colleges' },
+  ]);
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
@@ -54,32 +76,7 @@ export default async function CollegesIndexPage() {
           </p>
         </header>
 
-        {SECTIONS.map((section) => {
-          const schools = all.filter((g) => g.kind === section.kind);
-          if (schools.length === 0) return null;
-          return (
-            <section key={section.kind} className="mb-10">
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-1">
-                {section.title}
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{section.blurb}</p>
-              <div className="flex flex-wrap gap-2">
-                {schools.map((g) => (
-                  <Link
-                    key={g.slug}
-                    href={`/colleges/${g.slug}`}
-                    className="text-sm px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-slate-600 transition-colors"
-                  >
-                    {g.name}
-                    <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400">
-                      {g.picks.length}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          );
-        })}
+        <DirectoryFilter groups={filterGroups} variant="pills" placeholder="Filter schools by name…" />
 
         <section className="flex flex-wrap items-center gap-4">
           <Link href="/draft" className="text-sky-600 dark:text-sky-400 hover:underline">

@@ -1,11 +1,14 @@
 // app/duos/all/page.tsx
 //
 // Crawlable directory of every curated duo page. The /duos hub only seeds the
-// first 24, so the rest depend on this page (and cross-links) for discovery.
+// first 24, so the rest depend on this page (and cross-links) for discovery. A
+// client filter narrows by name without hiding links from the SSR HTML.
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DUO_PAGES } from '@/app/data/duoPages';
+import DirectoryFilter, { type FilterGroup } from '@/components/DirectoryFilter';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const metadata: Metadata = {
   title: 'All NBA Duos: Records & Games Together',
@@ -23,8 +26,26 @@ export const metadata: Metadata = {
 export default function AllDuosPage() {
   const duos = [...DUO_PAGES].sort((x, y) => x.a.localeCompare(y.a) || x.b.localeCompare(y.b));
 
+  const groups: FilterGroup[] = [
+    {
+      entries: duos.map((d) => ({
+        key: d.slug,
+        label: `${d.a} & ${d.b}`,
+        href: `/duos/${d.slug}`,
+        keywords: `${d.a} ${d.b}`,
+      })),
+    },
+  ];
+
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Duos Tool', path: '/duos' },
+    { name: 'All Duos', path: '/duos/all' },
+  ]);
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="text-sm text-slate-500 dark:text-slate-400 mb-4">
           <Link href="/duos" className="hover:underline text-sky-600 dark:text-sky-400">
@@ -47,15 +68,7 @@ export default function AllDuosPage() {
           </p>
         </header>
 
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
-          {duos.map((d) => (
-            <li key={d.slug}>
-              <Link href={`/duos/${d.slug}`} className="text-sky-600 dark:text-sky-400 hover:underline">
-                {d.a} &amp; {d.b}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <DirectoryFilter groups={groups} placeholder="Filter duos by player…" />
       </div>
     </div>
   );

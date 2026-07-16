@@ -7,6 +7,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PLAYER_DIRECTORY } from '@/app/data/playerDirectory';
+import PlayerDirectoryBrowser from './PlayerDirectoryBrowser';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const metadata: Metadata = {
   title: 'NBA Player Directory: Career Stats A-Z',
@@ -27,8 +29,14 @@ export default function PlayersDirectoryPage() {
   const counts = new Map<string, number>();
   for (const p of PLAYER_DIRECTORY) counts.set(p.letter, (counts.get(p.letter) ?? 0) + 1);
 
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Player Directory', path: '/players' },
+  ]);
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
@@ -40,6 +48,11 @@ export default function PlayersDirectoryPage() {
           </p>
         </header>
 
+        <PlayerDirectoryBrowser players={PLAYER_DIRECTORY} mode="search" />
+
+        <h2 className="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Browse by last name
+        </h2>
         <nav aria-label="Players by letter" className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 gap-3">
           {ALPHABET.map((letter) => {
             const count = counts.get(letter) ?? 0;
