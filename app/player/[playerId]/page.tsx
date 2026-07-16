@@ -16,6 +16,7 @@ import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups';
 import { duoHref } from '@/app/data/duoPages';
 import { strategicComparePairs } from '@/app/data/strategicPlayers';
 import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const revalidate = 7776000;
 
@@ -155,17 +156,35 @@ export default async function PlayerStatsPage({
     return out;
   })();
 
+  const statBits = [
+    player.pts_per_g != null ? `${player.pts_per_g.toFixed(1)} PPG` : null,
+    player.trb_per_g != null ? `${player.trb_per_g.toFixed(1)} RPG` : null,
+    player.ast_per_g != null ? `${player.ast_per_g.toFixed(1)} APG` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
   const personJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name,
     url: `https://hoopsdata.net/player/${id}`,
     jobTitle: 'Professional Basketball Player',
+    mainEntityOfPage: `https://hoopsdata.net/player/${id}`,
+    ...(statBits
+      ? { description: `${name} NBA career averages: ${statBits}, across regular season and playoffs.` }
+      : {}),
   };
+
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Player Directory', path: '/players' },
+    { name, path: `/player/${id}` },
+  ]);
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 transition-colors duration-200 border border-gray-200 dark:border-gray-700">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([personJsonLd, breadcrumb]) }} />
       <div className="p-4 md:py-6">
         <div className="p-5 bg-gray-50 dark:bg-slate-700/60 rounded-xl shadow-md border border-gray-200 dark:border-slate-600 transition-colors duration-200">
           <div className="text-left mb-6">

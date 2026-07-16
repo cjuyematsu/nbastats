@@ -1,5 +1,9 @@
 // app/articles/[slug]/page.tsx
 
+// Bounded ISR: without this, the supabase fetch response is cached indefinitely on
+// Vercel, so title/dek edits never reach the live page until a redeploy.
+export const revalidate = 300;
+
 import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';

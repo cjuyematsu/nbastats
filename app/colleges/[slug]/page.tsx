@@ -8,6 +8,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getCareerTotals, getSchoolGroups, type CareerTotals, type SchoolGroup } from '@/lib/collegeData';
+import ExploreNext from '@/components/ExploreNext';
+import { buildCompareSlug } from '@/app/data/compareMatchups';
+import { breadcrumbLd } from '@/lib/jsonLd';
 
 export const revalidate = 7776000;
 
@@ -93,8 +96,27 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
   const label =
     group.kind === 'college' ? 'college' : group.kind === 'high-school' ? 'high school' : 'club';
 
+  const breadcrumb = breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Players by College', path: '/colleges' },
+    { name: group.name, path: `/colleges/${slug}` },
+  ]);
+
+  const exploreItems = [
+    ...(topScorers.length >= 2
+      ? [{
+          href: `/compare/${buildCompareSlug(topScorers[0].name, topScorers[1].name)}`,
+          title: `${topScorers[0].name} vs ${topScorers[1].name}`,
+          subtitle: `Compare ${group.name}'s top scorers`,
+        }]
+      : []),
+    { href: '/draft', title: 'Draft classes by year', subtitle: 'Every NBA draft, 1955-present' },
+    { href: '/players', title: 'All players A to Z', subtitle: 'Career stats directory' },
+  ];
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 flex flex-col flex-grow min-h-0 border border-gray-200 dark:border-gray-700">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="mb-4 text-sm">
           <Link href="/colleges" className="text-sky-600 dark:text-sky-400 hover:underline">
@@ -220,6 +242,14 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
             </tbody>
           </table>
         </div>
+
+        <ExploreNext
+          heading="Keep exploring"
+          surface="college"
+          variant="cards"
+          className="mb-10"
+          items={exploreItems}
+        />
 
         <section className="flex flex-wrap items-center gap-4">
           <Link href="/colleges" className="text-sky-600 dark:text-sky-400 hover:underline">
