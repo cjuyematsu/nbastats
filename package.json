@@ -11,6 +11,7 @@
     "generate:draft-data": "tsx scripts/generate-draft-data.ts",
     "generate:playoff-risers": "tsx scripts/generate-playoff-risers.ts",
     "generate:player-directory": "tsx scripts/generate-player-directory.ts",
+    "generate:percentiles": "NODE_OPTIONS=--experimental-websocket tsx scripts/generate-stat-percentiles.ts",
     "refresh:teammates": "tsx scripts/refresh-teammates.ts",
     "indexnow:submit": "tsx scripts/indexnow-submit.ts"
   },

@@ -11,14 +11,29 @@ import { ViewTeammatesButton } from './ViewTeammatesButton';
 import ShareResult from '@/components/ShareResult';
 import AdSlot from '@/components/AdSlot';
 import ExploreNext from '@/components/ExploreNext';
+import PlayerHero from './PlayerHero';
 import { buildPlayerShare } from '@/lib/shareText';
 import { COMPARE_MATCHUPS } from '@/app/data/compareMatchups';
 import { duoHref } from '@/app/data/duoPages';
 import { strategicComparePairs } from '@/app/data/strategicPlayers';
 import { canonicalSchool, schoolSlug } from '@/lib/collegeSlugs';
 import { breadcrumbLd } from '@/lib/jsonLd';
+import { careerPercentiles } from '@/lib/percentiles';
+import { PLAYOFF_QUALIFYING_GAMES } from '@/app/data/statPercentiles';
+import { PLAYER_DIRECTORY } from '@/app/data/playerDirectory';
 
 export const revalidate = 7776000;
+
+// Prebuild the most-searched profiles so their first hit is never a cold
+// on-demand render; everything else stays ISR on demand.
+const PREBUILD_COUNT = 400;
+
+export function generateStaticParams() {
+  return [...PLAYER_DIRECTORY]
+    .sort((a, b) => b.points - a.points)
+    .slice(0, PREBUILD_COUNT)
+    .map((p) => ({ playerId: String(p.id) }));
+}
 
 const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
   try {
@@ -134,6 +149,9 @@ export default async function PlayerStatsPage({
   const name = `${player.firstName ?? ''} ${player.lastName ?? ''}`.trim();
   const school = draftRow?.['School/Club Team'] ?? null;
   const collegeHref = school ? `/colleges/${schoolSlug(canonicalSchool(school))}` : null;
+  const percentiles = regular ? careerPercentiles(regular) : null;
+  const playoffPct = playoffs ? careerPercentiles(playoffs, 'playoff') : null;
+  const playoffPool = `${PLAYOFF_QUALIFYING_GAMES}+ career playoff games`;
 
   // Curated + strategic head-to-head pages that involve this player, so the
   // player page feeds crawlable links into the compare leaf graph (no new URLs).
@@ -213,9 +231,12 @@ export default async function PlayerStatsPage({
                 )}
               </p>
             )}
+
+            <PlayerHero player={player} seasons={seasons} percentiles={percentiles} />
+
             <ExploreNext
               surface="player_hero"
-              className="mt-3"
+              className="mt-5"
               items={[
                 ...(comparisons.length > 0
                   ? [{ href: `/compare/${comparisons[0].slug}`, title: `vs ${comparisons[0].other}` }]
@@ -233,12 +254,12 @@ export default async function PlayerStatsPage({
 
           {teammates.length > 0 && <ViewTeammatesButton />}
 
-          <StatsTable stats={regular} title="Regular Season Career Stats" statType="Averages" />
+          <StatsTable stats={regular} title="Regular Season Career Stats" statType="Averages" percentiles={percentiles} />
           <SeasonBySeasonTable seasons={seasons} />
-          <StatsTable stats={regular} title="Regular Season Career Totals" statType="Totals" />
+          <StatsTable stats={regular} title="Regular Season Career Totals" statType="Totals" percentiles={percentiles} />
 
-          <StatsTable stats={playoffs} title="Playoff Career Stats" statType="Averages" />
-          <StatsTable stats={playoffs} title="Playoff Career Totals" statType="Totals" />
+          <StatsTable stats={playoffs} title="Playoff Career Stats" statType="Averages" percentiles={playoffPct} poolDescription={playoffPool} />
+          <StatsTable stats={playoffs} title="Playoff Career Totals" statType="Totals" percentiles={playoffPct} poolDescription={playoffPool} />
 
           <AdSlot slot="player-page" className="mt-8" />
 
