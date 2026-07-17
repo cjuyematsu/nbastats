@@ -7,24 +7,42 @@
 import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
 import { teamTimeline } from '@/lib/teamLogos';
-import type { PercentileKey } from '@/lib/percentiles';
+import { compactPercentileLabel, type PercentileKey } from '@/lib/percentiles';
 
 // FG%/3P%/TS% depend on shot attempts, which are missing for many pre-1971
 // games (see lib/teamLogos sibling note / DETAIL_RELIABLE_FROM precedent), so
 // the shooting row only shows for players whose career starts in 1971+.
 const DETAIL_RELIABLE_FROM = 1971;
 
-function StatTile({ value, label, sub }: { value: string; label: string; sub?: string }) {
+// Three-across even on a phone, so these tiles get the smaller headline size.
+const SHOOTING_VALUE = 'text-xl sm:text-3xl';
+
+// valueClass sizes the headline number: the shooting row packs three tiles
+// across even on a phone, so its longer "50.7%" values start a notch smaller
+// than the two-across averages row.
+function StatTile({
+  value,
+  label,
+  sub,
+  valueClass = 'text-2xl sm:text-3xl',
+}: {
+  value: string;
+  label: string;
+  sub?: string;
+  valueClass?: string;
+}) {
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 px-3 py-3 text-center">
-      <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+    <div className="rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 px-2 py-3 sm:px-3 text-center">
+      <div className={`${valueClass} font-bold text-slate-900 dark:text-slate-100 tabular-nums`}>
         {value}
       </div>
       <div className="mt-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </div>
       {sub && (
-        <div className="text-[0.65rem] font-medium text-sky-600 dark:text-sky-400">{sub}</div>
+        <div className="mt-0.5 text-[0.65rem] font-medium leading-tight whitespace-nowrap text-sky-600 dark:text-sky-400">
+          {sub}
+        </div>
       )}
     </div>
   );
@@ -32,6 +50,9 @@ function StatTile({ value, label, sub }: { value: string; label: string; sub?: s
 
 const per = (v: number | null | undefined) => (v == null ? 'N/A' : v.toFixed(1));
 const pct = (v: number | null | undefined) => (v == null ? 'N/A' : `${(v * 100).toFixed(1)}%`);
+
+const compactSub = (label: string | undefined) =>
+  label == null ? label : compactPercentileLabel(label);
 
 export default function PlayerHero({
   player,
@@ -44,7 +65,7 @@ export default function PlayerHero({
 }) {
   const games = player.games_played;
   // Labels arrive self-contained ("3rd all-time" or "98.72th percentile").
-  const pctSub = (key: PercentileKey) => percentiles?.[key];
+  const pctSub = (key: PercentileKey) => compactSub(percentiles?.[key]);
   const showShooting =
     (player.startYear ?? 0) >= DETAIL_RELIABLE_FROM &&
     (player.fg_pct != null || player.fg3_pct != null || player.ts_pct != null);
@@ -73,9 +94,9 @@ export default function PlayerHero({
 
       {showShooting && (
         <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-          <StatTile value={pct(player.fg_pct)} label="FG%" sub={pctSub('fg_pct')} />
-          <StatTile value={pct(player.fg3_pct)} label="3P%" sub={pctSub('fg3_pct')} />
-          <StatTile value={pct(player.ts_pct)} label="TS%" sub={pctSub('ts_pct')} />
+          <StatTile value={pct(player.fg_pct)} label="FG%" sub={pctSub('fg_pct')} valueClass={SHOOTING_VALUE} />
+          <StatTile value={pct(player.fg3_pct)} label="3P%" sub={pctSub('fg3_pct')} valueClass={SHOOTING_VALUE} />
+          <StatTile value={pct(player.ts_pct)} label="TS%" sub={pctSub('ts_pct')} valueClass={SHOOTING_VALUE} />
         </div>
       )}
 

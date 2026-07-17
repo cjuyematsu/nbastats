@@ -203,8 +203,8 @@ export default async function PlayerStatsPage({
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg text-slate-800 dark:text-slate-100 transition-colors duration-200 border border-gray-200 dark:border-gray-700">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([personJsonLd, breadcrumb]) }} />
-      <div className="p-4 md:py-6">
-        <div className="p-5 bg-gray-50 dark:bg-slate-700/60 rounded-xl shadow-md border border-gray-200 dark:border-slate-600 transition-colors duration-200">
+      <div className="p-2 sm:p-4 md:py-6">
+        <div className="p-3 sm:p-5 bg-gray-50 dark:bg-slate-700/60 rounded-xl shadow-md border border-gray-200 dark:border-slate-600 transition-colors duration-200">
           <div className="text-left mb-6">
             <h1 className="text-[1.91rem] font-bold text-sky-600 dark:text-sky-400 transition-colors duration-200">
               {name}

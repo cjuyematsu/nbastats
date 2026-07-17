@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
-import type { PercentileKey } from '@/lib/percentiles';
+import { compactPercentileLabel, type PercentileKey } from '@/lib/percentiles';
 import { QUALIFYING_GAMES } from '@/app/data/statPercentiles';
 import { teamLogo } from '@/lib/teamLogos';
 
@@ -30,6 +30,28 @@ const formatPercentage = (value: number | string | null | undefined): string => 
   if (isNaN(numValue)) return 'N/A';
   return (numValue * 100).toFixed(1) + '%';
 };
+
+// Every stat row carries its abbreviation in parens ("Points Per Game (PPG)").
+// Phones show just the abbreviation, and the shorter "98.72th pct" percentile,
+// so the essentials fit without a sideways scroll; sm+ gets the full wording.
+const shortLabel = (label: string) => label.match(/\(([^)]+)\)\s*$/)?.[1] ?? label;
+
+const StatLabel = ({ label }: { label: string }) => (
+  <>
+    <span className="sm:hidden">{shortLabel(label)}</span>
+    <span className="hidden sm:inline">{label}</span>
+  </>
+);
+
+const PercentileCell = ({ pct }: { pct?: string }) =>
+  pct == null ? (
+    <>-</>
+  ) : (
+    <>
+      <span className="sm:hidden">{compactPercentileLabel(pct)}</span>
+      <span className="hidden sm:inline">{pct}</span>
+    </>
+  );
 
 export function SeasonBySeasonTable({ seasons }: { seasons: SeasonRow[] }) {
   if (seasons.length === 0) return null;
@@ -162,10 +184,10 @@ export function StatsTable({
               <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
                 <thead className="bg-gray-50 dark:bg-slate-600 transition-colors duration-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">Statistic</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">{tableHeaderLabel}</th>
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">Statistic</th>
+                    <th className="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">{tableHeaderLabel}</th>
                     {showPercentiles && (
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">All-Time</th>
+                      <th className="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider transition-colors duration-200">All-Time</th>
                     )}
                   </tr>
                 </thead>
@@ -179,11 +201,13 @@ export function StatsTable({
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
                           <tr key={row.label}>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 transition-colors duration-200">{row.label}</td>
-                            <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100 transition-colors duration-200">{value}</td>
+                            <td className="px-2 sm:px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 transition-colors duration-200">
+                              <StatLabel label={row.label} />
+                            </td>
+                            <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100 transition-colors duration-200">{value}</td>
                             {showPercentiles && (
-                              <td className="px-4 py-2 text-right text-sm font-mono text-slate-500 dark:text-slate-400 transition-colors duration-200">
-                                {pct ?? '-'}
+                              <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono whitespace-nowrap text-slate-500 dark:text-slate-400 transition-colors duration-200">
+                                <PercentileCell pct={pct} />
                               </td>
                             )}
                           </tr>
@@ -197,13 +221,15 @@ export function StatsTable({
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
                           <tr key={row.label}>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 transition-colors duration-200">{row.label}</td>
-                            <td className="px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100 transition-colors duration-200">
+                            <td className="px-2 sm:px-4 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 transition-colors duration-200">
+                              <StatLabel label={row.label} />
+                            </td>
+                            <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100 transition-colors duration-200">
                               {row.kind === 'pct' ? formatPercentage(raw) : formatStat(raw)}
                             </td>
                             {showPercentiles && (
-                              <td className="px-4 py-2 text-right text-sm font-mono text-slate-500 dark:text-slate-400 transition-colors duration-200">
-                                {pct ?? '-'}
+                              <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono whitespace-nowrap text-slate-500 dark:text-slate-400 transition-colors duration-200">
+                                <PercentileCell pct={pct} />
                               </td>
                             )}
                           </tr>

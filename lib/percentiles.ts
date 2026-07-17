@@ -97,6 +97,15 @@ export function formatPercentile(rank: number): string {
   return `${n.toFixed(2)}th`;
 }
 
+// Compact form of the display labels below, for narrow surfaces (hero tiles,
+// mobile table cells). Keeps the full ordinal and only swaps the long
+// "percentile" word: "98.72th percentile" -> "98.72th pct". "3rd all-time" is
+// already short and passes through unchanged.
+export function compactPercentileLabel(label: string): string {
+  const suffix = ' percentile';
+  return label.endsWith(suffix) ? `${label.slice(0, -suffix.length)} pct` : label;
+}
+
 export type PercentileKey =
   // Per-game averages
   | 'ppg'
