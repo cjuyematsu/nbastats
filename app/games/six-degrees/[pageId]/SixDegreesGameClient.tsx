@@ -22,6 +22,7 @@ import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
 import NextUpCard from '@/components/NextUpCard';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 
 type AdjacencyList = {
   [playerId: string]: number[];
@@ -49,22 +50,7 @@ type DailyScore = {
     guess_results?: GuessResult[] | null;
 };
 
-type PlayerSuggestion = {
-    personId: number;
-    firstName: string | null;
-    lastName: string | null;
-  };
-
 type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error' | 'already_played';
-
-function debounce<Args extends unknown[]>(func: (...args: Args) => void, waitFor: number) {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-  const debounced = (...args: Args) => {
-    if (timeout !== null) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), waitFor);
-  };
-  return debounced;
-}
 
 function PlayerInput({
   onSelect,
@@ -76,49 +62,27 @@ function PlayerInput({
   disabled: boolean;
 }) {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<{id: number, name: string}[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
 
-    const searchPlayers = async (searchTerm: string) => {
-        if (searchTerm.length < 2) {
-            setResults([]);
-            return;
-        }
-        setIsSearching(true);
-        try {
-            const { data, error } = await supabase.rpc('get_player_suggestions', {
-                search_term: searchTerm
-            });
-            if (error) throw error;
-            const formattedResults = data.map((p: PlayerSuggestion) => ({
-                id: p.personId,
-                name: `${p.firstName} ${p.lastName}`
-            }));
-            setResults(formattedResults);
-            setIsOpen(true);
-        } catch (error) {
-            console.error("Error searching players:", error);
-            setResults([]);
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedSearch = useCallback(debounce(searchPlayers, 300), []);
+    const { suggestions, isLoading: isSearching } = usePlayerSuggestions(query);
+    const results = useMemo(
+        () => suggestions.map((p) => ({
+            id: p.personId,
+            name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim(),
+        })),
+        [suggestions]
+    );
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newQuery = e.target.value;
         setQuery(newQuery);
-        debouncedSearch(newQuery);
+        setIsOpen(newQuery.trim().length >= 2);
     };
 
     const handleSelect = (player: Guess) => {
         if(disabled) return;
         onSelect(player);
         setQuery('');
-        setResults([]);
         setIsOpen(false);
     };
 

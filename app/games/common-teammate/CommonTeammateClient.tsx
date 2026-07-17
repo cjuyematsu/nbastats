@@ -4,9 +4,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { debounce } from 'lodash';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getLaDateString, getNextLaMidnightIso } from '@/lib/dailyTime';
 import { generateCommonTeammateDaily, type CtRound } from '@/lib/commonTeammateDaily';
@@ -79,8 +79,12 @@ export default function CommonTeammateClient() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [betweenRounds, setBetweenRounds] = useState(false);
   const [term, setTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<{ id: number; name: string }[]>([]);
   const [open, setOpen] = useState(false);
+  const { suggestions: rawSuggestions } = usePlayerSuggestions(term);
+  const suggestions = useMemo(
+    () => rawSuggestions.map((p) => ({ id: p.personId, name: playerName(p) })),
+    [rawSuggestions]
+  );
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -119,26 +123,6 @@ export default function CommonTeammateClient() {
       cancelled = true;
     };
   }, [today]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedFetch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        setOpen(false);
-        return;
-      }
-      try {
-        const { data } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        setSuggestions((data || []).map((p: PlayerSuggestion) => ({ id: p.personId, name: playerName(p) })));
-        setOpen(true);
-      } catch {
-        setSuggestions([]);
-        setOpen(false);
-      }
-    }, 300),
-    []
-  );
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -203,7 +187,6 @@ export default function CommonTeammateClient() {
     if (!round) return;
 
     setTerm('');
-    setSuggestions([]);
     setOpen(false);
 
     const result = feedbackForGuess(round, picked.id);
@@ -388,7 +371,7 @@ export default function CommonTeammateClient() {
                     value={term}
                     onChange={(e) => {
                       setTerm(e.target.value);
-                      debouncedFetch(e.target.value);
+                      setOpen(e.target.value.trim().length >= 2);
                     }}
                     placeholder="Name a player who played with both..."
                     className="w-full p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-slate-900 dark:text-white"

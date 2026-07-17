@@ -3,11 +3,11 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { debounce } from 'lodash';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import { PlayerSuggestion } from '@/types/stats';
 import { type DuoRow, cleanSharedTeams, DUO_ACCENT_A, DUO_ACCENT_B } from '@/lib/duos';
 import { buildDuoSlug } from '@/app/data/duoPages';
@@ -52,39 +52,20 @@ function PlayerSearch({
   accentColor: string;
 }) {
   const [term, setTerm] = useState(picked?.name ?? '');
-  const [results, setResults] = useState<Picked[]>([]);
+  const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const { suggestions, isLoading: loading } = usePlayerSuggestions(query);
+  const results = useMemo(
+    () => suggestions.map((p) => ({ id: p.personId, name: playerName(p) })),
+    [suggestions]
+  );
 
   useEffect(() => {
     setTerm(picked?.name ?? '');
+    setQuery('');
   }, [picked]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedFetch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setResults([]);
-        setOpen(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const { data } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        setResults(
-          (data || []).map((p: PlayerSuggestion) => ({ id: p.personId, name: playerName(p) }))
-        );
-        setOpen(true);
-      } catch {
-        setResults([]);
-        setOpen(false);
-      } finally {
-        setLoading(false);
-      }
-    }, 300),
-    []
-  );
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -106,7 +87,8 @@ function PlayerSearch({
         placeholder={placeholder}
         onChange={(e) => {
           setTerm(e.target.value);
-          debouncedFetch(e.target.value);
+          setQuery(e.target.value);
+          setOpen(e.target.value.trim().length >= 2);
         }}
         onFocus={() => term.length >= 2 && results.length > 0 && setOpen(true)}
         className="w-full pl-8 pr-9 py-2.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
@@ -124,7 +106,7 @@ function PlayerSearch({
               key={r.id}
               onMouseDown={() => {
                 setTerm(r.name);
-                setResults([]);
+                setQuery('');
                 setOpen(false);
                 onSelect(r);
               }}

@@ -81,7 +81,7 @@ export default function Header() {
         {/* --- Search Bar --- */}
         {/* UPDATED: Added horizontal margin on mobile for better spacing */}
         <div className={`flex-grow min-w-0 ${isMobile ? 'mx-2' : ''}`}>
-          <HeaderSearchBar onPlayerSelected={handlePlayerSelection} />
+          <HeaderSearchBar onPlayerSelected={handlePlayerSelection} prefetchPlayerPages />
         </div>
 
         <DailyPill />

@@ -3,9 +3,9 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { debounce } from 'lodash';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import { PlayerSuggestion, CareerStatsData } from '@/types/stats';
 import { getTodaysMatchup } from '@/app/data/featuredMatchups';
 import { findSlugForPair } from '@/app/data/compareMatchups';
@@ -63,36 +63,16 @@ interface SearchBoxProps {
 
 function PlayerSearchBox({ displayName, onSelect, accentColor }: SearchBoxProps) {
   const [term, setTerm] = useState(displayName);
-  const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
+  const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { suggestions, isLoading: loading } = usePlayerSuggestions(query);
 
   useEffect(() => {
     setTerm(displayName);
+    setQuery('');
   }, [displayName]);
-
-  const debouncedFetch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        setOpen(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const { data } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        setSuggestions(data || []);
-        setOpen(true);
-      } catch {
-        setSuggestions([]);
-        setOpen(false);
-      } finally {
-        setLoading(false);
-      }
-    }, 350),
-    []
-  );
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -104,6 +84,7 @@ function PlayerSearchBox({ displayName, onSelect, accentColor }: SearchBoxProps)
 
   const pick = (p: PlayerSuggestion) => {
     setTerm(playerName(p));
+    setQuery('');
     setOpen(false);
     onSelect(p);
   };
@@ -117,7 +98,8 @@ function PlayerSearchBox({ displayName, onSelect, accentColor }: SearchBoxProps)
         placeholder="Search a player..."
         onChange={(e) => {
           setTerm(e.target.value);
-          debouncedFetch(e.target.value);
+          setQuery(e.target.value);
+          setOpen(e.target.value.trim().length >= 2);
         }}
         onFocus={() => term.length >= 2 && suggestions.length > 0 && setOpen(true)}
         className="w-full pl-8 pr-9 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
