@@ -7,10 +7,12 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { getCareerTotals, getSchoolGroups, type CareerTotals, type SchoolGroup } from '@/lib/collegeData';
 import ExploreNext from '@/components/ExploreNext';
 import { buildCompareSlug } from '@/app/data/compareMatchups';
 import { breadcrumbLd } from '@/lib/jsonLd';
+import { teamLogo } from '@/lib/teamLogos';
 
 export const revalidate = 7776000;
 
@@ -221,7 +223,18 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
                       R{p.round} P{p.pick}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 hidden sm:table-cell">
-                      {p.team ?? 'N/A'}
+                      <span className="flex items-center gap-1.5">
+                        {p.team && teamLogo(p.team) && (
+                          <Image
+                            src={teamLogo(p.team)!}
+                            alt=""
+                            width={18}
+                            height={18}
+                            className="h-[18px] w-[18px] object-contain"
+                          />
+                        )}
+                        {p.team ?? 'N/A'}
+                      </span>
                     </td>
                     {hasStats && (
                       <>
