@@ -11,7 +11,7 @@ import { buildCompareShare } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
 import CompareCareerTable from '@/components/CompareCareerTable';
 import CompareExploreLinks from '@/components/CompareExploreLinks';
-import { debounce } from 'lodash';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -83,34 +83,10 @@ function isSelectedPlayerDataArray(data: unknown): data is SelectedPlayerData[] 
 
 const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPlayer, onPlayerSelect, onRemovePlayer }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
   const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  const debouncedFetchSuggestions = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        setIsSuggestionsVisible(false);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const { data, error: rpcError } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        if (rpcError) throw rpcError;
-        setSuggestions(data || []);
-        setIsSuggestionsVisible(true);
-      } catch (e: unknown) {
-        console.error(`Error fetching suggestions for Player ${index + 1}:`, e);
-        setSuggestions([]);
-        setIsSuggestionsVisible(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 350),
-    [index]
-  );
+  const { suggestions, isLoading } = usePlayerSuggestions(selectedPlayer ? '' : searchTerm);
 
   useEffect(() => {
     if (selectedPlayer) {
@@ -120,15 +96,6 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
       setSearchTerm('');
     }
   }, [selectedPlayer]);
-
-  useEffect(() => {
-    if (!selectedPlayer && searchTerm) debouncedFetchSuggestions(searchTerm);
-    else if (!searchTerm) {
-      setSuggestions([]);
-      setIsSuggestionsVisible(false);
-    }
-    return () => debouncedFetchSuggestions.cancel();
-  }, [searchTerm, debouncedFetchSuggestions, selectedPlayer]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -149,6 +116,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
+    setIsSuggestionsVisible(newSearchTerm.trim().length >= 2);
     if (selectedPlayer && newSearchTerm !== `${selectedPlayer.firstName || ''} ${selectedPlayer.lastName || ''}`.trim()) {
       onPlayerSelect(null, index);
     }
@@ -187,7 +155,7 @@ const PlayerSearchInput: React.FC<PlayerSearchInputProps> = ({ index, selectedPl
         <ul className={suggestionsListClasses}>
           {suggestions.map((p) => (
             <li key={p.personId} onClick={() => handleSelectSuggestion(p)} className={suggestionItemClasses}>
-              {p.firstName} {p.lastName} ({p.startYear}-{p.endYear})
+              {p.firstName} {p.lastName}{p.startYear && p.endYear ? ` (${p.startYear}-${p.endYear})` : ''}
             </li>
           ))}
         </ul>

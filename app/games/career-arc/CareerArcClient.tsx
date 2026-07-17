@@ -4,7 +4,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { debounce } from 'lodash';
 import { track } from '@vercel/analytics';
 import { Line } from 'react-chartjs-2';
 import {
@@ -23,6 +22,7 @@ import { generateCareerArcDaily, type CareerArcDailyData } from '@/lib/careerArc
 import { markDailyPlayed } from '@/lib/dailyProgress';
 import { buildCareerArcShare, type GuessResult } from '@/lib/shareText';
 import { PlayerSuggestion } from '@/types/stats';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
 import DailyChallengesStrip from '@/app/DailyChallengesStrip';
@@ -78,8 +78,12 @@ export default function CareerArcClient() {
   const [results, setResults] = useState<GuessResult[]>([]);
   const [won, setWon] = useState(false);
   const [term, setTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<{ id: number; name: string }[]>([]);
   const [open, setOpen] = useState(false);
+  const { suggestions: rawSuggestions } = usePlayerSuggestions(term);
+  const suggestions = useMemo(
+    () => rawSuggestions.map((p) => ({ id: p.personId, name: playerName(p) })),
+    [rawSuggestions]
+  );
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,26 +127,6 @@ export default function CareerArcClient() {
       cancelled = true;
     };
   }, [today]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedFetch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        setOpen(false);
-        return;
-      }
-      try {
-        const { data } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        setSuggestions((data || []).map((p: PlayerSuggestion) => ({ id: p.personId, name: playerName(p) })));
-        setOpen(true);
-      } catch {
-        setSuggestions([]);
-        setOpen(false);
-      }
-    }, 300),
-    []
-  );
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -194,7 +178,6 @@ export default function CareerArcClient() {
     setResults(nextResults);
     setWon(hit);
     setTerm('');
-    setSuggestions([]);
     setOpen(false);
     writeRecord(today, { guessNames: nextNames, results: nextResults, won: hit, done: finished });
 
@@ -323,7 +306,7 @@ export default function CareerArcClient() {
                 value={term}
                 onChange={(e) => {
                   setTerm(e.target.value);
-                  debouncedFetch(e.target.value);
+                  setOpen(e.target.value.trim().length >= 2);
                 }}
                 placeholder="Guess a player..."
                 className="w-full p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-slate-900 dark:text-white"

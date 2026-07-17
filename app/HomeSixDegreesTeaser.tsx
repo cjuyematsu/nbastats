@@ -4,9 +4,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { debounce } from 'lodash';
 import { track } from '@vercel/analytics';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -16,7 +15,7 @@ import { getLaDateString, getNextLaMidnightIso, sixDegreesPuzzleNumber } from '@
 import { GuessResult, buildSixDegreesShare, buildSixDegreesShareFromCount } from '@/lib/shareText';
 import ShareResult from '@/components/ShareResult';
 import CountdownTimer from '@/components/CountdownTimer';
-import { PlayerSuggestion } from '@/types/stats';
+import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 
 const COLOR_A = '#00b060';
 const COLOR_B = '#0090b0';
@@ -61,36 +60,17 @@ function PlayerSearch({
   disabled: boolean;
 }) {
   const [term, setTerm] = useState('');
-  const [results, setResults] = useState<Guess[]>([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const debouncedFetch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setResults([]);
-        setOpen(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const { data } = await supabase.rpc('get_player_suggestions', { search_term: query });
-        setResults(
-          (data || []).map((p: PlayerSuggestion) => ({
-            id: p.personId,
-            name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim(),
-          }))
-        );
-        setOpen(true);
-      } catch {
-        setResults([]);
-        setOpen(false);
-      } finally {
-        setLoading(false);
-      }
-    }, 300),
-    []
+  const { suggestions, isLoading: loading } = usePlayerSuggestions(term);
+  const results = useMemo(
+    () =>
+      suggestions.map((p) => ({
+        id: p.personId,
+        name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim(),
+      })),
+    [suggestions]
   );
 
   useEffect(() => {
@@ -103,7 +83,6 @@ function PlayerSearch({
 
   const pick = (g: Guess) => {
     setTerm('');
-    setResults([]);
     setOpen(false);
     onSelect(g);
   };
@@ -117,7 +96,7 @@ function PlayerSearch({
         disabled={disabled}
         onChange={(e) => {
           setTerm(e.target.value);
-          debouncedFetch(e.target.value);
+          setOpen(e.target.value.trim().length >= 2);
         }}
         onFocus={() => term.length >= 2 && results.length > 0 && setOpen(true)}
         className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:opacity-60"

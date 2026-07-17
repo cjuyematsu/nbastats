@@ -40,6 +40,7 @@ type SeasonRow = {
   lastName: string | null;
   G: number | null;
   PTS_total: number | null;
+  SeasonYear: number | null;
 };
 
 interface Agg {
@@ -48,6 +49,8 @@ interface Agg {
   lastName: string;
   games: number;
   points: number;
+  startYear: number | null;
+  endYear: number | null;
 }
 
 async function fetchAll(): Promise<SeasonRow[]> {
@@ -55,7 +58,7 @@ async function fetchAll(): Promise<SeasonRow[]> {
   for (let from = 0; ; from += PAGE_SIZE) {
     const { data, error } = await supabase
       .from('regularseasonstats')
-      .select('personId, firstName, lastName, G, PTS_total')
+      .select('personId, firstName, lastName, G, PTS_total, SeasonYear')
       .range(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`Failed reading regularseasonstats: ${error.message}`);
     if (!data || data.length === 0) break;
@@ -81,11 +84,15 @@ async function main() {
   for (const r of seasonRows) {
     let a = byId.get(r.personId);
     if (!a) {
-      a = { id: r.personId, firstName: '', lastName: '', games: 0, points: 0 };
+      a = { id: r.personId, firstName: '', lastName: '', games: 0, points: 0, startYear: null, endYear: null };
       byId.set(r.personId, a);
     }
     a.games += r.G ?? 0;
     a.points += r.PTS_total ?? 0;
+    if (r.SeasonYear != null) {
+      if (a.startYear === null || r.SeasonYear < a.startYear) a.startYear = r.SeasonYear;
+      if (a.endYear === null || r.SeasonYear > a.endYear) a.endYear = r.SeasonYear;
+    }
     // Keep the first non-empty name we see; season rows are consistent per player.
     if (!a.firstName && r.firstName) a.firstName = r.firstName;
     if (!a.lastName && r.lastName) a.lastName = r.lastName;
@@ -99,7 +106,17 @@ async function main() {
     .map((a) => {
       const name = `${a.firstName} ${a.lastName}`.trim();
       const letter = letterOf(a.lastName, a.firstName);
-      return letter && name ? { id: a.id, name, letter, points: Math.round(a.points), games: a.games } : null;
+      return letter && name
+        ? {
+            id: a.id,
+            name,
+            letter,
+            points: Math.round(a.points),
+            games: a.games,
+            startYear: a.startYear,
+            endYear: a.endYear,
+          }
+        : null;
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
@@ -114,12 +131,15 @@ async function main() {
   for (const r of rows) counts.set(r.letter, (counts.get(r.letter) ?? 0) + 1);
 
   const body = rows
-    .map(
-      (r) =>
-        `  { id: ${r.id}, name: ${JSON.stringify(r.name)}, letter: ${JSON.stringify(
-          r.letter,
-        )}, points: ${r.points}, games: ${r.games} },`,
-    )
+    .map((r) => {
+      const years =
+        r.startYear !== null && r.endYear !== null
+          ? `, startYear: ${r.startYear}, endYear: ${r.endYear}`
+          : '';
+      return `  { id: ${r.id}, name: ${JSON.stringify(r.name)}, letter: ${JSON.stringify(
+        r.letter,
+      )}, points: ${r.points}, games: ${r.games}${years} },`;
+    })
     .join('\n');
 
   const file = `// app/data/playerDirectory.ts
@@ -135,6 +155,8 @@ export interface DirectoryPlayer {
   letter: string;
   points: number;
   games: number;
+  startYear?: number;
+  endYear?: number;
 }
 
 export const PLAYER_DIRECTORY: DirectoryPlayer[] = [
