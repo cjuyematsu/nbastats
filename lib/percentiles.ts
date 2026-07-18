@@ -24,11 +24,24 @@ import {
 } from '@/app/data/statPercentiles';
 import type { CareerStatsData } from '@/types/stats';
 
-// Era gates, mirroring the generator.
-const STL_BLK_FROM = 1974;
-const SHOOTING_FROM = 1971;
-const THREE_FROM = 1980;
-const TOV_FROM = 1978;
+// Era gates. Two kinds of gap drive these, both measured against the raw game
+// logs in data/PlayerStatistics.csv:
+//   1. The stat didn't exist yet: steals/blocks first recorded 1973-74,
+//      turnovers 1977-78, the 3-point line 1979-80.
+//   2. The stat existed but the logs are incomplete. Made shots, free throws,
+//      and points reconcile exactly in every era, but *field-goal attempts* and
+//      *minutes* were logged for a growing fraction of games and don't reach
+//      ~99% coverage until ~1980, so any FG-attempt-based rate (FG%, eFG%, TS%)
+//      is inflated before then. Free-throw attempts ARE complete in every era
+//      (present ~100% back to the 1950s), so FT% needs no gate. Early 3-point
+//      attempts are sparse and noisy until the 1982-83 season.
+// Exported so the same gate that dashes a percentile also dashes the raw value
+// on the player/compare surfaces.
+export const STL_BLK_FROM = 1974;
+export const TOV_FROM = 1978;
+export const FG_FROM = 1980; // field-goal attempts / minutes fully logged
+export const THREE_FROM = 1983; // 3-point percentages stabilize (1982-83 season)
+export const MINUTES_FROM = 1980;
 
 // Ranks this good display as "Nth all-time" instead of a percentile.
 const RANK_CUTOFF = 25;
@@ -162,6 +175,54 @@ const ROUNDING: Record<PercentileKey, number> = {
   pf_total: 1,
 };
 
+// First season each stat is reliable, keyed by percentile key. Keys absent
+// here (ppg/rpg/apg/pfpg/games and the pts/trb/ast/pf totals) are complete in
+// every era. Single source of truth for both the percentile column and the
+// raw-value dashing.
+const STAT_RELIABLE_FROM: Partial<Record<PercentileKey, number>> = {
+  spg: STL_BLK_FROM,
+  bpg: STL_BLK_FROM,
+  stl_total: STL_BLK_FROM,
+  blk_total: STL_BLK_FROM,
+  tovpg: TOV_FROM,
+  tov_total: TOV_FROM,
+  // Field-goal attempt rates: incomplete attempt logs before ~1980.
+  fg_pct: FG_FROM,
+  efg_pct: FG_FROM,
+  ts_pct: FG_FROM, // needs FGA (1980); FTA is complete in every era
+  fgm_total: FG_FROM, // shown as FGM-FGA, so gated by attempt completeness
+  // Free throws (ft_pct, ftm_total) are complete in every era, so they get no
+  // gate here and are treated like points/rebounds/assists.
+  // Three-pointers: line from 1979-80, percentages reliable from 1982-83.
+  fg3_pct: THREE_FROM,
+  fg3m_total: THREE_FROM,
+};
+
+// The first season a stat carries reliable data, or null if it's complete in
+// every era.
+export function statReliableFrom(key: PercentileKey): number | null {
+  return STAT_RELIABLE_FROM[key] ?? null;
+}
+
+// Whether a player's CAREER value for a stat is era-reliable, gated on the
+// career start year (matches how careerPercentiles decides the percentile).
+export function isCareerStatReliable(
+  startYear: number | null | undefined,
+  key: PercentileKey,
+): boolean {
+  const from = STAT_RELIABLE_FROM[key];
+  return from == null || (startYear ?? 0) >= from;
+}
+
+// Whether a single SEASON's value for a stat is era-reliable.
+export function isSeasonStatReliable(
+  seasonYear: number | null | undefined,
+  key: PercentileKey,
+): boolean {
+  const from = STAT_RELIABLE_FROM[key];
+  return from == null || (seasonYear ?? 0) >= from;
+}
+
 // Self-contained display labels ("3rd all-time" for the top 25, "98.72th
 // percentile" otherwise) for a player's career averages AND totals in one
 // scope, or null when the player doesn't qualify at all. Pass the stats object
@@ -202,29 +263,31 @@ export function careerPercentiles(
   put('trb_total', stats.trb_total);
   put('ast_total', stats.ast_total);
 
-  if (startYear >= TOV_FROM) {
+  if (isCareerStatReliable(startYear, 'tovpg')) {
     put('tovpg', stats.tov_per_g);
     put('tov_total', stats.tov_total);
   }
-  if (startYear >= STL_BLK_FROM) {
+  if (isCareerStatReliable(startYear, 'spg')) {
     put('spg', stats.stl_per_g);
     put('bpg', stats.blk_per_g);
     put('stl_total', stats.stl_total);
     put('blk_total', stats.blk_total);
   }
-  if (startYear >= SHOOTING_FROM) {
+  // Free throws are complete in every era (no era gate). Attempt minimums are
+  // percentile-only (enough shots to rank), separate from era reliability.
+  put('ftm_total', stats.ftm_total);
+  if ((stats.fta_total ?? 0) >= cfg.minFta) {
+    put('ft_pct', stats.ft_pct);
+  }
+  if (isCareerStatReliable(startYear, 'fg_pct')) {
     put('fgm_total', stats.fgm_total);
-    put('ftm_total', stats.ftm_total);
     if ((stats.fga_total ?? 0) >= cfg.minFga) {
       put('fg_pct', stats.fg_pct);
       put('efg_pct', stats.efg_pct);
       put('ts_pct', stats.ts_pct);
     }
-    if ((stats.fta_total ?? 0) >= cfg.minFta) {
-      put('ft_pct', stats.ft_pct);
-    }
   }
-  if (startYear >= THREE_FROM) {
+  if (isCareerStatReliable(startYear, 'fg3_pct')) {
     put('fg3m_total', stats.fg3m_total);
     if ((stats.fg3a_total ?? 0) >= cfg.minFg3a) {
       put('fg3_pct', stats.fg3_pct);

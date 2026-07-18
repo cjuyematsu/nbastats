@@ -9,6 +9,7 @@ import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
 import { PlayerSuggestion, CareerStatsData } from '@/types/stats';
 import { getTodaysMatchup } from '@/app/data/featuredMatchups';
 import { findSlugForPair } from '@/app/data/compareMatchups';
+import { isCareerStatReliable, type PercentileKey } from '@/lib/percentiles';
 
 export interface HeroSide {
   name: string;
@@ -19,13 +20,24 @@ export interface HeroSide {
 const COLOR_A = '#00b060';
 const COLOR_B = '#0090b0';
 
-const STAT_ROWS: { key: keyof CareerStatsData; label: string; isPct?: boolean }[] = [
+const STAT_ROWS: { key: keyof CareerStatsData; label: string; isPct?: boolean; eraKey?: PercentileKey }[] = [
   { key: 'pts_per_g', label: 'PPG' },
   { key: 'trb_per_g', label: 'RPG' },
   { key: 'ast_per_g', label: 'APG' },
-  { key: 'fg_pct', label: 'FG%', isPct: true },
-  { key: 'ts_pct', label: 'TS%', isPct: true },
+  { key: 'fg_pct', label: 'FG%', isPct: true, eraKey: 'fg_pct' },
+  { key: 'ts_pct', label: 'TS%', isPct: true, eraKey: 'ts_pct' },
 ];
+
+// null value (empty bar) when a player predates reliable era-wide data for a stat.
+function statValue(stats: CareerStatsData | null, key: keyof CareerStatsData, eraKey?: PercentileKey): number | null {
+  if (!stats) return null;
+  if (eraKey && !isCareerStatReliable(stats.startYear, eraKey)) return null;
+  return toNum(stats[key]);
+}
+
+function isEraGated(stats: CareerStatsData | null, eraKey?: PercentileKey): boolean {
+  return !!(stats && eraKey && !isCareerStatReliable(stats.startYear, eraKey));
+}
 
 function toNum(v: unknown): number | null {
   if (v === null || v === undefined || v === '') return null;
@@ -151,8 +163,10 @@ function StatBars({
   return (
     <div className="mt-5 space-y-3">
       {STAT_ROWS.map((row) => {
-        const va = toNum(statsA?.[row.key]);
-        const vb = toNum(statsB?.[row.key]);
+        const va = statValue(statsA, row.key, row.eraKey);
+        const vb = statValue(statsB, row.key, row.eraKey);
+        const gatedA = isEraGated(statsA, row.eraKey);
+        const gatedB = isEraGated(statsB, row.eraKey);
         const max = Math.max(va ?? 0, vb ?? 0) || 1;
         const aPct = ((va ?? 0) / max) * 100;
         const bPct = ((vb ?? 0) / max) * 100;
@@ -162,7 +176,7 @@ function StatBars({
           <div key={String(row.key)} className="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
             <div className="flex items-center justify-end gap-2">
               <span className={`w-12 shrink-0 text-right text-sm tabular-nums ${aWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                {loadingA ? <StatSkeleton /> : fmt(va, row.isPct)}
+                {loadingA ? <StatSkeleton /> : gatedA ? '-' : fmt(va, row.isPct)}
               </span>
               <div className="h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden flex justify-end">
                 <div
@@ -182,7 +196,7 @@ function StatBars({
                 />
               </div>
               <span className={`w-12 shrink-0 text-left text-sm tabular-nums ${bWins ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                {loadingB ? <StatSkeleton /> : fmt(vb, row.isPct)}
+                {loadingB ? <StatSkeleton /> : gatedB ? '-' : fmt(vb, row.isPct)}
               </span>
             </div>
           </div>

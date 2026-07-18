@@ -203,11 +203,21 @@ Static / hardcoded data:
   which overrides whatever the insert passes — so `displayName()` in
   `app/api/articles/comments/route.ts` is effectively dead. The trigger is INSERT-only, which is
   why the deletion route can still rewrite it to 'Deleted user' on UPDATE.
-- **Pre-1971 box scores are missing minutes and shot attempts** for many games (league TS%
-  computed from the logs reads 84% in 1958; recorded MPG is single-digit league-wide in the
-  50s/60s). Points and games ARE complete for all eras. Gate any MPG/per-36/TS%/FGA-derived
-  stat to 1971+ seasons — precedent: `DETAIL_RELIABLE_FROM` in
-  `scripts/generate-playoff-risers.ts` (plus a 75% coverage rule, null + dash in the UI).
+- **Old box scores are missing shot attempts and minutes** (not made shots). Made FG/FT,
+  points, rebounds, and assists reconcile with Basketball Reference in EVERY era (verified via
+  `PTS == 2*FGM + FTM + 3*FG3M`), but *field-goal attempts* and *minutes* were logged for a
+  growing share of games and don't hit ~99% coverage until **~1980** — so FG-attempt rates
+  (FG%, eFG%, TS%) read slightly high before then (e.g. Wilt 1972-73 shows 74.1% vs BBRef
+  72.7%: FGM matches, FGA is 11 short). Free-throw attempts ARE complete in every era, so FT%
+  needs no gate. The **canonical era gates live in `lib/percentiles.ts`** (exported +
+  documented): steals/blocks 1974, turnovers 1978, **FG-attempt rates + minutes 1980**, 3-point
+  % 1983; FT and all counting/points stats ungated. `isCareerStatReliable(startYear, key)` /
+  `isSeasonStatReliable(seasonYear, key)` gate BOTH the displayed value AND the All-Time
+  percentile (they used to disagree — value showed `0.0`/bogus while the percentile dashed).
+  `scripts/generate-stat-percentiles.ts` mirrors the same gates (rerun `npm run
+  generate:percentiles` after changing them). Coverage was measured off the raw
+  `data/PlayerStatistics.csv` game logs. `scripts/generate-playoff-risers.ts` still has its own
+  `DETAIL_RELIABLE_FROM=1971` + 75% coverage rule for that one article.
 - **Daily challenges are LA-date seeded.** `lib/dailySeed.ts` (deterministic RNG),
   `lib/rankingDaily.ts` and `lib/oddManOutDaily.ts` (client-side generated dailies from
   `regularseasonstats` / `teammates`), `lib/dailyProgress.ts` (cross-game completion +

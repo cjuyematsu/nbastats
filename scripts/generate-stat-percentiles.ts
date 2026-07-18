@@ -39,12 +39,17 @@ const PLAYOFF_QUALIFYING_GAMES = 10;
 const OUTPUT_PATH = resolve(process.cwd(), 'app/data/statPercentiles.ts');
 
 // Era gates (keep in sync with lib/percentiles.ts, which mirrors them for the
-// viewed player).
+// viewed player). See that file for the full rationale: stats either didn't
+// exist yet, or their attempt counts weren't fully logged until later.
 const STL_BLK_FROM = 1974;
-const SHOOTING_FROM = 1971;
-const THREE_FROM = 1980;
 // Turnovers weren't recorded until the 1977-78 season.
 const TOV_FROM = 1978;
+// Field-goal attempts aren't fully logged before ~1980, so FG-attempt rates
+// (FG%, eFG%, TS%) are inflated before then. Free-throw attempts are complete
+// in every era (no gate). Three-point percentages stabilize from the 1982-83
+// season.
+const FG_FROM = 1980;
+const THREE_FROM = 1983;
 
 interface ScopeConfig {
   table: 'regularseasonstats' | 'playoffstats';
@@ -178,16 +183,17 @@ async function buildScope(scope: ScopeConfig): Promise<Record<string, number[]>>
       pools.stl_total.push(a.stl);
       pools.blk_total.push(a.blk);
     }
-    if (a.startYear >= SHOOTING_FROM) {
+    // Free throws are complete in every era, so no era gate.
+    pools.ftm_total.push(a.ftm);
+    if (a.fta >= scope.minFta) {
+      pools.ft_pct.push(r4(a.ftm / a.fta));
+    }
+    if (a.startYear >= FG_FROM) {
       pools.fgm_total.push(a.fgm);
-      pools.ftm_total.push(a.ftm);
       if (a.fga >= scope.minFga) {
         pools.fg_pct.push(r4(a.fgm / a.fga));
         pools.efg_pct.push(r4((a.fgm + 0.5 * a.fg3m) / a.fga));
         pools.ts_pct.push(r4(a.pts / (2 * (a.fga + 0.44 * a.fta))));
-      }
-      if (a.fta >= scope.minFta) {
-        pools.ft_pct.push(r4(a.ftm / a.fta));
       }
     }
     if (a.startYear >= THREE_FROM) {
