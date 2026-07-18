@@ -2,7 +2,13 @@
 
 import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
-import { compactPercentileLabel, type PercentileKey } from '@/lib/percentiles';
+import {
+  compactPercentileLabel,
+  isCareerStatReliable,
+  isSeasonStatReliable,
+  FG_FROM,
+  type PercentileKey,
+} from '@/lib/percentiles';
 import { QUALIFYING_GAMES } from '@/app/data/statPercentiles';
 import { teamLogo } from '@/lib/teamLogos';
 
@@ -98,8 +104,8 @@ export function SeasonBySeasonTable({ seasons }: { seasons: SeasonRow[] }) {
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.PTS_per_g)}</td>
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.TRB_per_g)}</td>
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.AST_per_g)}</td>
-                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatPercentage(s.FG_PCT)}</td>
-                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatPercentage(s.FG3_PCT)}</td>
+                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatReliable(s.SeasonYear, 'fg_pct') ? formatPercentage(s.FG_PCT) : '-'}</td>
+                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatReliable(s.SeasonYear, 'fg3_pct') ? formatPercentage(s.FG3_PCT) : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -177,9 +183,21 @@ export function StatsTable({
     }
     const tableHeaderLabel = statType === "Totals" ? "Total" : "Average";
     const showPercentiles = percentiles != null;
+    // Players whose careers predate complete stat logging get a heads-up so the
+    // dashes below read as intentional, not missing data. FG_FROM (attempt logs
+    // reliable ~1980) is the broadest of the gates, so it catches everyone who
+    // has any dashed shooting row.
+    const earlyEra = (stats.startYear ?? 9999) < FG_FROM;
     return (
         <section className="mb-6">
             <h3 className="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100 border-b border-gray-200 dark:border-slate-600 pb-2 transition-colors duration-200">{title}</h3>
+            {earlyEra && (
+              <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+                Some stats from this player&apos;s era were not tracked or not fully logged
+                league-wide, so those rows show a dash. Points, rebounds, assists, free throws, and
+                games are complete for every era.
+              </p>
+            )}
             <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-slate-600">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
                 <thead className="bg-gray-50 dark:bg-slate-600 transition-colors duration-200">
@@ -195,9 +213,13 @@ export function StatsTable({
                   {statType === "Totals" ? (
                     <>
                       {TOTAL_ROWS.map((row) => {
-                        const value = row.fields
-                          .map((f) => (stats[f] as number | null)?.toLocaleString() ?? 'N/A')
-                          .join(' - ');
+                        const reliable =
+                          !row.percentileKey || isCareerStatReliable(stats.startYear, row.percentileKey);
+                        const value = !reliable
+                          ? '-'
+                          : row.fields
+                              .map((f) => (stats[f] as number | null)?.toLocaleString() ?? 'N/A')
+                              .join(' - ');
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
                           <tr key={row.label}>
@@ -218,6 +240,8 @@ export function StatsTable({
                     <>
                       {AVERAGE_ROWS.map((row) => {
                         const raw = stats[row.field] as number | null;
+                        const reliable =
+                          !row.percentileKey || isCareerStatReliable(stats.startYear, row.percentileKey);
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
                           <tr key={row.label}>
@@ -225,7 +249,7 @@ export function StatsTable({
                               <StatLabel label={row.label} />
                             </td>
                             <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono text-slate-800 dark:text-slate-100 transition-colors duration-200">
-                              {row.kind === 'pct' ? formatPercentage(raw) : formatStat(raw)}
+                              {!reliable ? '-' : row.kind === 'pct' ? formatPercentage(raw) : formatStat(raw)}
                             </td>
                             {showPercentiles && (
                               <td className="px-2 sm:px-4 py-2 text-right text-sm font-mono whitespace-nowrap text-slate-500 dark:text-slate-400 transition-colors duration-200">
@@ -244,7 +268,11 @@ export function StatsTable({
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                 Percentile (or exact rank for top-25 finishes) among players with {poolDescription}.
                 All stats rank by volume, including turnovers and fouls.
-                {' '}Dashes mark stats without reliable era-wide data or enough attempts to qualify.
+                {' '}A dash means the stat was not tracked or not fully logged league-wide in that
+                era, or the player lacks enough attempts to rank. The NBA did not record steals and
+                blocks until 1973-74 or turnovers until 1977-78; field-goal attempts are not fully
+                logged before 1980 (so shooting percentages), and 3-point percentages stabilize from
+                the 1982-83 season. Made shots, free throws, and points are complete for every era.
               </p>
             ) : percentiles === null ? (
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">

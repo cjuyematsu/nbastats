@@ -7,12 +7,11 @@
 import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
 import { teamTimeline } from '@/lib/teamLogos';
-import { compactPercentileLabel, type PercentileKey } from '@/lib/percentiles';
+import { compactPercentileLabel, FG_FROM, type PercentileKey } from '@/lib/percentiles';
 
-// FG%/3P%/TS% depend on shot attempts, which are missing for many pre-1971
-// games (see lib/teamLogos sibling note / DETAIL_RELIABLE_FROM precedent), so
-// the shooting row only shows for players whose career starts in 1971+.
-const DETAIL_RELIABLE_FROM = 1971;
+// FG%/3P%/TS% depend on shot attempts, which aren't fully logged before ~1980,
+// so the shooting row only shows for players whose career starts in FG_FROM+
+// (the shared gate in lib/percentiles).
 
 // Three-across even on a phone, so these tiles get the smaller headline size.
 const SHOOTING_VALUE = 'text-xl sm:text-3xl';
@@ -67,7 +66,7 @@ export default function PlayerHero({
   // Labels arrive self-contained ("3rd all-time" or "98.72th percentile").
   const pctSub = (key: PercentileKey) => compactSub(percentiles?.[key]);
   const showShooting =
-    (player.startYear ?? 0) >= DETAIL_RELIABLE_FROM &&
+    (player.startYear ?? 0) >= FG_FROM &&
     (player.fg_pct != null || player.fg3_pct != null || player.ts_pct != null);
 
   const stints = teamTimeline(seasons);

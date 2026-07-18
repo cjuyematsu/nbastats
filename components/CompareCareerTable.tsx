@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { CareerStatsData, SelectedPlayerForComparison } from '@/types/stats';
-import { COMPARE_TABLE_ROWS, rowLeaderFlags } from '@/lib/compareCareer';
+import { COMPARE_TABLE_ROWS, compareRowText, compareRowValue, rowLeaderFlags } from '@/lib/compareCareer';
 
 interface CompareCareerTableProps {
   players: { player: SelectedPlayerForComparison; color: string }[];
@@ -105,14 +105,14 @@ export default function CompareCareerTable({ players, seasonType, initialStats }
           </thead>
           <tbody className={tbodyClasses}>
             {COMPARE_TABLE_ROWS.map((row) => {
-              const values = columns.map((c) => (c.stats ? row.get(c.stats) : null));
+              const values = columns.map((c) => compareRowValue(row, c.stats));
               const leaders = rowLeaderFlags(values);
               return (
                 <tr key={row.key}>
                   <td className={labelCellClasses}>{row.label}</td>
-                  {values.map((v, i) => (
-                    <td key={`${row.key}-${columns[i].name}`} className={leaders[i] ? leaderCellClasses : valueCellClasses}>
-                      {v != null ? row.format(v) : 'N/A'}
+                  {columns.map((c, i) => (
+                    <td key={`${row.key}-${c.name}`} className={leaders[i] ? leaderCellClasses : valueCellClasses}>
+                      {compareRowText(row, c.stats)}
                     </td>
                   ))}
                 </tr>

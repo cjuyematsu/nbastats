@@ -12,6 +12,7 @@ import ShareResult from '@/components/ShareResult';
 import CompareCareerTable from '@/components/CompareCareerTable';
 import CompareExploreLinks from '@/components/CompareExploreLinks';
 import { usePlayerSuggestions } from '@/lib/usePlayerSuggestions';
+import { STL_BLK_FROM, FG_FROM, THREE_FROM, MINUTES_FROM } from '@/lib/percentiles';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -177,6 +178,19 @@ const QUICK_STATS: { value: string; label: string }[] = [
   { value: 'TS_PCT', label: 'TS%' },
 ];
 
+// First season each selectable stat carries reliable data. Seasons before the
+// cutoff are plotted as gaps (not zeros) because the NBA wasn't tracking the
+// stat yet. Stats absent here (points/assists/rebounds, totals) are complete.
+const CHART_STAT_RELIABLE_FROM: Record<string, number> = {
+  STL_per_g: STL_BLK_FROM,
+  BLK_per_g: STL_BLK_FROM,
+  FG_PCT: FG_FROM,
+  eFG_PCT: FG_FROM,
+  TS_PCT: FG_FROM,
+  FG3_PCT: THREE_FROM,
+  MP_per_g: MINUTES_FROM,
+};
+
 const availableStats = [
     { value: 'PTS_per_g', label: 'Points Per Game (PPG)' },
     { value: 'AST_per_g', label: 'Assists Per Game (APG)' },
@@ -322,8 +336,13 @@ export default function PlayerComparisonChart({ initialPlayerNames, initialPlaye
           const playerMinX = xOf(validSeasons[0])!;
           const playerMaxX = xOf(validSeasons[validSeasons.length - 1])!;
 
+          const reliableFrom = CHART_STAT_RELIABLE_FROM[selectedStat] ?? null;
           const seasonDataMap = new Map(validSeasons.map(s => [xOf(s)!, {
-            stat: s[selectedStat] === null ? null : Number(s[selectedStat]),
+            stat:
+              s[selectedStat] === null ||
+              (reliableFrom != null && s.SeasonYear != null && s.SeasonYear < reliableFrom)
+                ? null
+                : Number(s[selectedStat]),
             team: s.playerteamName,
             season: s.SeasonYear,
             age: s.PlayerAge,
@@ -634,6 +653,12 @@ export default function PlayerComparisonChart({ initialPlayerNames, initialPlaye
             </div>
         )}
       </div>
+      {CHART_STAT_RELIABLE_FROM[selectedStat] != null && (
+        <p className="mt-2 text-xs text-center text-slate-500 dark:text-slate-400">
+          Seasons before {CHART_STAT_RELIABLE_FROM[selectedStat]} are omitted for this stat, which
+          the NBA did not track league-wide until then.
+        </p>
+      )}
       {showTable && <CompareCareerTable players={activePlayersWithColors} seasonType={seasonType} initialStats={initialStats} />}
       {showExplore && <CompareExploreLinks names={activeNames} />}
       {showShare && activeNames.length >= 2 && (
