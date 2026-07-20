@@ -76,14 +76,22 @@ server-side (via the service-role client), so it can't be spoofed from the brows
 
 ## Generating an article
 
-POST to the cron route with the cron secret:
+The pipeline is a locally run script (Vercel Hobby allows one cron, already used by
+weekly-rankings):
 
 ```bash
-curl -X POST http://localhost:3000/api/cron/generate-article \
-  -H "Authorization: Bearer $CRON_SECRET"
+npm run generate:article -- --dry            # print the article, no DB write
+npm run generate:article                     # insert one status='draft' row
+npm run generate:article -- --topic "..."    # override the researched storyline
 ```
 
-On Vercel, `vercel.json` schedules this automatically. Each run inserts one `draft` row.
+Each run: (1) researches current storylines with the Claude API web_search server tool,
+(2) grounds every statistic through six typed read-only Supabase tools (era gates from
+`lib/percentiles.ts` applied inside the executors), (3) drafts a 600-900 word markdown
+article, (4) runs a critique/fact-check pass against the full tool log, (5) validates
+house style (no emojis, no em/en dashes, grounded links, no "legend" labels on active
+players; pure logic in `lib/articleGeneration.ts`, covered by `npm test`), then inserts
+one `draft` row with `sources` and `generation_meta` populated. Model: claude-opus-4-8.
 
 ## Reviewing
 
