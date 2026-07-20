@@ -387,7 +387,7 @@ const BLURBS: Record<number, ReactNode> = {
   1: (
     <p>
       The standard. Jordan and Pippen went six for six in the Finals, never needed a Game 7 to
-      close one out, and won 73.4% of every game they played together in Chicago. Pippen was the
+      close one out, and won 73.5% of every game they played together in Chicago. Pippen was the
       perfect complement: an all-time defender and secondary creator who let Jordan be the most
       ruthless scorer the league has seen. No duo combines peak, longevity, and hardware quite 
       like Jordan and Pippen.
@@ -397,15 +397,16 @@ const BLURBS: Record<number, ReactNode> = {
     <p>
       Showtime, distilled to two names. Magic arrived in 1979 to pair maybe the greatest point guard
       ever with likely the greatest center in NBA history. The Lakers dominated the 80s, reaching the 
-      finals eight times and winning five titles. Their 73.2% win rate is the best of any duo who
-      played together for over a decade.
+      finals eight times and winning five titles. They won 73.2% of their 842 games together,
+      third-best among duos who shared 800 or more games.
     </p>
   ),
   3: (
     <p>
       At its peak, debatably the most dominant duo ever. From 2000 to 2002 the Lakers three-peated 
-      behind a prime Shaq and a rising Kobe, and their 49.1 combined points per game ties Jordan and
-      Pippen. Had a feud not ended their partnership early, they may be even higher on this list.
+      behind a prime Shaq and a rising Kobe, and their 49.0 combined points per game sits just
+      behind Jordan and Pippen. Had a feud not ended their partnership early, they may be even
+      higher on this list.
     </p>
   ),
   4: (
@@ -427,7 +428,7 @@ const BLURBS: Record<number, ReactNode> = {
   ),
   6: (
     <p>
-      No two players have shared a floor more often. Stockton and Malone played 1,590 games
+      No two players have shared a floor more often. Stockton and Malone played 1,584 games
       together over 18 seasons in Utah, more than 300 more than any other duo, and ran the
       league&apos;s most reliable pick-and-roll for the better part of two decades. The
       all-time assists leader feeding a top-three all-time scorer, blocked from a ring only by
@@ -438,8 +439,8 @@ const BLURBS: Record<number, ReactNode> = {
     <p>
       The engine of the longest sustained excellence in league history. Duncan and Parker won
       four titles across 15 seasons and more playoff games together than any pair ever. Add{' '}
-      <A href={duoHref('Tim Duncan', 'Manu Ginobili')}>Manu Ginobili</A>, who won 71.1% of his
-      1,102 games with Duncan, and three of the six most-played duos ever wore the same uniform.
+      <A href={duoHref('Tim Duncan', 'Manu Ginobili')}>Manu Ginobili</A>, who won 71.7% of his
+      1,055 games with Duncan, and three of the six most-played duos ever wore the same uniform.
     </p>
   ),
   8: (
@@ -461,15 +462,17 @@ const BLURBS: Record<number, ReactNode> = {
   ),
   10: (
     <p>
-      Four seasons, one title, and the best win percentage of any duo in our top 15. A young
+      Four seasons, one title, and a 73.8% win rate that trails only Durant and Curry among our
+      top 15. A young
       Kareem and a veteran Oscar won 66 games and the 1971 championship in their first year
       together in Milwaukee. Brief, but staggeringly effective.
     </p>
   ),
   11: (
     <p>
-      The highest-scoring duo ever. When both took the floor, West and Baylor combined for
-      53.1 points per game, the best mark of any teammates. They reached seven Finals together,
+      The highest-scoring duo of any real duration. When both took the floor, West and Baylor
+      combined for 54.5 points per game, the best mark of any pair with 300 games together.
+      They reached seven Finals together,
       unfortunately losing them all (most to Russell&apos;s Celtics). Baylor then
       retired nine games into the 1971-72 season where the Lakers went on to win the title 
       without him.
@@ -494,7 +497,7 @@ const BLURBS: Record<number, ReactNode> = {
   14: (
     <p>
       The shortest run on this list and the most dominant. For three seasons the Warriors put
-      two MVPs in the same lineup, won 78.4% of their games together, went back-to-back, and
+      two MVPs in the same lineup, won 78.1% of their games together, went back-to-back, and
       combined for 52.0 points a night. The brevity, and the ready-made roster around them,
       is why the pairing ranks below other duos.
     </p>
@@ -503,7 +506,7 @@ const BLURBS: Record<number, ReactNode> = {
     <p>
       The best two-man game of the current era. <A href="/player/203999">Jokic</A> and Murray
       have run the same two-man actions for a decade in Denver, winning the 2023 title, and
-      their 656 games together already rank among the most of any active pairing. The partnership
+      their 651 games together already rank among the most of any active pairing. The partnership
       is still adding to its trophy case.
     </p>
   ),
@@ -593,10 +596,10 @@ export default function GreatestDuosArticle() {
       <section>
         <SectionHeading>Duo records: the numbers behind the debate</SectionHeading>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatTile label="Most games together" value="1,590" sub="Stockton & Malone, Jazz" />
+          <StatTile label="Most games together" value="1,584" sub="Stockton & Malone, Jazz" />
           <StatTile label="Most titles together" value="10" sub="Russell & Sam Jones, Celtics" />
-          <StatTile label="Highest combined PPG" value="53.1" sub="West & Baylor, Lakers" />
-          <StatTile label="Best win % (300+ games)" value="81.0%" sub="Ron Harper & Jordan, Bulls" />
+          <StatTile label="Highest combined PPG" value="54.5" sub="West & Baylor, Lakers" />
+          <StatTile label="Best win % (300+ games)" value="80.9%" sub="Ron Harper & Jordan, Bulls" />
         </div>
 
         <div className="mt-8">
@@ -617,7 +620,7 @@ export default function GreatestDuosArticle() {
           <Prose>
             <p className="mt-3 text-sm">
               San Antonio owns three of the top five spots. The best win rate among 300-game
-              duos belongs to Michael Jordan and role player Ron Harper, who went 255-60
+              duos belongs to Michael Jordan and role player Ron Harper, who went 254-60
               (81%) on the back half of the Bulls dynasty, with four of Shaun Livingston&apos;s
               Warriors pairings stacked right behind them, a measure of how much a dynasty&apos;s
               depth wins.
@@ -643,7 +646,7 @@ export default function GreatestDuosArticle() {
           <Prose>
             <p className="mt-3 text-sm">
               Sixty years on, nobody has out-scored West and Baylor. Durant and Curry averaged
-              52.0 together but fall short of the 300-game minimum at 213. Half this list is
+              52.0 together but fall short of the 300-game minimum at 210. Half this list is
               pairings the modern debate overlooks, like Wilt Chamberlain and Guy Rodgers.
             </p>
           </Prose>
@@ -659,7 +662,7 @@ export default function GreatestDuosArticle() {
             <A href="/player/1626157">Karl-Anthony Towns</A> have a championship and an NBA Cup
             in two seasons together in New York. The duo they beat may have the higher
             ceiling: <A href="/player/1641705">Victor Wembanyama</A> and rookie Dylan Harper
-            went 56-21 and reached the Finals in their first season as teammates, at 22 and 20
+            went 56-22 and reached the Finals in their first season as teammates, at 22 and 20
             years old. The 2025 champions, Shai Gilgeous-Alexander and Jalen Williams, have
             won two thirds of their games in Oklahoma City. At least one of these pairs should
             eventually force its way onto this list.
@@ -702,9 +705,9 @@ export default function GreatestDuosArticle() {
         <Prose>
           <p>
             <A href={duoHref('Tim Duncan', 'Manu Ginobili')}>Tim Duncan &amp; Manu Ginobili</A>{' '}
-            (1,102 games, four titles),{' '}
+            (1,055 games, four titles),{' '}
             <A href={duoHref('Stephen Curry', 'Draymond Green')}>Stephen Curry &amp; Draymond Green</A>{' '}
-            (1,009 games and counting),{' '}
+            (952 games and counting),{' '}
             <A href={duoHref('Isiah Thomas', 'Joe Dumars')}>Isiah Thomas &amp; Joe Dumars</A>{' '}
             (back-to-back titles for the Bad Boys),{' '}
             <A href={duoHref('Bill Russell', 'Bob Cousy')}>Bill Russell &amp; Bob Cousy</A>{' '}
@@ -712,13 +715,13 @@ export default function GreatestDuosArticle() {
             <A href={duoHref('Giannis Antetokounmpo', 'Khris Middleton')}>
               Giannis Antetokounmpo &amp; Khris Middleton
             </A>{' '}
-            (765 games and the 2021 title),{' '}
+            (738 games and the 2021 title),{' '}
             <A href={duoHref('LeBron James', 'Kyrie Irving')}>LeBron James &amp; Kyrie Irving</A>{' '}
             (the 2016 comeback),{' '}
             <A href={duoHref('LeBron James', 'Anthony Davis')}>LeBron James &amp; Anthony Davis</A>{' '}
             (50.0 combined PPG and the 2020 bubble ring), and{' '}
             <A href={duoHref('Jaylen Brown', 'Jayson Tatum')}>Jaylen Brown &amp; Jayson Tatum</A>{' '}
-            (646 games together and the 2024 title).
+            (620 games together and the 2024 title).
           </p>
           <p>
             If your order differs, the tools are here. Every pairing in NBA history is
@@ -736,15 +739,16 @@ export default function GreatestDuosArticle() {
         <Prose>
           <p>
             Every stat in this article comes from our teammates database, which is built from
-            the box score of every regular season and playoff game since 1946, covering about
-            150,000 teammate pairings, current through the 2026 Finals. The ground rules:
+            the box score of every game since 1946, covering roughly 143,000 teammate pairings,
+            current through the 2026 Finals. The ground rules:
           </p>
           <ul>
             <li>
-              <strong>Games together</strong> means both players appeared in the same
-              team&apos;s box score for the same regular season or playoff game. Preseason,
-              All-Star, and Play-In games are excluded, matching how the NBA keeps official
-              statistics, so a duo&apos;s number here matches its{' '}
+              <strong>Games together</strong> means both players actually played in the same
+              game for the same team. A star who was listed but sat out with an injury does not
+              count, so these are shared games on the floor, not shared roster spots. Regular
+              season, playoff, Play-In, and NBA Cup final games count; preseason and All-Star
+              games do not. A duo&apos;s number here matches its{' '}
               <A href="/duos">duo tracker</A> page exactly.
             </li>
             <li>
@@ -753,8 +757,7 @@ export default function GreatestDuosArticle() {
             </li>
             <li>
               <strong>Combined points, assists, and rebounds</strong> add both players&apos;
-              per-game output, counted only in games where both actually logged minutes, so an
-              injured star listed on the bench does not water the averages down.
+              per-game output across those same games.
             </li>
             <li>
               <strong>Titles together</strong> are championships won in seasons the two
