@@ -2,7 +2,7 @@
 
 'use client';
 
-import { salaryData } from '@/app/data/salaryData';
+import { salaryCapData } from '@/app/data/salaryCapData';
 import { viewershipData } from '@/app/data/viewershipData';
 import { Line } from 'react-chartjs-2';
 import { useState, useEffect } from 'react';
@@ -81,29 +81,15 @@ const useChartTheme = () => {
 export default function GrowthPage() {
     const chartTheme = useChartTheme();
 
-    const salaryChartData = {
-        labels: salaryData.map(d => d.season),
+    const capChartData = {
+        labels: salaryCapData.map(d => d.season),
         datasets: [
             {
-                label: 'Average Salary',
-                data: salaryData.map(d => d.average_salary),
+                label: 'Salary Cap',
+                data: salaryCapData.map(d => d.cap),
                 borderColor: 'rgb(59, 130, 246)',
                 backgroundColor: 'rgba(59, 130, 246, 0.5)',
                 yAxisID: 'y_salary',
-                tension: 0.3,
-            },
-        ]
-    };
-
-    const totalSalaryChartData = {
-        labels: salaryData.map(d => d.season),
-        datasets: [
-            {
-                label: 'Total Salary',
-                data: salaryData.map(d => d.total_salary),
-                borderColor: 'rgb(34, 197, 94)',
-                backgroundColor: 'rgba(34, 197, 94, 0.5)',
-                yAxisID: 'y_total_salary',
                 tension: 0.3,
             },
         ]
@@ -144,11 +130,11 @@ export default function GrowthPage() {
         }
     };
 
-    const salaryChartOptions: ChartOptions<'line'> = {
+    const capChartOptions: ChartOptions<'line'> = {
         ...baseChartOptions,
         plugins: {
             ...baseChartOptions.plugins,
-            title: { display: true, text: 'NBA Average Player Salary Growth', color: chartTheme.textColor, font: {size: 16} },
+            title: { display: true, text: 'NBA Salary Cap Growth', color: chartTheme.textColor, font: {size: 16} },
             tooltip: {
                 ...baseChartOptions.plugins?.tooltip,
                 callbacks: {
@@ -167,46 +153,11 @@ export default function GrowthPage() {
             ...baseChartOptions.scales,
             y_salary: {
                 type: 'linear' as const, display: true, position: 'left' as const,
-                title: { display: true, text: 'Average Salary (USD)', color: chartTheme.textColor },
+                title: { display: true, text: 'Salary Cap (USD)', color: chartTheme.textColor },
                 ticks: {
                     color: chartTheme.textColor,
                     callback: function(value) {
                         if (typeof value === 'number') { return '$' + (value / 1000000).toFixed(1) + 'M'; }
-                        return value;
-                    }
-                },
-            }
-        }
-    };
-
-     const totalSalaryChartOptions: ChartOptions<'line'> = {
-        ...baseChartOptions,
-        plugins: {
-            ...baseChartOptions.plugins,
-            title: { display: true, text: 'NBA Total Player Salaries', color: chartTheme.textColor, font: {size: 16} },
-            tooltip: {
-                ...baseChartOptions.plugins?.tooltip,
-                callbacks: {
-                    label: function(context: TooltipItem<'line'>) {
-                        let label = context.dataset.label || '';
-                        if (label) { label += ': '; }
-                        if (context.parsed.y !== null) {
-                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(context.parsed.y);
-                        }
-                        return label;
-                    }
-                }
-            }
-        },
-        scales: {
-            ...baseChartOptions.scales,
-            y_total_salary: {
-                type: 'linear' as const, display: true, position: 'left' as const,
-                title: { display: true, text: 'Total Salary (USD)', color: chartTheme.textColor },
-                 ticks: {
-                    color: chartTheme.textColor,
-                    callback: function(value) {
-                        if (typeof value === 'number') { return '$' + (value / 1000000000).toFixed(1) + 'B'; }
                         return value;
                     }
                 },
@@ -235,21 +186,28 @@ export default function GrowthPage() {
         <div className="space-y-16">
 
                 <section className="mb-16">
-                    <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">Player Salaries Over Time</h2>
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">The Salary Cap Over Time</h2>
                     <div className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-slate-400">
                         <p>
-                            A primary indicator of a sports league&apos;s financial health is its ability to pay its players. The following historical data illustrates the dramatic increase in both the average NBA player salary and the total combined salaries paid out each season since 1990. These financial trends highlight the league&apos;s robust economic expansion.
+                            A primary indicator of a sports league&apos;s financial health is what its teams are allowed to spend on players. The modern salary cap arrived in the 1984-85 season at $3.6 million per team. It has climbed in nearly every season since, reaching $154.6 million in 2025-26, a roughly 43-fold increase driven by ever larger national media deals. The cap tracks league revenue by design, which makes it the cleanest single line to chart the NBA&apos;s economic expansion.
                         </p>
                     </div>
                     <div className="mt-6 bg-gray-50 dark:bg-slate-900 p-4 rounded-lg shadow-md border border-gray-200 dark:border-gray-700/50">
-                        <div className="grid grid-cols-1 gap-8">
-                            <div className="relative h-96">
-                                <Line options={salaryChartOptions} data={salaryChartData} />
-                            </div>
-                            <div className="relative h-96">
-                                <Line options={totalSalaryChartOptions} data={totalSalaryChartData} />
-                            </div>
+                        <div className="relative h-96">
+                            <Line options={capChartOptions} data={capChartData} />
                         </div>
+                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            Cap figures from{' '}
+                            <a
+                                href="https://en.wikipedia.org/wiki/NBA_salary_cap"
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="text-sky-600 dark:text-sky-400 hover:underline"
+                            >
+                                Wikipedia&apos;s NBA salary cap article
+                            </a>
+                            .
+                        </p>
                     </div>
                 </section>
 
@@ -270,7 +228,7 @@ export default function GrowthPage() {
                     <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">Conclusion: A Story of Sustained Growth</h2>
                     <div className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-slate-400">
                         <p>
-                            The historical data on player salaries and finals viewership paints a clear picture: the NBA has experienced remarkable and sustained growth over the past 30+ years. The explosion in player salaries reflects the league&apos;s success in securing lucrative media rights deals and expanding its global brand. While viewership numbers fluctuate based on superstar players and compelling matchups, the league remains a dominant presence in the cultural landscape. This analysis provides a valuable snapshot of the evolution of the NBA into the global powerhouse it is today.
+                            The historical data on the salary cap and Finals viewership paints a clear picture: the NBA has experienced remarkable and sustained growth over the past 40 years. The explosion in the cap reflects the league&apos;s success in securing lucrative media rights deals and expanding its global brand. While viewership numbers fluctuate based on superstar players and compelling matchups, the league remains a dominant presence in the cultural landscape. This analysis provides a valuable snapshot of the evolution of the NBA into the global powerhouse it is today.
                         </p>
                     </div>
                 </section>

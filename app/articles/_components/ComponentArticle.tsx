@@ -19,10 +19,6 @@ function Loading() {
 
 // Keyed by articles.component_key. Keep in sync with the seed rows in docs/articles.md.
 const COMPONENTS: Record<string, ComponentType> = {
-  'salary-vs-points': dynamic(
-    () => import('@/app/analysis/salary-vs-points/SalaryAnalysisClient'),
-    { ssr: false, loading: Loading },
-  ),
   'growth-of-nba': dynamic(() => import('@/app/analysis/growth-of-nba/GrowthPageClient'), {
     ssr: false,
     loading: Loading,
