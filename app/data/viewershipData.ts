@@ -1,3 +1,5 @@
+// NBA Finals average viewers (millions) by year and broadcast network.
+// Source: Wikipedia, "NBA Finals television ratings".
 export const viewershipData = [
     { year: 2026, network: 'ABC', viewers: 22.64},
     { year: 2025, network: 'ABC', viewers: 11.67},

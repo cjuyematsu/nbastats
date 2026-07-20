@@ -83,6 +83,22 @@ export default function Footer() {
             HoopsData
           </Link>{' '}
           &middot; NBA player comparison, stats, rankings, and trivia. Not affiliated with the NBA.
+          <p className="mt-2">
+            Statistics derived from NBA.com box scores via the{' '}
+            <a
+              href="https://www.kaggle.com/datasets/eoinamoore/historical-nba-data-and-player-box-scores"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-sky-600 dark:hover:text-sky-400 hover:underline"
+            >
+              NBA Dataset: Box Scores and Stats
+            </a>{' '}
+            by Eoin A Moore, released under CC0 1.0. See our{' '}
+            <Link href="/terms" className="hover:text-sky-600 dark:hover:text-sky-400 hover:underline">
+              data notes
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </footer>

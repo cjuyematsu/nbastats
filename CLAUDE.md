@@ -163,10 +163,22 @@ Static / hardcoded data:
 - `public/` — team logo PNGs and the Six Degrees graph JSON (`adjacency_list.json`,
   `player_map.json`).
 - `app/data/` — historical datasets used by the analysis pages
-  (`salaryData.ts`, `draftData.ts`, `viewershipData.ts`). `draftData.ts` is **generated**, not
+  (`salaryCapData.ts`, `draftData.ts`, `viewershipData.ts`). `draftData.ts` is **generated**, not
   hand-edited: run `npm run generate:draft-data` (script `scripts/generate-draft-data.ts`) to
   recompute the top-5 career scorers per draft pick from `regularseasonstats` via the
   `calculate_player_career_stats` RPC — rerun it after a new season lands in the DB.
+- **Data provenance is attributed everywhere** (footer, /terms, per-article Sources sections
+  rendered from `articles.sources` jsonb, data-file headers): box scores = Eoin A Moore's
+  Kaggle dataset (CC0), spot-checked by hand against Basketball Reference; salary cap +
+  viewership + draft-pick history = Wikipedia (`salaryCapData.ts`; the HoopsHype-derived
+  average/total salary series was removed 2026-07-19 over terms-of-use concerns). Never
+  scrape a source site; transcribe from a permissively-licensed one and cite the page you
+  actually read. Keep new datasets cited in a header comment. Per-article Sources parse
+  via `lib/articleSources.ts`.
+- **Weekly articles are drafted in Claude Code** (grounded in DB queries, inserted as a
+  `status='draft'` row, reviewed at /articles/review). An API-key-based pipeline
+  (`npm run generate:article`) exists on the `article-pipeline` branch but is parked
+  because API calls bill per token instead of the Claude plan.
 
 ## Conventions
 

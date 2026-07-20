@@ -740,15 +740,25 @@ export default function GreatestDuosArticle() {
           <p>
             Every stat in this article comes from our teammates database, which is built from
             the box score of every game since 1946, covering roughly 143,000 teammate pairings,
-            current through the 2026 Finals. The ground rules:
+            current through the 2026 Finals. The underlying game logs come from the{' '}
+            <a
+              href="https://www.kaggle.com/datasets/eoinamoore/historical-nba-data-and-player-box-scores"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-sky-600 dark:text-sky-400 hover:underline"
+            >
+              NBA Dataset: Box Scores and Stats (1947 - Today)
+            </a>{' '}
+            compiled by Eoin A Moore on Kaggle, released under CC0 1.0, and cross-checked
+            against Basketball Reference. The ground rules:
           </p>
           <ul>
             <li>
               <strong>Games together</strong> means both players actually played in the same
               game for the same team. A star who was listed but sat out with an injury does not
               count, so these are shared games on the floor, not shared roster spots. Regular
-              season, playoff, Play-In, and NBA Cup final games count; preseason and All-Star
-              games do not. A duo&apos;s number here matches its{' '}
+              season and playoff games count; preseason, All-Star, Play-In, and NBA Cup final
+              games do not, matching official NBA stats. A duo&apos;s number here matches its{' '}
               <A href="/duos">duo tracker</A> page exactly.
             </li>
             <li>

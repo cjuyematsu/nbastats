@@ -872,7 +872,17 @@ export default function PlayoffRisersArticle() {
           <p>
             Every number in this article comes from our own stats database, covering every
             regular season and playoff box score since the league&apos;s first season in
-            1946-47, current through the 2026 Finals. The ground rules:
+            1946-47, current through the 2026 Finals. The underlying game logs come from the{' '}
+            <a
+              href="https://www.kaggle.com/datasets/eoinamoore/historical-nba-data-and-player-box-scores"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-sky-600 dark:text-sky-400 hover:underline"
+            >
+              NBA Dataset: Box Scores and Stats (1947 - Today)
+            </a>{' '}
+            compiled by Eoin A Moore on Kaggle, released under CC0 1.0, and cross-checked
+            against Basketball Reference. The ground rules:
           </p>
           <ul>
             <li>

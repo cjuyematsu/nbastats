@@ -60,9 +60,36 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Data and content</h2>
             <p>
-              NBA statistics and related historical data on the Site are factual information compiled from public
-              records. The Site&apos;s design, text, and original features are owned by Hoops Data. You may share links
-              to the Site and use our embeddable widgets with the provided attribution, but you may not republish the
+              NBA statistics on the Site are derived from official NBA.com box scores, as compiled and published by
+              Eoin A Moore in the{' '}
+              <a
+                href="https://www.kaggle.com/datasets/eoinamoore/historical-nba-data-and-player-box-scores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 dark:text-sky-400 hover:underline"
+              >
+                NBA Dataset: Box Scores and Stats (1947 - Today)
+              </a>{' '}
+              on Kaggle, which is released under{' '}
+              <a
+                href="https://creativecommons.org/publicdomain/zero/1.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 dark:text-sky-400 hover:underline"
+              >
+                CC0 1.0 Public Domain
+              </a>
+              . We are grateful to both for making this data available.
+            </p>
+            <p className="mt-3">
+              Historical box scores are not uniformly complete. Minutes played and field goal attempts were only
+              recorded for a growing share of games until around 1980, and steals, blocks, turnovers, and three
+              pointers were not tracked league wide until the 1970s and 1980s. Where a statistic cannot be supported by
+              the underlying records, the Site hides it rather than showing a number we cannot stand behind.
+            </p>
+            <p className="mt-3">
+              The Site&apos;s design, text, and original features are owned by Hoops Data. You may share links to the
+              Site and use our embeddable widgets with the provided attribution, but you may not republish the
               Site&apos;s original content as your own.
             </p>
           </section>
