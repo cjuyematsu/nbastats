@@ -437,9 +437,12 @@ async function main() {
   if (DUMP_PATH) {
     const top = [...pairs.entries()]
       .sort((a, b) => b[1].g - a[1].g)
-      .slice(0, 2000)
+      .slice(0, 40000)
       .map(([key, p]) => {
         const [a, b] = key.split('_').map(Number);
+        // Reuse combinedStats so the dump rounds identically to what --apply writes;
+        // a separate toFixed(1) here disagreed at exact .x5 boundaries.
+        const cs = combinedStats(p);
         return {
           aId: a,
           bId: b,
@@ -450,7 +453,9 @@ async function main() {
           losses: p.g - p.w,
           winPct: +((p.w / p.g) * 100).toFixed(1),
           bothPlayedGames: p.pg,
-          combinedPpg: p.pg > 0 ? +(p.cpts / p.pg).toFixed(1) : null,
+          combinedPpg: cs.ppg,
+          combinedApg: cs.apg,
+          combinedRpg: cs.rpg,
           teams: [...p.teams].sort(),
           firstSeasonEnd: p.minY,
           lastSeasonEnd: p.maxY,
