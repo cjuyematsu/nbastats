@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabaseAdmin
     .from('articles')
-    .select('id, slug, title, dek, summary, body_markdown, kind, component_key, status, created_at, generation_meta')
+    .select('id, slug, title, dek, summary, body_markdown, kind, component_key, status, created_at, generation_meta, sources')
     .in('status', ['draft', 'rejected'])
     .order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

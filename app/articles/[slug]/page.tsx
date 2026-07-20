@@ -15,7 +15,7 @@ import ArticleDetailClient, { type Article } from './ArticleDetailClient';
 const getArticle = cache(async (slug: string): Promise<Article | null> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, slug, title, dek, summary, body_markdown, author, kind, component_key, published_at, updated_at')
+    .select('id, slug, title, dek, summary, body_markdown, author, kind, component_key, published_at, updated_at, sources')
     .eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle();

@@ -7,6 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/app/contexts/AuthContext';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
+import ArticleSources from '@/app/articles/_components/ArticleSources';
+import { parseSources } from '@/lib/articleSources';
 
 interface DraftArticle {
   id: string;
@@ -20,6 +22,7 @@ interface DraftArticle {
   status: string;
   created_at: string;
   generation_meta: unknown;
+  sources: unknown;
 }
 
 interface PublishedArticle {
@@ -199,6 +202,7 @@ export default function ReviewClient() {
                       <ComponentArticle componentKey={d.component_key} />
                     </div>
                   )}
+                  <ArticleSources sources={parseSources(d.sources)} className="mt-6" />
                 </details>
 
                 <div className="mt-4 flex gap-3">

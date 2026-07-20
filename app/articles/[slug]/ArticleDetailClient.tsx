@@ -7,6 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 import ArticleEngagement from '@/app/articles/_components/ArticleEngagement';
+import ArticleSources from '@/app/articles/_components/ArticleSources';
+import { parseSources } from '@/lib/articleSources';
 import AdSlot from '@/components/AdSlot';
 import ExploreNext from '@/components/ExploreNext';
 import { formatDate, relativeTime } from '@/lib/articleDates';
@@ -24,6 +26,7 @@ export interface Article {
   component_key: string | null;
   published_at: string | null;
   updated_at: string;
+  sources: unknown;
 }
 
 export default function ArticleDetailClient({
@@ -82,6 +85,8 @@ export default function ArticleDetailClient({
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.body_markdown}</ReactMarkdown>
           </div>
         )}
+
+        <ArticleSources sources={parseSources(article.sources)} className="mt-10" />
 
         <ExploreNext
           heading="Keep exploring"
