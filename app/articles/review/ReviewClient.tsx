@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/app/contexts/AuthContext';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 import ArticleSources from '@/app/articles/_components/ArticleSources';
+import ArticleMethodology from '@/app/articles/_components/ArticleMethodology';
 import { parseSources } from '@/lib/articleSources';
 
 interface DraftArticle {
@@ -203,6 +204,7 @@ export default function ReviewClient() {
                     </div>
                   )}
                   <ArticleSources sources={parseSources(d.sources)} className="mt-6" />
+                  <ArticleMethodology componentKey={d.component_key} className="mt-6" />
                 </details>
 
                 <div className="mt-4 flex gap-3">

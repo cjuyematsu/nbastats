@@ -178,7 +178,13 @@ Static / hardcoded data:
 - **Weekly articles are drafted in Claude Code** (grounded in DB queries, inserted as a
   `status='draft'` row, reviewed at /articles/review). An API-key-based pipeline
   (`npm run generate:article`) exists on the `article-pipeline` branch but is parked
-  because API calls bill per token instead of the Claude plan.
+  because API calls bill per token instead of the Claude plan. Workflow-drafted articles
+  carry a public "How this article was made" disclosure (`ArticleMethodology.tsx`, gated by
+  `lib/articleMethodology.ts`); the three legacy `/analysis/*` component articles
+  (`growth-of-nba`, `draft-points`, `salary-vs-points`) are hand-built and excluded. The
+  copy must never claim Basketball Reference verification of article figures (only the
+  dataset was spot-checked) — it claims stats are computed by generated scripts, not
+  written from memory, which is auditable and true.
 
 ## Conventions
 
@@ -230,6 +236,20 @@ Static / hardcoded data:
   generate:percentiles` after changing them). Coverage was measured off the raw
   `data/PlayerStatistics.csv` game logs. `scripts/generate-playoff-risers.ts` still has its own
   `DETAIL_RELIABLE_FROM=1971` + 75% coverage rule for that one article.
+- **Two corrupt-row traps in `regularseasonstats`.** `PlayerAge` is garbage for some players
+  (Bill Laimbeer's ENTIRE career stores `SeasonYear - 1901`, so 80 in 1981 through 93 in 1994;
+  also Corey Williams at 15/16, Bob Schafer at 51) — filter to a sane age range rather than
+  trusting it. And a handful of player-seasons sum past 82 games from merged identities
+  (Cooper 1983 = 97, Greg Smith 1974 = 140); drop above **88**, not 82, since a traded player
+  legitimately exceeds 82 and 88 is the single-season record (Bellamy, 1968-69).
+  `scripts/generate-duo-breakup-data.ts` guards both.
+- **Charting a subgroup against a league-wide baseline is a lie.** The duo-breakup age curve
+  first plotted high-scoring breakup players against the average of ALL players their age;
+  since better scorers decline faster, the subgroup sat below the baseline everywhere and the
+  chart implied a large effect the matched statistic said was ~0. When a chart shows a group
+  vs an expectation, the expectation must be computed **over that same group** (matched on the
+  same covariates), so the visible gap equals the reported excess. Assert that reconciliation
+  in the generator.
 - **Daily challenges are LA-date seeded.** `lib/dailySeed.ts` (deterministic RNG),
   `lib/rankingDaily.ts` and `lib/oddManOutDaily.ts` (client-side generated dailies from
   `regularseasonstats` / `teammates`), `lib/dailyProgress.ts` (cross-game completion +

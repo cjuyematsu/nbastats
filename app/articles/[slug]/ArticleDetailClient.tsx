@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import ComponentArticle from '@/app/articles/_components/ComponentArticle';
 import ArticleEngagement from '@/app/articles/_components/ArticleEngagement';
 import ArticleSources from '@/app/articles/_components/ArticleSources';
+import ArticleMethodology from '@/app/articles/_components/ArticleMethodology';
 import { parseSources } from '@/lib/articleSources';
 import AdSlot from '@/components/AdSlot';
 import ExploreNext from '@/components/ExploreNext';
@@ -87,6 +88,8 @@ export default function ArticleDetailClient({
         )}
 
         <ArticleSources sources={parseSources(article.sources)} className="mt-10" />
+
+        <ArticleMethodology componentKey={article.component_key} className="mt-8" />
 
         <ExploreNext
           heading="Keep exploring"

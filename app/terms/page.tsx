@@ -88,6 +88,13 @@ export default function TermsPage() {
               the underlying records, the Site hides it rather than showing a number we cannot stand behind.
             </p>
             <p className="mt-3">
+              Our weekly articles are drafted by an automated workflow that pairs our own box score database with
+              current NBA storylines. The statistics in them are computed directly from that database by generated
+              data scripts rather than written from memory, and a person reviews and edits every article before it is
+              published. Each of those articles carries a note describing this. The interactive analysis pages, which
+              predate that workflow, were built by hand and carry no such note.
+            </p>
+            <p className="mt-3">
               The Site&apos;s design, text, and original features are owned by Hoops Data. You may share links to the
               Site and use our embeddable widgets with the provided attribution, but you may not republish the
               Site&apos;s original content as your own.
