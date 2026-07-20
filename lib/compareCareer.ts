@@ -4,7 +4,7 @@
 // and CompareCareerTable (client table) so the two never drift.
 
 import { CareerStatsData } from '@/types/stats';
-import { isCareerStatReliable, type PercentileKey } from '@/lib/percentiles';
+import { isCareerStatDisplayable, type PercentileKey } from '@/lib/percentiles';
 
 export interface CompareTableRow {
   key: string;
@@ -31,18 +31,19 @@ export const COMPARE_TABLE_ROWS: CompareTableRow[] = [
   { key: 'ts_pct', label: 'True Shooting %', get: (s) => s.ts_pct, format: pct, eraKey: 'ts_pct' },
 ];
 
-// The comparable numeric value for leader math: null when the player is
-// missing the stat OR it predates reliable era-wide data (so it never leads).
+// The comparable numeric value for leader math: null when the player is missing
+// the stat, it predates reliable era-wide data, OR its make/attempt pair doesn't
+// hold together (so a 1300% shooter never wins a comparison).
 export function compareRowValue(row: CompareTableRow, stats: CareerStatsData | null): number | null {
   if (!stats) return null;
-  if (row.eraKey && !isCareerStatReliable(stats.startYear, row.eraKey)) return null;
+  if (row.eraKey && !isCareerStatDisplayable(stats, row.eraKey)) return null;
   return row.get(stats) ?? null;
 }
 
-// Display text for a cell: a dash for era-unreliable stats, "N/A" for a stat the
-// player otherwise lacks, else the formatted value.
+// Display text for a cell: a dash for era-unreliable or self-contradictory
+// stats, "N/A" for a stat the player otherwise lacks, else the formatted value.
 export function compareRowText(row: CompareTableRow, stats: CareerStatsData | null): string {
-  if (stats && row.eraKey && !isCareerStatReliable(stats.startYear, row.eraKey)) return '-';
+  if (stats && row.eraKey && !isCareerStatDisplayable(stats, row.eraKey)) return '-';
   const v = compareRowValue(row, stats);
   return v != null ? row.format(v) : 'N/A';
 }

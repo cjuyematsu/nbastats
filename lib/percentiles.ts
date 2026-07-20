@@ -223,6 +223,95 @@ export function isSeasonStatReliable(
   return from == null || (seasonYear ?? 0) >= from;
 }
 
+// ---------------------------------------------------------------------------
+// Self-consistency gates
+//
+// The era gates above are statistical: they assume a stat is trustworthy once
+// its era logged it well enough. Individual rows still violate that assumption,
+// because PlayerStatistics.csv sometimes records makes for a game while leaving
+// attempts at zero. The season then sums to more makes than attempts and the
+// stored percentage exceeds 100% -- Eddie Johnson's 1984-85 3P% is 13/1, or
+// 1300%, and it clears the 1983 three-point gate.
+//
+// These cases are missing data, not wrong data: the makes reconcile against
+// points and FGM. So we blank the percentage and the attempts and keep the
+// makes, rather than inventing an attempt count from an outside source.
+//
+// FT% is the reason this cannot be folded into the era table: free-throw
+// attempts are complete in every era, so FT% carries no gate at all, yet 61
+// rows still record more makes than attempts.
+
+// A make/attempt pair is self-consistent when makes don't exceed attempts.
+// Null means "not reported", which contradicts nothing. (0 makes on 0 attempts
+// is consistent; any makes on 0 attempts is not.)
+export function isShootingPairConsistent(
+  made: number | null | undefined,
+  attempted: number | null | undefined,
+): boolean {
+  if (made == null || attempted == null) return true;
+  return made <= attempted;
+}
+
+// Which make/attempt pairs each stat depends on. eFG% mixes field goals and
+// threes; TS% uses field-goal and free-throw attempts.
+type ShootingGroup = 'fg' | 'fg3' | 'ft';
+const STAT_DEPENDS_ON: Partial<Record<PercentileKey, ShootingGroup[]>> = {
+  fg_pct: ['fg'],
+  fgm_total: ['fg'],
+  fg3_pct: ['fg3'],
+  fg3m_total: ['fg3'],
+  ft_pct: ['ft'],
+  ftm_total: ['ft'],
+  efg_pct: ['fg', 'fg3'],
+  ts_pct: ['fg', 'ft'],
+};
+
+// Whether a stat's underlying make/attempt pairs hold together. Accepts either
+// the career shape (lowercase, from the RPCs) or a season row (PascalCase).
+export function isStatSelfConsistent(
+  stats: ShootingTotals | null | undefined,
+  key: PercentileKey,
+): boolean {
+  const groups = STAT_DEPENDS_ON[key];
+  if (!groups || !stats) return true;
+  const pairs: Record<ShootingGroup, [unknown, unknown]> = {
+    fg: [stats.fgm_total ?? stats.FGM_total, stats.fga_total ?? stats.FGA_total],
+    fg3: [stats.fg3m_total ?? stats.FG3M_total, stats.fg3a_total ?? stats.FG3A_total],
+    ft: [stats.ftm_total ?? stats.FTM_total, stats.fta_total ?? stats.FTA_total],
+  };
+  return groups.every((g) => {
+    const [made, att] = pairs[g];
+    return isShootingPairConsistent(made as number | null, att as number | null);
+  });
+}
+
+// Both shapes the app reads stats in, so one predicate serves career and season.
+export type ShootingTotals = Partial<{
+  fgm_total: number | null; fga_total: number | null;
+  fg3m_total: number | null; fg3a_total: number | null;
+  ftm_total: number | null; fta_total: number | null;
+  FGM_total: number | null; FGA_total: number | null;
+  FG3M_total: number | null; FG3A_total: number | null;
+  FTM_total: number | null; FTA_total: number | null;
+}>;
+
+// Convenience: era gate AND self-consistency, which is what every display site
+// actually wants before showing a value.
+export function isCareerStatDisplayable(
+  stats: (ShootingTotals & { startYear?: number | null }) | null | undefined,
+  key: PercentileKey,
+): boolean {
+  return isCareerStatReliable(stats?.startYear, key) && isStatSelfConsistent(stats, key);
+}
+
+export function isSeasonStatDisplayable(
+  seasonYear: number | null | undefined,
+  stats: ShootingTotals | null | undefined,
+  key: PercentileKey,
+): boolean {
+  return isSeasonStatReliable(seasonYear, key) && isStatSelfConsistent(stats, key);
+}
+
 // Self-contained display labels ("3rd all-time" for the top 25, "98.72th
 // percentile" otherwise) for a player's career averages AND totals in one
 // scope, or null when the player doesn't qualify at all. Pass the stats object

@@ -4,8 +4,10 @@ import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
 import {
   compactPercentileLabel,
+  isCareerStatDisplayable,
   isCareerStatReliable,
-  isSeasonStatReliable,
+  isSeasonStatDisplayable,
+  isStatSelfConsistent,
   FG_FROM,
   type PercentileKey,
 } from '@/lib/percentiles';
@@ -21,6 +23,12 @@ export interface SeasonRow {
   AST_per_g: number | null;
   FG_PCT: number | null;
   FG3_PCT: number | null;
+  // Makes/attempts aren't displayed, but the percentages above are only shown
+  // when their pair holds together (see isSeasonStatDisplayable).
+  FGM_total: number | null;
+  FGA_total: number | null;
+  FG3M_total: number | null;
+  FG3A_total: number | null;
 }
 
 const formatStat = (value: number | string | null | undefined, decimalPlaces: number = 1): string => {
@@ -104,8 +112,8 @@ export function SeasonBySeasonTable({ seasons }: { seasons: SeasonRow[] }) {
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.PTS_per_g)}</td>
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.TRB_per_g)}</td>
                 <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{formatStat(s.AST_per_g)}</td>
-                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatReliable(s.SeasonYear, 'fg_pct') ? formatPercentage(s.FG_PCT) : '-'}</td>
-                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatReliable(s.SeasonYear, 'fg3_pct') ? formatPercentage(s.FG3_PCT) : '-'}</td>
+                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatDisplayable(s.SeasonYear, s, 'fg_pct') ? formatPercentage(s.FG_PCT) : '-'}</td>
+                <td className={`${td} text-right font-mono text-slate-800 dark:text-slate-100`}>{isSeasonStatDisplayable(s.SeasonYear, s, 'fg3_pct') ? formatPercentage(s.FG3_PCT) : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -183,11 +191,14 @@ export function StatsTable({
     }
     const tableHeaderLabel = statType === "Totals" ? "Total" : "Average";
     const showPercentiles = percentiles != null;
-    // Players whose careers predate complete stat logging get a heads-up so the
-    // dashes below read as intentional, not missing data. FG_FROM (attempt logs
-    // reliable ~1980) is the broadest of the gates, so it catches everyone who
-    // has any dashed shooting row.
+    // Explain the dashes so they read as intentional, not as a broken page.
+    // Two things cause them: an era that didn't log the stat (FG_FROM, ~1980,
+    // is the broadest gate), or a row whose makes exceed its attempts, which
+    // happens to a handful of players in any era.
     const earlyEra = (stats.startYear ?? 9999) < FG_FROM;
+    const hasInconsistent = (['fg_pct', 'fg3_pct', 'ft_pct', 'efg_pct', 'ts_pct'] as const).some(
+      (k) => !isStatSelfConsistent(stats, k),
+    );
     return (
         <section className="mb-6">
             <h3 className="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100 border-b border-gray-200 dark:border-slate-600 pb-2 transition-colors duration-200">{title}</h3>
@@ -196,6 +207,13 @@ export function StatsTable({
                 Some stats from this player&apos;s era were not tracked or not fully logged
                 league-wide, so those rows show a dash. Points, rebounds, assists, free throws, and
                 games are complete for every era.
+              </p>
+            )}
+            {hasInconsistent && (
+              <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+                Some attempt counts are missing from the box scores behind these totals, which would
+                make the matching percentage read above 100%. Those show a dash instead. The makes
+                are shown as recorded.
               </p>
             )}
             <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-slate-600">
@@ -215,10 +233,19 @@ export function StatsTable({
                       {TOTAL_ROWS.map((row) => {
                         const reliable =
                           !row.percentileKey || isCareerStatReliable(stats.startYear, row.percentileKey);
+                        // When a make/attempt pair doesn't hold together, only the
+                        // attempts are suspect -- the makes reconcile against points.
+                        // Show "13 - -" rather than dropping a real total.
+                        const consistent =
+                          !row.percentileKey || isStatSelfConsistent(stats, row.percentileKey);
                         const value = !reliable
                           ? '-'
                           : row.fields
-                              .map((f) => (stats[f] as number | null)?.toLocaleString() ?? 'N/A')
+                              .map((f, i) =>
+                                !consistent && i > 0
+                                  ? '-'
+                                  : (stats[f] as number | null)?.toLocaleString() ?? 'N/A',
+                              )
                               .join(' - ');
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
@@ -241,7 +268,7 @@ export function StatsTable({
                       {AVERAGE_ROWS.map((row) => {
                         const raw = stats[row.field] as number | null;
                         const reliable =
-                          !row.percentileKey || isCareerStatReliable(stats.startYear, row.percentileKey);
+                          !row.percentileKey || isCareerStatDisplayable(stats, row.percentileKey);
                         const pct = row.percentileKey ? percentiles?.[row.percentileKey] : undefined;
                         return (
                           <tr key={row.label}>

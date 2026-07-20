@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { getLastRearrangementIso } from '@/lib/top100Time';
 import Top100PlayersClient from './Top100PlayersClient';
 import type { PlayerRankingInfo, RpcRankedPlayerData, TopPlayer } from './types';
+import { isShootingPairConsistent } from '@/lib/percentiles';
 
 export const revalidate = 3600;
 
@@ -62,6 +63,16 @@ interface AggregatedVotesRPCRow {
   sameSpotVotes: number;
 }
 
+// The only place percentages are divided client-side, so it needs the same
+// makes-vs-attempts guard the display layer applies elsewhere. A season that
+// logged makes against missing attempts (Wes Unseld's 2-of-1 from 1980-81)
+// would otherwise render above 100%.
+function shootingRate(made: number | null, attempted: number | null): number | null {
+  if (made == null || attempted == null || attempted <= 0) return null;
+  if (!isShootingPairConsistent(made, attempted)) return null;
+  return made / attempted;
+}
+
 function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
   const gamesPlayed = p.G ?? 0;
   const points = p.PTS_total ?? 0;
@@ -82,9 +93,9 @@ function rpcRowToTopPlayer(p: RpcRankedPlayerData): TopPlayer {
     assistsPerGame: gamesPlayed > 0 && p.AST_total != null ? p.AST_total / gamesPlayed : null,
     stealsPerGame: gamesPlayed > 0 && p.STL_total != null ? p.STL_total / gamesPlayed : null,
     blocksPerGame: gamesPlayed > 0 && p.BLK_total != null ? p.BLK_total / gamesPlayed : null,
-    fieldGoalPercentage: p.FGA_total != null && p.FGA_total > 0 && p.FGM_total != null ? p.FGM_total / p.FGA_total : null,
-    threePointPercentage: p.FG3A_total != null && p.FG3A_total > 0 && p.FG3M_total != null ? p.FG3M_total / p.FG3A_total : null,
-    freeThrowPercentage: p.FTA_total != null && p.FTA_total > 0 && p.FTM_total != null ? p.FTM_total / p.FTA_total : null,
+    fieldGoalPercentage: shootingRate(p.FGM_total, p.FGA_total),
+    threePointPercentage: shootingRate(p.FG3M_total, p.FG3A_total),
+    freeThrowPercentage: shootingRate(p.FTM_total, p.FTA_total),
     trueShootingPercentage,
     weightedProminence: p.statsBasedProminence ?? p.Prominence_rs ?? null,
     upvotes: 0,

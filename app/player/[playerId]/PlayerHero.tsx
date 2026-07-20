@@ -7,7 +7,12 @@
 import Image from 'next/image';
 import { CareerStatsData } from '@/types/stats';
 import { teamTimeline } from '@/lib/teamLogos';
-import { compactPercentileLabel, FG_FROM, type PercentileKey } from '@/lib/percentiles';
+import {
+  compactPercentileLabel,
+  isStatSelfConsistent,
+  FG_FROM,
+  type PercentileKey,
+} from '@/lib/percentiles';
 
 // FG%/3P%/TS% depend on shot attempts, which aren't fully logged before ~1980,
 // so the shooting row only shows for players whose career starts in FG_FROM+
@@ -68,6 +73,10 @@ export default function PlayerHero({
   const showShooting =
     (player.startYear ?? 0) >= FG_FROM &&
     (player.fg_pct != null || player.fg3_pct != null || player.ts_pct != null);
+  // A percentage whose make/attempt pair contradicts itself is dashed rather
+  // than shown -- these read as e.g. 1300% otherwise.
+  const shootingPct = (key: 'fg_pct' | 'fg3_pct' | 'ts_pct') =>
+    isStatSelfConsistent(player, key) ? pct(player[key]) : '-';
 
   const stints = teamTimeline(seasons);
   const lastYear = stints.length ? Math.max(...stints.map((s) => s.endYear)) : null;
@@ -93,9 +102,9 @@ export default function PlayerHero({
 
       {showShooting && (
         <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-          <StatTile value={pct(player.fg_pct)} label="FG%" sub={pctSub('fg_pct')} valueClass={SHOOTING_VALUE} />
-          <StatTile value={pct(player.fg3_pct)} label="3P%" sub={pctSub('fg3_pct')} valueClass={SHOOTING_VALUE} />
-          <StatTile value={pct(player.ts_pct)} label="TS%" sub={pctSub('ts_pct')} valueClass={SHOOTING_VALUE} />
+          <StatTile value={shootingPct('fg_pct')} label="FG%" sub={pctSub('fg_pct')} valueClass={SHOOTING_VALUE} />
+          <StatTile value={shootingPct('fg3_pct')} label="3P%" sub={pctSub('fg3_pct')} valueClass={SHOOTING_VALUE} />
+          <StatTile value={shootingPct('ts_pct')} label="TS%" sub={pctSub('ts_pct')} valueClass={SHOOTING_VALUE} />
         </div>
       )}
 
