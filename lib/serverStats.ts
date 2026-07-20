@@ -5,7 +5,7 @@
 // React cache() so it dedupes per request.
 
 import { cache } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { CareerStatsData, PlayerSuggestion } from '@/types/stats';
 import type { DuoRow } from '@/lib/duos';
 import { findMatchup, parseCompareSlug, buildCompareSlug } from '@/app/data/compareMatchups';
@@ -19,33 +19,25 @@ export type ResolvedPlayer = {
 };
 
 export const getPlayerByName = cache(async (name: string): Promise<ResolvedPlayer | null> => {
-  try {
-    const { data } = await supabase.rpc('get_player_suggestions', { search_term: name });
-    const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
-    if (!p) return null;
-    const { data: s } = await supabase.rpc('calculate_player_career_stats', { p_person_id: p.personId });
-    return { suggestion: p, stats: s && s.length > 0 ? (s[0] as CareerStatsData) : null };
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabaseAdmin.rpc('get_player_suggestions', { search_term: name });
+  if (error) throw new Error(`getPlayerByName(${name}): ${error.message}`);
+  const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
+  if (!p) return null;
+  const { data: s, error: sErr } = await supabaseAdmin.rpc('calculate_player_career_stats', { p_person_id: p.personId });
+  if (sErr) throw new Error(`getPlayerByName(${name}) stats: ${sErr.message}`);
+  return { suggestion: p, stats: s && s.length > 0 ? (s[0] as CareerStatsData) : null };
 });
 
 export const getCareerStats = cache(async (personId: number): Promise<CareerStatsData | null> => {
-  try {
-    const { data } = await supabase.rpc('calculate_player_career_stats', { p_person_id: personId });
-    return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabaseAdmin.rpc('calculate_player_career_stats', { p_person_id: personId });
+  if (error) throw new Error(`getCareerStats(${personId}): ${error.message}`);
+  return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
 });
 
 export const getPlayoffStats = cache(async (personId: number): Promise<CareerStatsData | null> => {
-  try {
-    const { data } = await supabase.rpc('calculate_player_career_playoff_stats', { p_person_id: personId });
-    return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabaseAdmin.rpc('calculate_player_career_playoff_stats', { p_person_id: personId });
+  if (error) throw new Error(`getPlayoffStats(${personId}): ${error.message}`);
+  return data && data.length > 0 ? (data[0] as CareerStatsData) : null;
 });
 
 export type ResolvedDuo = {
@@ -55,27 +47,25 @@ export type ResolvedDuo = {
 };
 
 export const getDuoData = cache(async (nameA: string, nameB: string): Promise<ResolvedDuo | null> => {
-  try {
-    const resolve = async (name: string) => {
-      const { data } = await supabase.rpc('get_player_suggestions', { search_term: name });
-      const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
-      return p ? { id: p.personId, name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim() } : null;
-    };
-    const [a, b] = await Promise.all([resolve(nameA), resolve(nameB)]);
-    if (!a || !b) return null;
+  const resolve = async (name: string) => {
+    const { data, error } = await supabaseAdmin.rpc('get_player_suggestions', { search_term: name });
+    if (error) throw new Error(`getDuoData resolve(${name}): ${error.message}`);
+    const p = data && data.length > 0 ? (data[0] as PlayerSuggestion) : null;
+    return p ? { id: p.personId, name: `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim() } : null;
+  };
+  const [a, b] = await Promise.all([resolve(nameA), resolve(nameB)]);
+  if (!a || !b) return null;
 
-    const lo = Math.min(a.id, b.id);
-    const hi = Math.max(a.id, b.id);
-    const { data } = await supabase
-      .from('teammates')
-      .select('*')
-      .eq('PlayerID', lo)
-      .eq('TeammateID', hi)
-      .maybeSingle();
-    return { a, b, row: (data as DuoRow) ?? null };
-  } catch {
-    return null;
-  }
+  const lo = Math.min(a.id, b.id);
+  const hi = Math.max(a.id, b.id);
+  const { data, error } = await supabaseAdmin
+    .from('teammates')
+    .select('*')
+    .eq('PlayerID', lo)
+    .eq('TeammateID', hi)
+    .maybeSingle();
+  if (error) throw new Error(`getDuoData teammates(${lo},${hi}): ${error.message}`);
+  return { a, b, row: (data as DuoRow) ?? null };
 });
 
 // Resolve a /compare/<slug>, whether curated or an open (arbitrary) pair. Returns

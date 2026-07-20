@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getCareerStats, getPlayoffStats } from '@/lib/serverStats';
 import { StatsTable, SeasonBySeasonTable, type SeasonRow } from './PlayerStatsTables';
 import { ViewTeammatesButton } from './ViewTeammatesButton';
@@ -35,59 +35,55 @@ export function generateStaticParams() {
     .map((p) => ({ playerId: String(p.id) }));
 }
 
+// A real Supabase error propagates (500 -> Googlebot retries) instead of being
+// swallowed into an empty result that would cache a degraded page for 90 days.
 const getSeasonStats = cache(async (personId: number): Promise<SeasonRow[]> => {
-  try {
-    const { data } = await supabase
-      .from('regularseasonstats')
-      .select('SeasonYear, playerteamName, G, PTS_per_g, TRB_per_g, AST_per_g, FG_PCT, FG3_PCT')
-      .eq('personId', personId)
-      .order('SeasonYear');
-    return (data as SeasonRow[]) ?? [];
-  } catch {
-    return [];
-  }
+  const { data, error } = await supabaseAdmin
+    .from('regularseasonstats')
+    // The makes/attempts totals aren't displayed; the percentages are gated on
+    // those pairs holding together (see isSeasonStatDisplayable).
+    .select('SeasonYear, playerteamName, G, PTS_per_g, TRB_per_g, AST_per_g, FG_PCT, FG3_PCT, FGM_total, FGA_total, FG3M_total, FG3A_total')
+    .eq('personId', personId)
+    .order('SeasonYear');
+  if (error) throw new Error(`getSeasonStats(${personId}): ${error.message}`);
+  return (data as SeasonRow[]) ?? [];
 });
 
 const getDraftRow = cache(async (personId: number) => {
-  try {
-    const { data } = await supabase
-      .from('draft')
-      .select('Year, Round, Pick, "School/Club Team"')
-      .eq('playerId', personId)
-      .maybeSingle();
-    return data;
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabaseAdmin
+    .from('draft')
+    .select('Year, Round, Pick, "School/Club Team"')
+    .eq('playerId', personId)
+    .maybeSingle();
+  if (error) throw new Error(`getDraftRow(${personId}): ${error.message}`);
+  return data;
 });
 
 // Pairs in the teammates table are stored once (lower id first), so both
 // orientations have to be queried to get everyone this player played with.
 const getTopTeammates = cache(async (personId: number) => {
-  try {
-    const [asPlayer, asTeammate] = await Promise.all([
-      supabase
-        .from('teammates')
-        .select('TeammateID, TeammateName, SharedGamesTotal')
-        .eq('PlayerID', personId)
-        .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
-        .limit(8),
-      supabase
-        .from('teammates')
-        .select('PlayerID, PlayerName, SharedGamesTotal')
-        .eq('TeammateID', personId)
-        .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
-        .limit(8),
-    ]);
-    const rows = [
-      ...(asPlayer.data ?? []).map((r) => ({ id: r.TeammateID, name: r.TeammateName, games: r.SharedGamesTotal ?? 0 })),
-      ...(asTeammate.data ?? []).map((r) => ({ id: r.PlayerID, name: r.PlayerName ?? '', games: r.SharedGamesTotal ?? 0 })),
-    ].filter((r) => r.name);
-    rows.sort((a, b) => b.games - a.games);
-    return rows.slice(0, 8);
-  } catch {
-    return [];
-  }
+  const [asPlayer, asTeammate] = await Promise.all([
+    supabaseAdmin
+      .from('teammates')
+      .select('TeammateID, TeammateName, SharedGamesTotal')
+      .eq('PlayerID', personId)
+      .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
+      .limit(8),
+    supabaseAdmin
+      .from('teammates')
+      .select('PlayerID, PlayerName, SharedGamesTotal')
+      .eq('TeammateID', personId)
+      .order('SharedGamesTotal', { ascending: false, nullsFirst: false })
+      .limit(8),
+  ]);
+  if (asPlayer.error) throw new Error(`getTopTeammates(${personId}) asPlayer: ${asPlayer.error.message}`);
+  if (asTeammate.error) throw new Error(`getTopTeammates(${personId}) asTeammate: ${asTeammate.error.message}`);
+  const rows = [
+    ...(asPlayer.data ?? []).map((r) => ({ id: r.TeammateID, name: r.TeammateName, games: r.SharedGamesTotal ?? 0 })),
+    ...(asTeammate.data ?? []).map((r) => ({ id: r.PlayerID, name: r.PlayerName ?? '', games: r.SharedGamesTotal ?? 0 })),
+  ].filter((r) => r.name);
+  rows.sort((a, b) => b.games - a.games);
+  return rows.slice(0, 8);
 });
 
 export async function generateMetadata({
