@@ -18,6 +18,18 @@ import type { Database } from '../types/supabase';
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
 
+// supabase-js constructs a RealtimeClient eagerly, which needs a native WebSocket.
+// On Node < 22 that throws deep inside websocket-factory with a stack trace that
+// gives no hint the real problem is the runtime version. Fail early and clearly.
+const nodeMajor = Number(process.versions.node.split('.')[0]);
+if (nodeMajor < 22) {
+  throw new Error(
+    `Node ${process.versions.node} is too old: supabase-js needs native WebSocket (Node 22+).\n` +
+      `Run this script under a newer runtime, e.g.:\n` +
+      `  nvm use 24 && npm run refresh:teammates -- --apply`,
+  );
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl) throw new Error('NEXT_PUBLIC_SUPABASE_URL is required.');
@@ -34,12 +46,16 @@ const MAX_UPDATES = 200000;
 const MAX_INSERTS = 500;
 const MAX_DELETES = 40000;
 
-// Official statistical treatment: regular season and playoffs count. The
-// 2023-24 Cup group/knockout rows are typed 'NBA Emirates Cup' but count as
-// regular season; Cup FINALS ('Emirates NBA Cup', 'NBA Cup', 'in-season-knockout'),
-// Play-In, All-Star, and preseason do not. A game's type is resolved from its
-// typed rows because sparse roster rows sometimes carry an empty type.
-const INCLUDE_TYPES = new Set(['Regular Season', 'Playoffs', 'NBA Emirates Cup']);
+// Game type is classified by the FIRST DIGIT of gameId, never the `gameType`
+// column: that column carries 11 spellings (both 'Preseason' and 'Pre Season',
+// four NBA Cup variants) plus blanks, and sparse roster rows sometimes leave it
+// empty entirely.
+//   1=Preseason  2=Regular Season  3=All-Star  4=Playoffs  5=Play-In  6=Cup final
+// The graph models shared floor time, so Play-In and the Cup final count even
+// though the NBA excludes the latter from official regular-season stats.
+// Keep in sync with INCLUDED_GAME_ID_PREFIXES in the data repo's
+// new_method/pull_teammates.py, which is the source of truth for this table.
+const INCLUDED_GAME_ID_PREFIXES = new Set(['2', '4', '5', '6']);
 
 const APPLY = process.argv.includes('--apply');
 const dumpIdx = process.argv.indexOf('--dump');
@@ -59,7 +75,34 @@ const COL = {
   points: 16,
   assists: 17,
   reboundsTotal: 31,
+  comment: 37,
 } as const;
+
+// Positive evidence that a player actually appeared. Minutes alone are NOT enough:
+// ~94k rows (mostly 1940s-70s, when minutes went untracked) have numMinutes == 0
+// but real box-score production, so a minutes-only test erases the pre-1980 era.
+const APPEARANCE_STAT_COLS = [
+  16, // points
+  17, // assists
+  18, // blocks
+  19, // steals
+  20, // fieldGoalsAttempted
+  21, // fieldGoalsMade
+  23, // threePointersAttempted
+  26, // freeThrowsAttempted
+  31, // reboundsTotal
+  32, // foulsPersonal
+  33, // turnovers
+] as const;
+
+// A row counts as an appearance only when there is no DNP/DND/NWT comment AND
+// there is positive evidence of play.
+function didPlay(f: string[]): boolean {
+  const comment = (f[COL.comment] ?? '').trim();
+  if (comment !== '') return false;
+  if (Number(f[COL.numMinutes]) > 0) return true;
+  return APPEARANCE_STAT_COLS.some((i) => Number(f[i]) > 0);
+}
 
 function splitCsvLine(line: string): string[] {
   if (!line.includes('"')) return line.split(',');
@@ -107,6 +150,7 @@ interface TeamGame {
   ast: number[];
   reb: number[];
   played: boolean[];
+  gameId: string;
   dates: string[];
   maxDate: string; // postponed games repeat a gameId; only the final date's rows are real
   win: boolean;
@@ -118,7 +162,7 @@ interface TeamGame {
 interface PairAgg {
   g: number; // shared box-score games
   w: number; // wins in those games
-  pg: number; // games where BOTH logged minutes
+  pg: number; // shared games where BOTH appeared (equals g now that g is appearance-gated)
   cpts: number; // combined points across pg games
   cast: number; // combined assists across pg games
   creb: number; // combined rebounds across pg games
@@ -171,6 +215,7 @@ async function readCsv(): Promise<{
         ast: [],
         reb: [],
         played: [],
+        gameId,
         dates: [],
         maxDate: date,
         win: false,
@@ -191,7 +236,7 @@ async function readCsv(): Promise<{
     tg.pts.push(Number(f[COL.points]) || 0);
     tg.ast.push(Number(f[COL.assists]) || 0);
     tg.reb.push(Number(f[COL.reboundsTotal]) || 0);
-    tg.played.push(Number(f[COL.numMinutes]) > 0);
+    tg.played.push(didPlay(f));
     tg.dates.push(date);
   }
   console.log(`CSV: ${lineNo - 1} rows, ${teamGames.size} team-games, ${skipped} skipped.`);
@@ -202,15 +247,17 @@ function buildPairs(teamGames: Map<string, TeamGame>): Map<string, PairAgg> {
   const pairs = new Map<string, PairAgg>();
   let excludedGames = 0;
   for (const tg of teamGames.values()) {
-    if (!INCLUDE_TYPES.has(tg.type)) {
+    if (!INCLUDED_GAME_ID_PREFIXES.has(tg.gameId.charAt(0))) {
       excludedGames++;
       continue;
     }
     const n = tg.ids.length;
     for (let i = 0; i < n; i++) {
       if (tg.dates[i] !== tg.maxDate) continue;
+      if (!tg.played[i]) continue;
       for (let j = i + 1; j < n; j++) {
         if (tg.dates[j] !== tg.maxDate) continue;
+        if (!tg.played[j]) continue;
         const a = tg.ids[i];
         const b = tg.ids[j];
         if (a === b) continue;
@@ -224,19 +271,18 @@ function buildPairs(teamGames: Map<string, TeamGame>): Map<string, PairAgg> {
         }
         p.g++;
         if (tg.win) p.w++;
-        if (tg.played[i] && tg.played[j]) {
-          p.pg++;
-          p.cpts += tg.pts[i] + tg.pts[j];
-          p.cast += tg.ast[i] + tg.ast[j];
-          p.creb += tg.reb[i] + tg.reb[j];
-        }
+        // Both players are known to have appeared -- the loops above skip the rest.
+        p.pg++;
+        p.cpts += tg.pts[i] + tg.pts[j];
+        p.cast += tg.ast[i] + tg.ast[j];
+        p.creb += tg.reb[i] + tg.reb[j];
         p.teams.add(tg.team);
         if (tg.year < p.minY) p.minY = tg.year;
         if (tg.year > p.maxY) p.maxY = tg.year;
       }
     }
   }
-  console.log(`Excluded ${excludedGames} team-games (preseason/All-Star/Play-In/Cup finals).`);
+  console.log(`Excluded ${excludedGames} team-games (preseason/All-Star).`);
   return pairs;
 }
 
