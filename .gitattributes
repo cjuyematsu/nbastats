@@ -1,0 +1,13 @@
+# Generated artifacts: keep them out of GitHub's language stats and collapse
+# their diffs. Each is produced by a script, not written by hand.
+
+# Six Degrees teammate graph (see docs/ and scripts/refresh-teammates.ts)
+public/adjacency_list.json    linguist-generated=true
+public/player_map.json        linguist-generated=true
+
+# app/data/* written by scripts/generate-*.ts
+app/data/draftData.ts         linguist-generated=true
+app/data/playerDirectory.ts   linguist-generated=true
+app/data/statPercentiles.ts   linguist-generated=true
+app/data/playoffRisersData.ts linguist-generated=true
+app/data/duoBreakupData.ts    linguist-generated=true
