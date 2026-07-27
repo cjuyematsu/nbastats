@@ -35,6 +35,10 @@ const COMPONENTS: Record<string, ComponentType> = {
   'playoff-risers': dynamic(() => import('@/app/articles/_components/PlayoffRisersArticle'), {
     loading: Loading,
   }),
+  // ssr on: the career prose, stat tiles, and peer table must be in the initial HTML
+  'chris-paul': dynamic(() => import('@/app/articles/_components/ChrisPaulArticle'), {
+    loading: Loading,
+  }),
 };
 
 export default function ComponentArticle({ componentKey }: { componentKey: string | null }) {

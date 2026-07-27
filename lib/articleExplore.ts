@@ -64,6 +64,20 @@ const DEFAULT_ITEMS: ArticleExploreItem[] = [
 ];
 
 const REGISTRY: Record<string, ArticleExploreItem[]> = {
+  'chris-paul-retires-career-arc': [
+    { href: '/player/101108', title: 'Chris Paul', subtitle: 'Full career page' },
+    {
+      href: `/duos/${duoHref('Chris Paul', 'Blake Griffin')}`,
+      title: 'Paul and Griffin',
+      subtitle: 'The Lob City years',
+    },
+    {
+      href: '/compare?players=Chris%20Paul,John%20Stockton,Jason%20Kidd,Steve%20Nash',
+      title: 'Paul against the other great passers',
+      subtitle: 'Career stats side by side',
+    },
+    { href: '/players', title: 'Browse every player', subtitle: 'The full directory' },
+  ],
   'greatest-duos': [
     {
       href: `/duos/${duoHref('Michael Jordan', 'Scottie Pippen')}`,
