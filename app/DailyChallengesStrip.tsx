@@ -19,9 +19,28 @@ import {
 } from '@/lib/dailyProgress';
 import { computeDailyStreak } from '@/lib/dailyStreak';
 import { GAME_META } from '@/lib/dailyGames';
+import {
+  CareerArcIcon,
+  CommonTeammateIcon,
+  OddManOutIcon,
+  OverUnderGameIcon,
+  QuizIcon,
+  RankingGameIcon,
+  SixDegreesIcon,
+} from '@/components/GameIcons';
 import { readAllLocalStatOuDates } from '@/lib/statOuDaily';
 import { readAllLocalDailyResults } from '@/lib/sixDegreesDaily';
 import { computeSixDegreesStats } from '@/lib/sixDegreesStats';
+
+const GAME_ICONS: Record<DailyGame, () => React.ReactElement> = {
+  sixDegrees: SixDegreesIcon,
+  statOu: OverUnderGameIcon,
+  ranking: RankingGameIcon,
+  oddManOut: OddManOutIcon,
+  draftQuiz: QuizIcon,
+  careerArc: CareerArcIcon,
+  commonTeammate: CommonTeammateIcon,
+};
 
 const GAMES: { game: DailyGame; label: string; href: string }[] = DAILY_GAMES.map((game) => ({
   game,
@@ -69,11 +88,11 @@ export default function DailyChallengesStrip({
       {!mounted || !progress ? (
         <>
           <div className="h-7 w-64 mb-3 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
-          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-4 lg:grid-cols-7">
+          <div className="flex gap-3 overflow-x-hidden sm:grid sm:grid-cols-3 lg:grid-cols-4">
             {GAMES.map((g) => (
               <div
                 key={g.game}
-                className="min-w-[9rem] shrink-0 sm:min-w-0 h-[5.25rem] rounded-lg bg-slate-100 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 animate-pulse"
+                className="min-w-[9.5rem] shrink-0 sm:min-w-0 h-28 rounded-lg bg-slate-100 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 animate-pulse"
               />
             ))}
           </div>
@@ -99,24 +118,25 @@ export default function DailyChallengesStrip({
               completedText="New challenges are live. Refresh!"
             />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-4 lg:grid-cols-7 sm:overflow-visible sm:pb-0">
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
             {GAMES.map(({ game, label, href }) => {
               const isDone = progress[game];
               const streak = gameStreaks[game] ?? 0;
+              const Icon = GAME_ICONS[game];
               return (
                 <Link
                   key={game}
                   href={href}
                   onClick={() => track('daily_hub_click', { game })}
-                  className={`min-w-[9rem] shrink-0 sm:min-w-0 p-3 sm:p-4 rounded-lg border transition-all hover:shadow-md ${
+                  className={`min-w-[9.5rem] shrink-0 sm:min-w-0 p-3 sm:p-4 flex flex-col rounded-lg border transition-all hover:shadow-md ${
                     isDone
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 hover:border-green-400'
                       : 'bg-slate-50 dark:bg-slate-800 border-gray-200 dark:border-gray-700 hover:border-sky-400'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1">
-                    <span className="min-w-0 break-words text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      {label}
+                    <span className={isDone ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}>
+                      <Icon />
                     </span>
                     {isDone && (
                       <span className="shrink-0 leading-none text-green-600 dark:text-green-400 font-bold" aria-label="Done">
@@ -124,7 +144,10 @@ export default function DailyChallengesStrip({
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
+                  <span className="mt-2 text-sm font-semibold leading-tight text-slate-700 dark:text-slate-200">
+                    {label}
+                  </span>
+                  <div className="mt-auto pt-3 flex items-center gap-2">
                     {isDone ? (
                       <span className="text-xs font-medium text-green-700 dark:text-green-300">Done</span>
                     ) : (
