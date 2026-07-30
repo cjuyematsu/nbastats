@@ -148,6 +148,7 @@ $$;
 -- 3. Odd Man Out daily: three players who shared the court with the same star
 --    plus one who never did. players is a pre-shuffled JSON array of
 --    {FirstName, LastName}, matching get_odd_man_out_game_data.
+--    SUPERSEDED by odd-man-out-perf.sql (memoized per-date + index + anchor fix).
 create or replace function get_odd_man_out_daily(p_date date)
 returns table (
   players json,

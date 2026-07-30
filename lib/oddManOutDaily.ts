@@ -35,19 +35,6 @@ const splitName = (full: string) => {
   return { FirstName: full.slice(0, idx), LastName: full.slice(idx + 1) };
 };
 
-// null means the check itself failed; callers must abort rather than guess,
-// otherwise transient errors would hand different users different puzzles.
-async function areTeammates(anchor: string, candidate: string): Promise<boolean | null> {
-  const { data, error } = await supabase
-    .from('teammates')
-    .select('TeammateID')
-    .eq('PlayerName', anchor)
-    .eq('TeammateName', candidate)
-    .limit(1);
-  if (error) return null;
-  return !!data && data.length > 0;
-}
-
 export async function generateOddManOutDaily(
   laDate: string = getLaDateString()
 ): Promise<OddManOutDailyData | null> {
@@ -95,16 +82,19 @@ async function generateLocally(laDate: string): Promise<OddManOutDailyData | nul
         .slice(0, 3)
         .map((m) => m.TeammateName);
 
-      const oddCandidates = anchorOrder.filter((n) => n !== anchor && !mateNames.has(n));
-      let odd: string | null = null;
-      for (const candidate of oddCandidates.slice(0, 4)) {
-        const together = await areTeammates(anchor, candidate);
-        if (together === null) return null;
-        if (!together) {
-          odd = candidate;
-          break;
-        }
-      }
+      const oddCandidates = anchorOrder
+        .filter((n) => n !== anchor && !mateNames.has(n))
+        .slice(0, 4);
+      // abort on error rather than guess, otherwise transient errors would
+      // hand different users different puzzles
+      const { data: pairs, error: pairsError } = await supabase
+        .from('teammates')
+        .select('TeammateName')
+        .eq('PlayerName', anchor)
+        .in('TeammateName', oddCandidates);
+      if (pairsError) return null;
+      const pairedNames = new Set((pairs ?? []).map((p) => p.TeammateName));
+      const odd = oddCandidates.find((c) => !pairedNames.has(c)) ?? null;
       if (!odd) continue;
 
       return {

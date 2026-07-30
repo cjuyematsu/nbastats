@@ -31,7 +31,7 @@ enum GameStatus {
 
 const GAME_SESSION_CACHE_KEY = 'oddManOutGameSession_v1';
 const GUEST_STREAK_CACHE_KEY = 'oddManOutGuestStreak_v1';
-const MIN_LOADING_TIME_MS = 400;
+const MIN_LOADING_TIME_MS = 150;
 
 // Guest streaks moved from sessionStorage to localStorage so they survive
 // closing the tab; the old sessionStorage record is migrated once if present.
@@ -71,7 +71,7 @@ export default function OddManOutGame() {
         .from('odd_man_out_streaks')
         .select('current_streak, max_streak, is_active, total_correct, total_incorrect')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
         
       if (data) {
         setCurrentStreak(data.is_active ? data.current_streak : 0);
@@ -116,7 +116,7 @@ export default function OddManOutGame() {
     setUserGuessName(null);
     setMessage('');
 
-    await fetchUserStreak();
+    const streakPromise = fetchUserStreak();
 
     let dailyLoaded = false;
     let dailyPending = false;
@@ -164,11 +164,14 @@ export default function OddManOutGame() {
         sessionStorage.setItem(GAME_SESSION_CACHE_KEY, JSON.stringify(newGameData));
     }
     
+    // must settle before Playing: handleGuess derives newStreak from this state
+    await streakPromise;
+
     const elapsedTime = Date.now() - startTime;
     if (elapsedTime < MIN_LOADING_TIME_MS) {
         await new Promise(res => setTimeout(res, MIN_LOADING_TIME_MS - elapsedTime));
     }
-    
+
     setStatus(GameStatus.Playing);
 
   }, [supabase, fetchUserStreak]);
