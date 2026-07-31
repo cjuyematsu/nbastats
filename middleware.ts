@@ -32,6 +32,15 @@ const BOT_RE =
 const BLOCKED_BOT_RE =
   /(bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|headless)/i;
 
+// Scraper fingerprints from the 2026-07-30/31 disguised-crawler waves.
+// A bare-origin referer is always forged: browsers under an origin-only
+// referrer policy serialize it WITH a trailing slash, and same-site
+// navigations send the full path. A UA with no platform parenthetical after
+// Mozilla/5.0 is also never a real browser, but bingbot legitimately uses one
+// (hence the BOT_RE exemption where this is checked).
+const FORGED_REFERER = 'https://hoopsdata.net';
+const NO_PLATFORM_UA_RE = /^Mozilla\/5\.0 AppleWebKit/;
+
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
   try {
@@ -65,7 +74,10 @@ export function middleware(request: NextRequest) {
   const ua = request.headers.get('user-agent');
   const referer = request.headers.get('referer');
   const botMatch = ua ? ua.match(BOT_RE) : null;
-  const blocked = !!(ua && BLOCKED_BOT_RE.test(ua));
+  const forged =
+    referer === FORGED_REFERER ||
+    !!(ua && !botMatch && NO_PLATFORM_UA_RE.test(ua));
+  const blocked = !!(ua && BLOCKED_BOT_RE.test(ua)) || forged;
 
   // Router prefetches are speculative, not pageviews; don't log them.
   const isPrefetch =
