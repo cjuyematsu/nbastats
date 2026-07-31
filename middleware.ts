@@ -30,7 +30,7 @@ const BOT_RE =
 // GPTBot stays blocked: OpenAI training crawler, no citations, unlike
 // OAI-SearchBot/ChatGPT-User which pass.
 const BLOCKED_BOT_RE =
-  /(ahrefs|semrush|mj12bot|dotbot|bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|headless)/i;
+  /(bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|headless)/i;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
