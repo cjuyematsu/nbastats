@@ -17,6 +17,7 @@ const BLOCKED_BOTS = [
   'meta-webindexer',
   'Amzn-SearchBot',
   'GPTBot',
+  'ShapBot',
 ]
 
 export default function robots(): MetadataRoute.Robots {

@@ -30,7 +30,7 @@ const BOT_RE =
 // GPTBot stays blocked: OpenAI training crawler, no citations, unlike
 // OAI-SearchBot/ChatGPT-User which pass.
 const BLOCKED_BOT_RE =
-  /(bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|headless)/i;
+  /(bytespider|tiktokspider|petalbot|ccbot|amazonbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|meta-externalagent|meta-webindexer|amzn-searchbot|gptbot|shapbot|headless)/i;
 
 // Scraper fingerprints from the 2026-07-30/31 disguised-crawler waves.
 // A bare-origin referer is always forged: browsers under an origin-only
