@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      request_logs: {
+        Row: {
+          blocked: boolean
+          bot_name: string | null
+          country: string | null
+          created_at: string
+          id: number
+          ip_hash: string | null
+          is_bot: boolean
+          path: string
+          referer: string | null
+          referer_host: string | null
+          ua: string | null
+        }
+        Insert: {
+          blocked?: boolean
+          bot_name?: string | null
+          country?: string | null
+          created_at?: string
+          id?: number
+          ip_hash?: string | null
+          is_bot?: boolean
+          path: string
+          referer?: string | null
+          referer_host?: string | null
+          ua?: string | null
+        }
+        Update: {
+          blocked?: boolean
+          bot_name?: string | null
+          country?: string | null
+          created_at?: string
+          id?: number
+          ip_hash?: string | null
+          is_bot?: boolean
+          path?: string
+          referer?: string | null
+          referer_host?: string | null
+          ua?: string | null
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           author: string | null

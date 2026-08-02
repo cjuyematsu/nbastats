@@ -40,6 +40,14 @@ const BLOCKED_BOT_RE =
 // (hence the BOT_RE exemption where this is checked).
 const FORGED_REFERER = 'https://hoopsdata.net';
 const NO_PLATFORM_UA_RE = /^Mozilla\/5\.0 AppleWebKit/;
+// The only bots observed using a legitimate platformless UA. Anything else
+// self-naming inside one (ShapBot did, 2026-08-01, 8k renders) is a scraper.
+const PLATFORMLESS_OK_RE = /(bingbot|perplexitybot|chatgpt-user|oai-searchbot)/i;
+
+// Blocked traffic is enforced upstream by the Vercel WAF; what reaches here is
+// sampled so a 45k/day botnet doesn't mean 45k Supabase writes. Multiply
+// blocked row counts by 20 when reading request_logs.
+const BLOCKED_LOG_RATE = 0.05;
 
 function refererHost(referer: string | null): string | null {
   if (!referer) return null;
@@ -50,11 +58,22 @@ function refererHost(referer: string | null): string | null {
   }
 }
 
-async function logRequest(row: Record<string, unknown>) {
+async function hashIp(ip: string | null): Promise<string | null> {
+  const salt = process.env.IP_HASH_SALT;
+  if (!ip || !salt) return null;
+  const bytes = new TextEncoder().encode(salt + ip);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest).slice(0, 8))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function logRequest(ip: string | null, row: Record<string, unknown>) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return;
   try {
+    row.ip_hash = await hashIp(ip);
     await fetch(`${url}/rest/v1/request_logs`, {
       method: 'POST',
       headers: {
@@ -76,7 +95,7 @@ export function middleware(request: NextRequest) {
   const botMatch = ua ? ua.match(BOT_RE) : null;
   const forged =
     referer === FORGED_REFERER ||
-    !!(ua && !botMatch && NO_PLATFORM_UA_RE.test(ua));
+    !!(ua && NO_PLATFORM_UA_RE.test(ua) && !PLATFORMLESS_OK_RE.test(ua));
   const blocked = !!(ua && BLOCKED_BOT_RE.test(ua)) || forged;
 
   // Router prefetches are speculative, not pageviews; don't log them.
@@ -89,18 +108,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  waitUntil(
-    logRequest({
-      path: request.nextUrl.pathname,
-      referer,
-      referer_host: refererHost(referer),
-      ua,
-      is_bot: !!botMatch,
-      bot_name: botMatch ? botMatch[1] : null,
-      blocked,
-      country: request.headers.get('x-vercel-ip-country'),
-    }),
-  );
+  const logged = !blocked || Math.random() < BLOCKED_LOG_RATE;
+  if (logged) {
+    const ip =
+      request.headers.get('x-real-ip') ??
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+      null;
+    waitUntil(
+      logRequest(ip, {
+        path: request.nextUrl.pathname,
+        referer,
+        referer_host: refererHost(referer),
+        ua,
+        is_bot: !!botMatch,
+        bot_name: botMatch ? botMatch[1] : null,
+        blocked,
+        country: request.headers.get('x-vercel-ip-country'),
+      }),
+    );
+  }
 
   if (blocked) {
     return new NextResponse(null, { status: 403 });

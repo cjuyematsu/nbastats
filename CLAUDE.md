@@ -202,10 +202,29 @@ Static / hardcoded data:
 - **SEO**: per-route `metadata`, plus `app/sitemap.ts` and `app/robots.ts` — update these
   when adding public routes.
 
+## Bot mitigation
+
+Two enforcement layers. **Vercel WAF** (dashboard > project > Firewall, since 2026-08-01) is
+primary: a deny rule on the always-forged bare-origin `Referer: https://hoopsdata.net` (with a
+1h persistent IP block), a deny rule mirroring the named-crawler list, and the Bot Protection
+managed ruleset (challenges fake-browser clients; verified bots exempt). WAF denials cost
+nothing and are invisible to `request_logs`. **`middleware.ts`** is the backstop and the
+logger: `BLOCKED_BOT_RE` deny-list, forged-referer + platformless-UA fingerprints (platformless
+UAs pass only for the `PLATFORMLESS_OK_RE` bots: bingbot/perplexity/chatgpt-user/oai-searchbot),
+and a `request_logs` write per request, with blocked rows sampled 1-in-20 (multiply by 20).
+`ip_hash` = salted SHA-256 prefix of the client IP (`IP_HASH_SALT`, set in Vercel + `.env.local`).
+THREE lists must stay hand-synced: `middleware.ts` `BLOCKED_BOT_RE`, `app/robots.ts`
+`BLOCKED_BOTS`, the WAF named-crawler rule (plus `scripts/log-stats.mjs` `KNOWN` for reporting).
+Analyze traffic with `node scripts/log-stats.mjs`; DDL + 30-day pg_cron retention in
+`scripts/sql/request-logs.sql`. AI search crawlers (OAI-SearchBot, ChatGPT-User, PerplexityBot)
+are deliberately allowed for citations; GPTBot (training) is not. The AI-bots managed ruleset
+stays OFF because it is deny-all-AI.
+
 ## Environment & secrets
 
 - `.env` — public, client-exposed: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- `.env.local` — server-only: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `PRODUCTION_URL`.
+- `.env.local` — server-only: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `PRODUCTION_URL`,
+  `IP_HASH_SALT`.
 - **Never import the service-role key into a client component** or expose it via a
   `NEXT_PUBLIC_*` var — it bypasses row-level security. Use it only in server routes/jobs.
 

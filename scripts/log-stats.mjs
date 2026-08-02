@@ -27,7 +27,7 @@ const rows = [];
 let offset = 0;
 while (true) {
   const r = await fetch(
-    `${url}/rest/v1/request_logs?select=path,ua,is_bot,bot_name,blocked,created_at&created_at=gte.${since}&order=created_at.asc&limit=1000&offset=${offset}`,
+    `${url}/rest/v1/request_logs?select=path,ua,is_bot,bot_name,blocked,ip_hash,created_at&created_at=gte.${since}&order=created_at.asc&limit=1000&offset=${offset}`,
     { headers: { apikey: key, Authorization: `Bearer ${key}` } }
   );
   if (!r.ok) { console.error('HTTP', r.status, await r.text()); process.exit(1); }
@@ -40,7 +40,9 @@ while (true) {
 console.log(`rows since ${since}: ${rows.length}`);
 const unblocked = rows.filter(r => !r.blocked);
 const blocked = rows.filter(r => r.blocked);
-console.log(`unblocked (paid renders): ${unblocked.length}, blocked (403, middleware-only cost): ${blocked.length}`);
+// Blocked rows are sampled 1-in-20 by the middleware since 2026-08-01, and the
+// Vercel WAF denies most bad traffic before middleware sees it at all.
+console.log(`unblocked (paid renders): ${unblocked.length}, blocked rows: ${blocked.length} (~${blocked.length * 20} reqs at 1-in-20 sampling; WAF denials not logged)`);
 
 function top(list, fn, n = 15) {
   const c = {};
@@ -48,7 +50,7 @@ function top(list, fn, n = 15) {
   return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, n);
 }
 const seg = p => '/' + (p || '').split('/')[1];
-const KNOWN = /(googlebot|google-inspectiontool|googleother|adsbot|mediapartners|bingbot|applebot|duckduck|perplexitybot|oai-searchbot|chatgpt-user|gptbot|claudebot|claude-user|amzn-searchbot|amazonbot|meta-webindexer|meta-externalagent|bytespider|ahrefsbot|semrushbot|mj12bot|dotbot|petalbot|yandex|headlesschrome|facebookexternalhit)/i;
+const KNOWN = /(googlebot|google-inspectiontool|googleother|adsbot|mediapartners|bingbot|applebot|duckduck|perplexitybot|oai-searchbot|chatgpt-user|gptbot|claudebot|claude-user|amzn-searchbot|amazonbot|meta-webindexer|meta-externalagent|bytespider|shapbot|ahrefsbot|semrushbot|mj12bot|dotbot|petalbot|tiktokspider|ccbot|dataforseo|blexbot|serpstat|zoominfo|barkrowler|yandex|headlesschrome|facebookexternalhit)/i;
 const uaShort = u => {
   if (!u) return '(none)';
   const hit = u.match(KNOWN);
@@ -63,6 +65,11 @@ console.log('\n== UNBLOCKED BOT ua x segment (top 20) ==');
 for (const [k, v] of top(unblocked.filter(r => r.is_bot), r => uaShort(r.ua) + '  ' + seg(r.path), 20)) console.log(String(v).padStart(6), k);
 console.log('\n== BLOCKED by UA ==');
 for (const [k, v] of top(blocked, r => uaShort(r.ua), 10)) console.log(String(v).padStart(6), k);
+const uniq = list => new Set(list.map(r => r.ip_hash).filter(Boolean)).size;
+console.log('\n== unique client IPs (hashed; needs IP_HASH_SALT deployed) ==');
+console.log(`unblocked: ${uniq(unblocked)}, blocked (sampled): ${uniq(blocked)}`);
+console.log('\n== top hashed IPs by unblocked requests ==');
+for (const [k, v] of top(unblocked.filter(r => r.ip_hash), r => r.ip_hash, 10)) console.log(String(v).padStart(6), k);
 console.log('\n== per-hour volume (unblocked / blocked) ==');
 const byHour = {};
 for (const r of rows) { const h = r.created_at.slice(0, 13); byHour[h] ??= [0, 0]; byHour[h][r.blocked ? 1 : 0]++; }
