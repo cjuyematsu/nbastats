@@ -20,6 +20,10 @@ const BLOCKED_BOTS = [
   'ShapBot',
 ]
 
+// SEO link-index crawlers: middleware-allowed, but kept off the huge ISR
+// long tail (AhrefsBot deep-crawled /duos at ~140k req/day, 2026-08-01..03).
+const THROTTLED_BOTS = ['AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot']
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -27,6 +31,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: ['/api/', '/signin', '/signup', '/auth/'],
+      },
+      {
+        userAgent: THROTTLED_BOTS,
+        disallow: ['/duos/', '/compare/', '/player/', '/draft/', '/colleges/'],
+        crawlDelay: 10,
       },
       ...BLOCKED_BOTS.map((userAgent) => ({ userAgent, disallow: '/' })),
     ],

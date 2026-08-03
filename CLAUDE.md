@@ -215,6 +215,10 @@ and a `request_logs` write per request, with blocked rows sampled 1-in-20 (multi
 `ip_hash` = salted SHA-256 prefix of the client IP (`IP_HASH_SALT`, set in Vercel + `.env.local`).
 THREE lists must stay hand-synced: `middleware.ts` `BLOCKED_BOT_RE`, `app/robots.ts`
 `BLOCKED_BOTS`, the WAF named-crawler rule (plus `scripts/log-stats.mjs` `KNOWN` for reporting).
+A fourth, separate state exists: the SEO link-index crawlers (Ahrefs/Semrush/MJ12bot/DotBot)
+are middleware-ALLOWED but robots-throttled (`THROTTLED_BOTS` in `app/robots.ts`: long-tail
+dirs disallowed + Crawl-delay 10) since 2026-08-03, after AhrefsBot deep-crawled `/duos` at
+~140k req/day (96% of paid traffic, ~$2.50/day in ISR writes + renders vs a ~$0.60 baseline).
 Analyze traffic with `node scripts/log-stats.mjs`; DDL + 30-day pg_cron retention in
 `scripts/sql/request-logs.sql`. AI search crawlers (OAI-SearchBot, ChatGPT-User, PerplexityBot)
 are deliberately allowed for citations; GPTBot (training) is not. The AI-bots managed ruleset
