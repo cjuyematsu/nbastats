@@ -39,6 +39,10 @@ const COMPONENTS: Record<string, ComponentType> = {
   'chris-paul': dynamic(() => import('@/app/articles/_components/ChrisPaulArticle'), {
     loading: Loading,
   }),
+  // ssr on: leader tables and methodology text must be in the initial HTML
+  game7: dynamic(() => import('@/app/articles/_components/Game7Article'), {
+    loading: Loading,
+  }),
 };
 
 export default function ComponentArticle({ componentKey }: { componentKey: string | null }) {

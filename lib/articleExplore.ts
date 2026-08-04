@@ -78,6 +78,20 @@ const REGISTRY: Record<string, ArticleExploreItem[]> = {
     },
     { href: '/players', title: 'Browse every player', subtitle: 'The full directory' },
   ],
+  'game-7-performers': [
+    {
+      href: '/articles/playoff-risers',
+      title: 'The Biggest Playoff Risers in NBA History',
+      subtitle: 'The whole-postseason version of this question',
+    },
+    { href: '/player/2544', title: 'LeBron James', subtitle: 'Full career page' },
+    {
+      href: '/compare?players=Kevin%20Durant,LeBron%20James,Jerry%20West',
+      title: 'The Game 7 scoring leaders, side by side',
+      subtitle: 'Durant, LeBron, and West compared',
+    },
+    { href: '/players', title: 'Browse every player', subtitle: 'The full directory' },
+  ],
   'greatest-duos': [
     {
       href: `/duos/${duoHref('Michael Jordan', 'Scottie Pippen')}`,

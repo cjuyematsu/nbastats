@@ -273,6 +273,14 @@ stays OFF because it is deny-all-AI.
   vs an expectation, the expectation must be computed **over that same group** (matched on the
   same covariates), so the visible gap equals the reported excess. Assert that reconciliation
   in the generator.
+- **The game-log `seriesGameNumber` column lies.** For several 1986/1988/1992 playoff series
+  the numbers are shuffled across games (the 1992 Finals opener is labeled game 6; the "7.0"
+  in the 1986 Bucks-76ers series is really Game 3), and the 2026 first-round Game 1s store the
+  literal string "Game 1". Identify game N of a series by DATE order within the rebuilt
+  (season, team-pair) series, never by the column. Also, four pre-1988 playoff games
+  (48600054, 48300051, 48200035, 45200414) carry player stat rows from the wrong game while
+  their win flags are correct — trust the flag, not summed points, for who won.
+  `scripts/generate-game7-data.ts` guards all of this with asserts.
 - **Daily challenges are LA-date seeded.** `lib/dailySeed.ts` (deterministic RNG),
   `lib/rankingDaily.ts` and `lib/oddManOutDaily.ts` (client-side generated dailies from
   `regularseasonstats` / `teammates`), `lib/dailyProgress.ts` (cross-game completion +
