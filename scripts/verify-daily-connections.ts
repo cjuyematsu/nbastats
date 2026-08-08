@@ -1,10 +1,11 @@
 // scripts/verify-daily-connections.ts
 //
 // Audit every stored Six Degrees daily against the teammate graph: each
-// consecutive pair in solution_path_ids must be a real row in `teammates`, and
-// the path must start and end on the puzzle's own two players. Exits 1 if any
-// puzzle fails, so it works as a regression check after applying
-// scripts/sql/six-degrees-path-integrity.sql.
+// consecutive pair in solution_path_ids must be a real row in `teammates`, the
+// path must start and end on the puzzle's own two players, and the path must be
+// a SHORTEST one (a walkable-but-longer route shows players a worse solution
+// than the one they found). Exits 1 if any puzzle fails, so it works as a
+// regression check after applying scripts/sql/six-degrees-path-integrity.sql.
 //
 //   npm run verify:daily-connections
 //   npm run verify:daily-connections -- --limit 100
@@ -14,7 +15,7 @@
 
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
-import { pairKey, auditPath, type PairKey } from '../lib/sixDegreesPath';
+import { pairKey, auditPath, shortestPath, type PairKey } from '../lib/sixDegreesPath';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
@@ -36,19 +37,34 @@ async function getJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-async function loadEdges(): Promise<Set<PairKey>> {
+interface Graph {
+  edges: Set<PairKey>;
+  adjacency: Map<number, number[]>;
+}
+
+async function loadGraph(): Promise<Graph> {
   const edges = new Set<PairKey>();
+  const adjacency = new Map<number, number[]>();
+  const link = (a: number, b: number) => {
+    const list = adjacency.get(a);
+    if (list) list.push(b);
+    else adjacency.set(a, [b]);
+  };
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const rows = await getJson<{ PlayerID: number; TeammateID: number }[]>(
       `teammates?select=PlayerID,TeammateID&order=PlayerID.asc,TeammateID.asc` +
         `&offset=${offset}&limit=${PAGE_SIZE}`,
     );
-    for (const r of rows) edges.add(pairKey(r.PlayerID, r.TeammateID));
+    for (const r of rows) {
+      edges.add(pairKey(r.PlayerID, r.TeammateID));
+      link(r.PlayerID, r.TeammateID);
+      link(r.TeammateID, r.PlayerID);
+    }
     process.stdout.write(`\r  loaded ${edges.size} edges`);
     if (rows.length < PAGE_SIZE) break;
   }
   process.stdout.write('\n');
-  return edges;
+  return { edges, adjacency };
 }
 
 interface DailyRow {
@@ -63,7 +79,7 @@ interface DailyRow {
 
 async function main() {
   console.log('Loading teammate graph...');
-  const edges = await loadEdges();
+  const { edges, adjacency } = await loadGraph();
 
   console.log('Loading dailies...');
   const dailies: DailyRow[] = [];
@@ -92,7 +108,13 @@ async function main() {
     const namesMatch =
       (row.solution_path_ids?.length ?? 0) === (row.solution_path_names?.length ?? 0);
 
-    if (audit.ok && namesMatch) continue;
+    // Walkable is not enough: a stored 3-hop route over a 2-hop truth showed
+    // players a worse solution than the one they found ("Solved in 1 guess!"
+    // above a three-name path). The stored route must also be minimal.
+    const best = shortestPath(row.player_a_id, row.player_b_id, adjacency);
+    const minimal = best !== null && audit.degrees === best.length - 1;
+
+    if (audit.ok && namesMatch && minimal) continue;
 
     brokenLinkCount += audit.brokenLinks.length;
     const detail = audit.brokenLinks
@@ -106,6 +128,7 @@ async function main() {
       audit.endpointsOk ? null : 'endpoints do not match the puzzle',
       namesMatch ? null : 'ids and names differ in length',
       detail ? `not teammates: ${detail}` : null,
+      minimal ? null : `not minimal: stored ${audit.degrees} hops, shortest is ${best ? best.length - 1 : '?'}`,
     ].filter(Boolean);
     failures.push(`  ${row.game_date}  ${row.player_a_name} -> ${row.player_b_name}  [${reasons.join('; ')}]`);
   }
@@ -115,7 +138,7 @@ async function main() {
   console.log(`Stored path length: ${degrees.map(([d, n]) => `${d} degrees x${n}`).join(', ')}`);
 
   if (!failures.length) {
-    console.log('PASS: every stored solution path is walkable in the graph.');
+    console.log('PASS: every stored solution path is walkable and minimal.');
     return;
   }
 

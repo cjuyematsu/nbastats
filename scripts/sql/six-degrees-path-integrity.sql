@@ -14,13 +14,22 @@
 -- Knicks and the 2024 Raptors and were never once on the floor together. The
 -- generator will happily route a solution through that pair.
 --
+-- Second problem, found after the first fix shipped: the generator always emits
+-- a 3-hop route, but the true shortest path is 2 hops for 323 of 425 puzzles and
+-- 1 hop for one of them. So 76% of stored solutions were longer than necessary
+-- even once every link was real. A player who solved #425 in a single guess was
+-- shown a three-name "Solution", which reads as a broken game.
+--
 -- Approach: enforce the invariant at the TABLE boundary rather than rewriting
--- the generator's pair-selection logic. A BEFORE INSERT OR UPDATE trigger
--- recomputes the path by BFS over `teammates` whenever the incoming path is
--- absent, misaligned with the endpoints, or contains a non-edge. That holds no
--- matter what writes the row (pg_cron, the RPC, a manual insert), and it does
--- not disturb whatever difficulty and recognizability tuning the generator's
--- pair selection already does.
+-- the generator's pair-selection logic. A BEFORE INSERT OR UPDATE trigger always
+-- replaces solution_path_ids with a BFS shortest path over `teammates`. That
+-- holds no matter what writes the row (pg_cron, the RPC, a manual insert), and it
+-- does not disturb the generator's pair selection, only the route it claims
+-- between the pair.
+--
+-- The stored path must be BOTH walkable and minimal. Walkable alone is not
+-- enough: it still lets the game show an answer worse than the one the player
+-- found.
 --
 -- Depth cap is 6. The client's MAX_GUESSES is 6 and its win condition also
 -- accepts landing on a teammate of player_b, so a d-degree path needs d-1
@@ -136,11 +145,16 @@ begin
         select s.nb
           into v_prev
         from (
-          select case when t."PlayerID" = v_cur then t."TeammateID" else t."PlayerID" end as nb
+          select case when t."PlayerID" = v_cur then t."TeammateID" else t."PlayerID" end as nb,
+                 t."SharedGamesTotal" as shared
           from teammates t
           where t."PlayerID" = v_cur or t."TeammateID" = v_cur
         ) s
         where (v_depth ->> s.nb::text)::int = v_i
+        -- Every candidate at this depth yields an equally short path, so break the
+        -- tie on the beefiest teammate relationship: a link built over hundreds of
+        -- shared games reads as a real pairing, a three-game cameo does not.
+        order by s.shared desc nulls last
         limit 1;
 
         if v_prev is null then
@@ -160,9 +174,11 @@ begin
 end;
 $$;
 
--- Enforce the invariant on write. Repairs rather than rejects, because a broken
--- path is recoverable (the pair is fine, only the route through it is wrong) and
--- rejecting would leave the day with no puzzle at all.
+-- Enforce the invariant on write. The stored route is always recomputed rather
+-- than merely checked: an incoming path can be perfectly walkable and still be
+-- longer than the real answer, which is exactly what shipped the "solved in 1
+-- guess" / three-name-solution mismatch. Repairs rather than rejects, because the
+-- pair is always fine and only the route through it is wrong.
 create or replace function daily_connection_games_verify_path()
 returns trigger
 language plpgsql
@@ -170,17 +186,8 @@ security definer
 set search_path = public
 as $$
 declare
-  v_path bigint[] := new.solution_path_ids;
-  v_len  int := coalesce(array_length(v_path, 1), 0);
+  v_path bigint[];
 begin
-  if v_len >= 2
-     and v_path[1] = new.player_a_id
-     and v_path[v_len] = new.player_b_id
-     and six_degrees_path_is_valid(v_path)
-  then
-    return new;
-  end if;
-
   v_path := six_degrees_shortest_path(new.player_a_id, new.player_b_id, 6);
   if v_path is null then
     raise exception
@@ -232,15 +239,18 @@ begin
     order by d.game_date
   loop
     v_len := coalesce(array_length(r.solution_path_ids, 1), 0);
-    if v_len >= 2
+    v_new := six_degrees_shortest_path(r.player_a_id, r.player_b_id, 6);
+
+    -- Skip only when the stored route is already the shortest one. Walkable but
+    -- longer than necessary still counts as broken.
+    if v_new is not null
+       and v_len = array_length(v_new, 1)
        and r.solution_path_ids[1] = r.player_a_id
        and r.solution_path_ids[v_len] = r.player_b_id
        and six_degrees_path_is_valid(r.solution_path_ids)
     then
       continue;
     end if;
-
-    v_new := six_degrees_shortest_path(r.player_a_id, r.player_b_id, 6);
 
     puzzle_date := r.game_date;
     player_a := r.player_a_name;

@@ -167,9 +167,14 @@ re-run `--apply` to backfill.
 *same box score*, but `generate_connection_game` joined on (SeasonYear, team) = *same roster*,
 which admits pairs who never played together (Anunoby/Barrett were traded FOR each other: two
 shared 2024 team-seasons, zero games). That put an unwalkable link in 86 of 425 stored dailies.
-A trigger in `scripts/sql/six-degrees-path-integrity.sql` now BFS-recomputes any bad
-`solution_path_ids` on write; audit with `npm run verify:daily-connections`. **Never trust a
-stored solution path as proof of solvability** — verify it.
+A trigger in `scripts/sql/six-degrees-path-integrity.sql` now BFS-recomputes
+`solution_path_ids` on write (walkable AND minimal — the old generator's 3-hop routes were
+1-guessable 2-degree pairs 95% of the time), and
+`scripts/sql/six-degrees-generator.sql` rewrites `generate_connection_game` itself: real-edge
+picks, pairs at exactly 3 degrees, and `is_daily := true` refused for anon/authenticated
+(previously any visitor could regenerate the live daily). Audit with
+`npm run verify:daily-connections`. **Never trust a stored solution path as proof of
+solvability** — verify it.
 
 Static / hardcoded data:
 - `public/` — team logo PNGs and the Six Degrees graph JSON (`adjacency_list.json`,
