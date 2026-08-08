@@ -64,9 +64,12 @@ Routes: `compare/`, `player/[playerId]/`, `top-100-players/`, `degrees-of-separa
 ### A couple of API routes (server-side) do exist
 Most data flows client→Supabase, but `app/api/` holds the exceptions:
 - `app/api/degrees/route.ts` — **Six Degrees** BFS. Loads `public/adjacency_list.json`
-  (~4 MB) + `public/player_map.json` from disk, **caches them in module-level vars**
-  (`adjList`/`playerMap`), runs BFS (max 10 degrees), then enriches each hop from the
-  Supabase `teammates` table. The big JSON graph is a precomputed static asset, not in the DB.
+  (1.8 MB, 0.52 MB brotli over the wire) + `public/player_map.json` from disk, **caches them
+  in module-level vars** (`adjList`/`playerMap`), runs BFS (max 10 degrees), then enriches each
+  hop from the Supabase `teammates` table. The graph is a precomputed static asset, not in the
+  DB: **4,900 nodes, 142,949 undirected edges, avg degree 58.3, max degree 274 (Jeff Green),
+  diameter 9, fully connected** (so the 10-degree cap can never reject a real pair). Note this
+  route serves the free-play lookup ONLY; the daily game never calls it.
 - `app/api/quiz/save/route.ts` — upserts draft-quiz progress into `quiz_attempts`. It reads
   the `Authorization: Bearer <token>` header, verifies the user with Supabase, then writes as
   that user.
@@ -146,7 +149,7 @@ Notable tables: `regularseasonstats`, `playoffstats`, `draft`, `teammates`, `pla
 `stat_ou_daily_challenges`, `gamescores`. Domain TS interfaces (career/per-game stats,
 suggestions) live in `types/stats.ts`.
 
-`teammates` (~150k pair rows) is derived from the game-log dump `data/PlayerStatistics.csv`
+`teammates` (142,949 pair rows, matching the graph JSON exactly) is derived from the game-log dump `data/PlayerStatistics.csv`
 (not in git, ~390 MB): a shared game = both players in the same team's box score for a
 **regular season or playoff** game (preseason, All-Star, Play-In, and NBA Cup finals are
 excluded, matching official NBA stats — `INCLUDE_TYPES` in `scripts/refresh-teammates.ts`);
@@ -156,8 +159,17 @@ duo's combined per-game output over games BOTH logged minutes; null when they ne
 played), shown on `/duos`, `/duos/[slug]`, and the greatest-duos article cards.
 `npm run refresh:teammates` recomputes, diffs, and (with `--apply`) updates/inserts/deletes to
 sync the table after a new season's CSV lands; the exhibition-exclusion migration ran
-2026-07-06 (185,297 → 149,560 rows). Schema changes go in the Supabase SQL editor (no DB
-password in env), then hand-add columns to `types/supabase.ts` and re-run `--apply` to backfill.
+2026-07-06 (185,297 → 149,560 → 142,949 rows after later refreshes). Schema changes go in the
+Supabase SQL editor (no DB password in env), then hand-add columns to `types/supabase.ts` and
+re-run `--apply` to backfill.
+
+**Two definitions of "teammate" exist and only one is right**: the graph/`teammates` means
+*same box score*, but `generate_connection_game` joined on (SeasonYear, team) = *same roster*,
+which admits pairs who never played together (Anunoby/Barrett were traded FOR each other: two
+shared 2024 team-seasons, zero games). That put an unwalkable link in 86 of 425 stored dailies.
+A trigger in `scripts/sql/six-degrees-path-integrity.sql` now BFS-recomputes any bad
+`solution_path_ids` on write; audit with `npm run verify:daily-connections`. **Never trust a
+stored solution path as proof of solvability** — verify it.
 
 Static / hardcoded data:
 - `public/` — team logo PNGs and the Six Degrees graph JSON (`adjacency_list.json`,

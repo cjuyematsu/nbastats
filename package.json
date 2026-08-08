@@ -15,6 +15,7 @@
     "generate:game7": "tsx scripts/generate-game7-data.ts",
     "generate:percentiles": "NODE_OPTIONS=--experimental-websocket tsx scripts/generate-stat-percentiles.ts",
     "refresh:teammates": "tsx scripts/refresh-teammates.ts",
+    "verify:daily-connections": "tsx scripts/verify-daily-connections.ts",
     "indexnow:submit": "tsx scripts/indexnow-submit.ts"
   },
   "dependencies": {
