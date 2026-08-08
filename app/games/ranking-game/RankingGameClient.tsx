@@ -393,7 +393,7 @@ export default function RankingGame() {
               </button>
             </div>
             {isDailyRound && (
-              <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+              <div className="mt-8 w-full max-w-3xl mx-auto px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
                 <NextUpCard currentGame="ranking" className="mb-6" />
                 <DailyChallengesStrip className="" />
               </div>

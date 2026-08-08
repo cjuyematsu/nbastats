@@ -339,7 +339,7 @@ export default function DraftDailyClient() {
                 All draft quizzes
               </Link>
             </div>
-            <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+            <div className="mt-8 w-full max-w-3xl mx-auto px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
               <NextUpCard currentGame="draftQuiz" className="mb-6" />
               <DailyChallengesStrip className="" />
             </div>

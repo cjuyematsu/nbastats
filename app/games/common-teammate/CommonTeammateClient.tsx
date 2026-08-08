@@ -425,7 +425,7 @@ export default function CommonTeammateClient() {
                 completedText="New pairs are live. Refresh to play!"
               />
             </div>
-            <div className="mt-8 w-full max-w-3xl mx-auto border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+            <div className="mt-8 w-full max-w-3xl mx-auto pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
               <NextUpCard currentGame="commonTeammate" className="mb-6" />
               <DailyChallengesStrip className="" />
             </div>

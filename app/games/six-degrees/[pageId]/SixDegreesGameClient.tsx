@@ -578,7 +578,7 @@ function SixDegreesGameContent() {
 
                 {funnelRow}
             </div>
-            <div className="mt-8 w-full max-w-3xl px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+            <div className="mt-8 w-full max-w-3xl px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
                 <NextUpCard currentGame="sixDegrees" className="mb-6" />
                 <DailyChallengesStrip className="" />
             </div>

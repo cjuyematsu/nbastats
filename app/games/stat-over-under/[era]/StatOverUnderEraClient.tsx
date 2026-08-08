@@ -501,7 +501,7 @@ function StatOverUnderEraGameContent() {
               </div>)}
             <button onClick={handlePlayDifferentEra} className={`mt-8 inline-block px-6 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105 ${buttonSecondary} ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Play Different Era</button>
         </div>
-        <div className="mt-8 w-full max-w-3xl mx-auto px-4 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
+        <div className="mt-8 w-full max-w-3xl mx-auto px-4 pb-10 border-t border-gray-200 dark:border-gray-700 pt-8 text-left">
           <NextUpCard currentGame="statOu" className="mb-6" />
           <DailyChallengesStrip className="" />
         </div>
