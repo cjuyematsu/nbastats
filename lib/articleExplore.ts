@@ -92,6 +92,24 @@ const REGISTRY: Record<string, ArticleExploreItem[]> = {
     },
     { href: '/players', title: 'Browse every player', subtitle: 'The full directory' },
   ],
+  'scoring-consistency-index': [
+    {
+      href: '/articles/game-7-performers',
+      title: 'Game 7 Performers',
+      subtitle: 'The single-game pressure version of this question',
+    },
+    {
+      href: '/articles/playoff-risers',
+      title: 'The Biggest Playoff Risers in NBA History',
+      subtitle: 'Who changes level when the playoffs start',
+    },
+    {
+      href: '/compare?players=Kevin%20Garnett,Nick%20Van%20Exel',
+      title: 'Garnett against Van Exel',
+      subtitle: 'The two ends of the index, side by side',
+    },
+    { href: '/players', title: 'Browse every player', subtitle: 'The full directory' },
+  ],
   'greatest-duos': [
     {
       href: `/duos/${duoHref('Michael Jordan', 'Scottie Pippen')}`,

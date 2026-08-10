@@ -281,8 +281,10 @@ stays OFF because it is deny-all-AI.
   also Corey Williams at 15/16, Bob Schafer at 51) — filter to a sane age range rather than
   trusting it. And a handful of player-seasons sum past 82 games from merged identities
   (Cooper 1983 = 97, Greg Smith 1974 = 140); drop above **88**, not 82, since a traded player
-  legitimately exceeds 82 and 88 is the single-season record (Bellamy, 1968-69).
-  `scripts/generate-duo-breakup-data.ts` guards both.
+  legitimately exceeds 82 and 88 is the single-season record (Bellamy, 1968-69). The merged
+  identities exist in the game-log CSV too (6 player-seasons over 88 games);
+  `scripts/generate-scoring-consistency-data.ts` drops them and excludes those players from
+  streaks. (A `generate-duo-breakup-data.ts` was referenced here before but never existed.)
 - **Charting a subgroup against a league-wide baseline is a lie.** The duo-breakup age curve
   first plotted high-scoring breakup players against the average of ALL players their age;
   since better scorers decline faster, the subgroup sat below the baseline everywhere and the
@@ -290,6 +292,13 @@ stays OFF because it is deny-all-AI.
   vs an expectation, the expectation must be computed **over that same group** (matched on the
   same covariates), so the visible gap equals the reported excess. Assert that reconciliation
   in the generator.
+- **The game-log CSV is PARTIAL before 1954-55.** Distinct regular-season games logged for
+  1947-1954 run 18/24/81/122/198/204/216/252 against full schedules in the hundreds; from 1955
+  the counts match the real schedule (288 = 8 teams x 72 / 2). Season totals in the DB may
+  still be complete, but any per-game-derived stat (SD, streaks, game highs) must gate at 1955
+  (`MIN_SEASON` in `scripts/generate-scoring-consistency-data.ts`). A coverage ratio built from
+  max-player-games can NOT detect this (it shrinks with the log); compare absolute game counts
+  to known schedule lengths instead.
 - **The game-log `seriesGameNumber` column lies.** For several 1986/1988/1992 playoff series
   the numbers are shuffled across games (the 1992 Finals opener is labeled game 6; the "7.0"
   in the 1986 Bucks-76ers series is really Game 3), and the 2026 first-round Game 1s store the
