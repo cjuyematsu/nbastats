@@ -23,6 +23,8 @@ create table public.articles (
   status          text not null default 'draft'
                     check (status in ('draft', 'published', 'rejected')),
   generation_meta jsonb,
+  -- Retained for history only: no byline is displayed anywhere since 2026-08-11, and no
+  -- app code reads this column (the RPC below still returns it, unused).
   author          text default 'Hoops Data Staff',
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),

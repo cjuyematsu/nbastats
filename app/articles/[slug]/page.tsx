@@ -15,7 +15,7 @@ import ArticleDetailClient, { type Article } from './ArticleDetailClient';
 const getArticle = cache(async (slug: string): Promise<Article | null> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, slug, title, dek, summary, body_markdown, author, kind, component_key, published_at, updated_at, sources')
+    .select('id, slug, title, dek, summary, body_markdown, kind, component_key, published_at, updated_at, sources')
     .eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle();
@@ -69,7 +69,6 @@ export async function generateMetadata({
       description,
       publishedTime: article.published_at ?? undefined,
       modifiedTime: article.updated_at,
-      authors: [article.author || 'Hoops Data Staff'],
     },
     twitter: {
       card: 'summary_large_image',
@@ -93,7 +92,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     description: clampDescription(article.summary ?? article.dek),
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
-    author: { '@type': 'Person', name: article.author || 'Hoops Data Staff' },
     publisher: {
       '@type': 'Organization',
       name: 'HoopsData',

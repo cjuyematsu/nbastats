@@ -10,7 +10,6 @@ interface ForumRow {
   id: string;
   slug: string;
   title: string;
-  author: string | null;
   published_at: string | null;
   comment_count: number;
 }
@@ -61,8 +60,7 @@ export default function HomeForumLatest({ excludeSlug }: { excludeSlug?: string 
           >
             <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">{a.title}</h3>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              by {a.author || 'Hoops Data Staff'} · {a.comment_count}{' '}
-              {a.comment_count === 1 ? 'comment' : 'comments'}
+              {a.comment_count} {a.comment_count === 1 ? 'comment' : 'comments'}
             </p>
           </Link>
         ))}

@@ -6,7 +6,6 @@ export interface FeaturedArticle {
   slug: string;
   title: string;
   dek: string | null;
-  author: string | null;
   published_at: string | null;
   comment_count: number;
 }
@@ -59,8 +58,7 @@ export default function HomeFeaturedArticle({ article }: { article: FeaturedArti
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{article.dek}</p>
       )}
       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-        by {article.author || 'Hoops Data Staff'} &middot; {article.comment_count}{' '}
-        {article.comment_count === 1 ? 'comment' : 'comments'} &middot;{' '}
+        {article.comment_count} {article.comment_count === 1 ? 'comment' : 'comments'} &middot;{' '}
         <span className="font-medium text-sky-600 dark:text-sky-400">Read </span>
       </p>
     </Link>

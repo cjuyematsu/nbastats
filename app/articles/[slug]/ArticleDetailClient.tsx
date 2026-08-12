@@ -22,7 +22,6 @@ export interface Article {
   dek: string | null;
   summary: string | null;
   body_markdown: string;
-  author: string | null;
   kind: string;
   component_key: string | null;
   published_at: string | null;
@@ -60,11 +59,12 @@ export default function ArticleDetailClient({
             <p className="mt-2 text-lg text-gray-700 dark:text-gray-300">{article.dek}</p>
           )}
           <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              by {article.author || 'Hoops Data Staff'}
-            </span>
-            {article.published_at && <span> · Published {formatDate(article.published_at)}</span>}
-            {showUpdated && <span> · Updated {relativeTime(article.updated_at)}</span>}
+            {article.published_at && <span>Published {formatDate(article.published_at)}</span>}
+            {showUpdated && (
+              <span>
+                {article.published_at && ' · '}Updated {relativeTime(article.updated_at)}
+              </span>
+            )}
           </p>
         </header>
 

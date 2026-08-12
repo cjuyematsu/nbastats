@@ -33,7 +33,6 @@ async function loadFeaturedArticle(): Promise<FeaturedArticle | null> {
       slug: string;
       title: string;
       dek: string | null;
-      author: string | null;
       published_at: string | null;
       comment_count: number | null;
     }>;
@@ -45,7 +44,6 @@ async function loadFeaturedArticle(): Promise<FeaturedArticle | null> {
       slug: newest.slug,
       title: newest.title,
       dek: newest.dek ?? null,
-      author: newest.author ?? null,
       published_at: newest.published_at,
       comment_count: newest.comment_count ?? 0,
     };

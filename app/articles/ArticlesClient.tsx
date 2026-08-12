@@ -17,7 +17,6 @@ interface ForumRow {
   title: string;
   dek: string | null;
   summary: string | null;
-  author: string | null;
   kind: string;
   component_key: string | null;
   published_at: string | null;
@@ -184,9 +183,6 @@ export default function ArticlesClient() {
                     <p className="mt-1 text-gray-700 dark:text-gray-300">{a.dek || a.summary}</p>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      by {a.author || 'Hoops Data Staff'}
-                    </span>
                     {a.updated_at && <span>Updated {relativeTime(a.updated_at)}</span>}
                     <span>
                       {a.comment_count} {a.comment_count === 1 ? 'comment' : 'comments'}
