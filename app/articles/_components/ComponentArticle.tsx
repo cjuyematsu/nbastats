@@ -48,6 +48,10 @@ const COMPONENTS: Record<string, ComponentType> = {
     () => import('@/app/articles/_components/ScoringConsistencyArticle'),
     { loading: Loading },
   ),
+  // ssr on: leaderboards and methodology text must be in the initial HTML
+  'home-court': dynamic(() => import('@/app/articles/_components/HomeCourtArticle'), {
+    loading: Loading,
+  }),
 };
 
 export default function ComponentArticle({ componentKey }: { componentKey: string | null }) {
